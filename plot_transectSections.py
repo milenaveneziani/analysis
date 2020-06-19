@@ -32,20 +32,20 @@ earthRadius = 6367.44
 #climoyearEnd = 177
 #modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
 #
-#casename = 'E3SM-LRdeck-historical1' # no spaces
-#casename = 'E3SM-LRtunedHR' # no spaces
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
-#climoyearStart = 26
-#climoyearEnd = 55
-#modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
-#
-casename = 'E3SM-HR' # no spaces
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
-maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
+casename = 'E3SM-LRdeck-historical1' # no spaces
+casename = 'E3SM-LRtunedHR' # no spaces
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
 climoyearStart = 26
 climoyearEnd = 55
-modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
+modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
+#
+#casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
+#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
+#climoyearStart = 26
+#climoyearEnd = 55
+#modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
 
 modelfile = '{}/mpaso_ANN_{:04d}01_{:04d}12_climo.nc'.format(
              modeldir, climoyearStart, climoyearEnd)
