@@ -16,7 +16,6 @@ import cmocean
 
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
-from mpas_analysis.ocean.utility import compute_zmid
 
 from geometric_features import FeatureCollection, read_feature_collection
 
@@ -54,8 +53,7 @@ maxLevelCell = dsRestart.maxLevelCell
 nVertLevels = dsRestart.sizes['nVertLevels']
 vertIndex = xarray.DataArray.from_dict(
     {'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
-depthMask = np.array([vertIndex < maxLevelCell])
-depthMask = np.transpose(np.squeeze(depthMask))
+depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
 if os.path.exists(regionMaskFile):
     dsRegionMask = xarray.open_dataset(regionMaskFile)
@@ -66,11 +64,26 @@ else:
     raise IOError('No regional mask file found')
 
 startYear = 1
-endYear = 1
-#endYear = 200
+endYear = 200
 calendar = 'gregorian'
 
-variables = [{'name': 'salinity',
+variables = [{'name': 'ohc',
+              'title': 'OHC',
+              'units': 'x10$^{22}$ J',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'colormap': cmocean.cm.balance,
+              'clevels': [-2.4, -0.8, -0.4, -0.2, 0, 0.2, 0.4, 0.8, 2.4],
+              'colorIndices': [0, 28, 57, 85, 113, 142, 170, 198, 227, 255],
+              'fac': 1e-22*1026.0*3996.0}, # 1e-22*rho0*cp (where rho0=config_density0 and cp=config_specific_heat_sea_water)
+             {'name': 'temperature',
+              'title': 'Temperature',
+              'units': '$^\circ$C',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'colormap': cmocean.cm.balance,
+              'clevels': [-2.0, -1.0, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1.0, 2.0],
+              'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
+              'fac': 1},
+             {'name': 'salinity',
               'title': 'Salinity',
               'units': 'psu',
               'mpas': 'timeMonthly_avg_activeTracers_salinity',
@@ -78,30 +91,6 @@ variables = [{'name': 'salinity',
               'clevels': [-1.0, -0.5, -0.2, -0.1, -0.02, 0, 0.02, 0.1, 0.2, 0.5, 1.0],
               'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
               'fac': 1}]
-#variables = [{'name': 'ohc',
-#              'title': 'OHC',
-#              'units': 'x10$^{22}$ J',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-#              'colormap': cmocean.cm.balance,
-#              'clevels': [-2.4, -0.8, -0.4, -0.2, 0, 0.2, 0.4, 0.8, 2.4],
-#              'colorIndices': [0, 28, 57, 85, 113, 142, 170, 198, 227, 255],
-#              'fac': 1e-22*1026.0*3996.0}, # 1e-22*rho0*cp (where rho0=config_density0 and cp=config_specific_heat_sea_water)
-#             {'name': 'temperature',
-#              'title': 'Temperature',
-#              'units': '$^\circ$C',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-#              'colormap': cmocean.cm.balance,
-#              'clevels': [-2.0, -1.0, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1.0, 2.0],
-#              'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
-#              'fac': 1},
-#             {'name': 'salinity',
-#              'title': 'Salinity',
-#              'units': 'psu',
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-#              'colormap': cmocean.cm.balance,
-#              'clevels': [-1.0, -0.5, -0.2, -0.1, -0.02, 0, 0.02, 0.1, 0.2, 0.5, 1.0],
-#              'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
-#              'fac': 1}]
 
 startDate = '{:04d}-01-01_00:00:00'.format(startYear)
 endDate = '{:04d}-12-31_23:59:59'.format(endYear)
@@ -110,8 +99,7 @@ years = range(startYear, endYear + 1)
 variableList = [var['mpas'] for var in variables] + \
     ['timeMonthly_avg_layerThickness']
 
-#timeSeriesFile0 = '{}/T_S_OHCtrends_vsdepth'.format(outdir)
-timeSeriesFile0 = '{}/test'.format(outdir)
+timeSeriesFile0 = '{}/OHC_T_S_trends_vsdepth'.format(outdir)
 
 # Compute regional averages one year at a time
 for year in years:
@@ -119,7 +107,7 @@ for year in years:
     timeSeriesFile = '{}_year{:04d}.nc'.format(timeSeriesFile0, year)
 
     if not os.path.exists(timeSeriesFile):
-        print('Computing regional time series for year={}'.format(year))
+        print('\nComputing regional time series for year={}'.format(year))
 
         datasets = []
         for month in range(1, 13):
@@ -137,26 +125,25 @@ for year in years:
         # combine data sets into a single data set
         dsIn = xarray.concat(datasets, 'Time')
 
-        # Global layer thickness and cell volumes
+        # Global depth-masked layer thickness and layer volume
         layerThickness = dsIn.timeMonthly_avg_layerThickness
-        layerThickness = layerThickness.where(depthMask)
-        volCell = areaCell*layerThickness
+        layerThickness = layerThickness.where(depthMask, drop=False)
+        layerVol = areaCell*layerThickness
 
         datasets = []
         regionIndices = []
         for regionName in regionNames:
             print('    region: {}'.format(regionName))
 
-            # Compute area/volume of region and, for regionName
+            # Compute region total area and, for regionName
             # other than Global, compute regional mask and
-            # regionally masked areaCell and thickness arrays
+            # regionally masked layer volume
             if regionName=='Global':
                 regionIndices.append(nRegions-1)
 
                 totalArea = areaCell.sum()
-                totalVol = volCell.sum(dim='nVertLevels').sum(dim='nCells')
-                print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
-                print('      totalVol (mil. km^3): {}'.format(1e-15*totalVol.values))
+                if year==years[0]:
+                    print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
             else:
                 regionIndex = regionNames.index(regionName)
                 regionIndices.append(regionIndex)
@@ -167,13 +154,15 @@ for year in years:
                     cellMask = np.logical_and(cellMask, openOceanMask)
 
                 localArea = areaCell.where(cellMask, drop=True)
-                localThickness = layerThickness.where(cellMask, drop=True)
                 totalArea = localArea.sum()
-                totalVol = (localArea*localThickness).sum(dim='nVertLevels').sum(dim='nCells')
-                print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
-                print('      totalVol (mil. km^3): {}'.format(1e-15*totalVol.values))
+                if year==years[0]:
+                    print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
+                localLayerVol = layerVol.where(cellMask, drop=True)
 
-            # Compute volume weigthed averages (or sums for OHC)
+            # Temporary dsOut (xarray dataset) containing results for
+            # all variables for one single region
+            dsOut = xarray.Dataset()
+            # Compute layer-volume weighted averages (or sums for OHC)
             for var in variables:
                 outName = var['name']
                 mpasVarName = var['mpas']
@@ -182,32 +171,27 @@ for year in years:
                 description = var['title']
 
                 timeSeries = dsIn[mpasVarName]
-                timeSeries = timeSeries.where(depthMask)
+                timeSeries = timeSeries.where(depthMask, drop=False)
                 if regionName=='Global':
-                    timeSeries = (areaCell*layerThickness*timeSeries).sum(dim='nCells')
+                    timeSeries = (layerVol*timeSeries).sum(dim='nCells')
                     if outName!='ohc':
-                        timeSeries = timeSeries / totalVol
+                        timeSeries = timeSeries / layerVol.sum(dim='nCells')
                 else:
                     timeSeries = timeSeries.where(cellMask, drop=True)
-                    print((localArea*timeSeries).sum(dim='nCells') / totalArea)
-                    timeSeries = (localArea*localThickness*timeSeries).sum(dim='nCells')
-                    print(timeSeries / totalVol)
+                    timeSeries = (localLayerVol*timeSeries).sum(dim='nCells')
                     if outName!='ohc':
-                        timeSeries = timeSeries / totalVol
+                        timeSeries = timeSeries / localLayerVol.sum(dim='nCells')
 
                 dsOut[outName] = factor*timeSeries
                 dsOut[outName].attrs['units'] = units
                 dsOut[outName].attrs['description'] = description
 
-            dsOut = xarray.Dataset()
             dsOut['totalArea'] = totalArea
             dsOut.totalArea.attrs['units'] = 'm^2'
-            dsOut['totalVol'] = totalVol
-            dsOut.totalVol.attrs['units'] = 'm^3'
 
             datasets.append(dsOut)
 
-        # combine data sets into a single data set
+        # Combine data sets into a single data set for all regions
         dsOut = xarray.concat(datasets, 'nRegions')
         dsOut['refBottomDepth'] = refBottomDepth
 
