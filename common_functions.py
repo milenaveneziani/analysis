@@ -596,6 +596,96 @@ def timeseries_analysis_plot_polar(dsvalues, N, title,
     return fig
 
 
+def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
+                    title, xlabel, ylabel, calendar, colorbarLabel=None,
+                    titleFontSize=None, figsize=(15, 6), dpi=None,
+                    firstYearXTicks=None, yearStrideXTicks=None, maxXTicks=20):
+    """
+    Plots Hovmoeller graph
+
+    Parameters
+    ----------
+    Time, z, field : numpy arrays
+
+    title : str
+        the title of the plot
+
+    xlabel, ylabel : str
+        axis labels
+
+    calendar : str
+        the calendar to use for formatting the time axis
+
+    titleFontSize : int, optional
+        the size of the title font
+
+    figsize : tuple of float, optional
+        the size of the figure in inches
+
+    dpi : int, optional
+        the number of dots per inch of the figure
+
+    firstYearXTicks : int, optional
+        The year of the first tick on the x axis.  By default, the first time
+        entry is the first tick.
+
+    yearStrideXTicks : int, optional
+        The number of years between x ticks. By default, the stride is chosen
+        automatically to have ``maxXTicks`` tick marks or fewer.
+
+    maxXTicks : int, optional
+        the maximum number of tick marks that will be allowed along the x axis.
+        This may need to be adjusted depending on the figure size and aspect
+        ratio.
+
+    Returns
+    -------
+    fig : ``matplotlib.figure.Figure``
+        The resulting figure
+    """
+    # Authors
+    # -------
+    # Milena Veneziani
+
+    if dpi is None:
+        dpi = 200
+    axis_font = {'size': 16}
+    if titleFontSize is None:
+        titleFontSize = 20
+    title_font = {'size': titleFontSize,
+                  'color': 'black',
+                  'weight': 'normal'}
+
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+
+    [x ,y] = np.meshgrid(Time, z)
+
+    cf = plt.contourf(x, y, field, cmap=colormap, norm=cnorm,
+                      levels=clevels, extend='both')
+    cbar = plt.colorbar(cf, orientation='vertical', spacing='uniform',
+                        aspect=9, ticks=clevels)
+#                        aspect=9, ticks=clevels, boundaries=clevels)
+    if colorbarLabel is not None:
+        cbar.set_label(colorbarLabel)
+
+    minDays = np.min(Time)
+    maxDays = np.max(Time)
+
+    if firstYearXTicks is not None:
+        minDays = date_to_days(year=firstYearXTicks, calendar=calendar)
+
+    plot_xtick_format(calendar, minDays, maxDays, maxXTicks,
+                      yearStride=yearStrideXTicks)
+
+    if title is not None:
+        plt.title(title, **title_font)
+    if xlabel is not None:
+        plt.xlabel(xlabel, **axis_font)
+    if ylabel is not None:
+        plt.ylabel(ylabel, **axis_font)
+
+    return fig
+
 def add_inset(fig, fc, latlonbuffer=45., polarbuffer=5., width=1.0,
               height=1.0, lowerleft=None, xbuffer=None, ybuffer=None,
               maxlength=1.):
