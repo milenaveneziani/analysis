@@ -21,17 +21,45 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import hovmoeller_plot, add_inset
 
-meshName = 'EC30to60E2r2'
-restartFile = '/compyfs/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-regionMaskFile = '/compyfs/vene705/mpas-region_masks/{}_oceanOHCRegions20201120.nc'.format(meshName)
-featureFile = '/compyfs/vene705/mpas-region_masks/oceanOHCRegions.geojson'
+# Settings for blues
+#meshName = 'EC30to60E2r2'
+#restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
+meshName = 'oEC60to30v3'
+restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/oEC60to30v3_60layer.170506.nc'.format(meshName)
+#meshName ='SOwISC12to60E2r4'
+#restartFile = '/home/ac.dcomeau/cryo/SOwISC12to60E2r4/ocean.SOwISC12to60E2r4.210107.nc'
 
+regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/oceanOHCRegions.geojson'
+
+#runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
+#runNameShort = 'JRA_POPvertMix_noSSSrestoring'
+#modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+#runName = '20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis'
+#runNameShort = 'v2_newICs.piControl.ne30pg2_EC30to60E2r2'
+#modeldir = '/lcrc/group/acme/ac.golaz/E3SM_simulations/20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis/archive/ocn/hist'
+#runName = '20201202_JRA_brokenAdv_EC30to60E2r2'
+#runNameShort = 'JRA_brokenAdv_EC30to60E2r2'
+#modeldir = '/lcrc/group/acme/ac.vanroekel/acme_scratch/anvil/20201202_JRA_brokenAdv_EC30to60E2r2/run'
+runName = '20200812_CORE_GMPAS-IAF.T62_oECv3_anvil'
+runNameShort = 'CORE_GMPAS-IAF.T62_oECv3'
+modeldir = '/lcrc/group/acme/ac.vanroekel/acme_scratch/anvil/20200812_CORE_GMPAS-IAF.T62_oECv3_anvil/run'
+#runName = 'SORRMr4.Btest'
+#runNameShort = 'SOwISC12to60E2r4.beta1'
+#modeldir = '/lcrc/group/acme/ac.dcomeau/scratch/anvil/20210120.A_WCYCL1850S_CMIP6.ne30pg2_SOwISC12to60E2r4.beta1.maptest.anvil/run'
+
+# Settings for compy
+#meshName = 'EC30to60E2r2'
+#restartFile = '/compyfs/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
+#regionMaskFile = '/compyfs/vene705/mpas-region_masks/{}_oceanOHCRegions20201120.nc'.format(meshName)
+#featureFile = '/compyfs/vene705/mpas-region_masks/oceanOHCRegions.geojson'
+#
 #modeldir = '/compyfs/zhen797/E3SM_simulations/20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist'
 #runName = '20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
 #runNameShort = 'alpha5_55_fallback'
-modeldir = '/compyfs/zhen797/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist/'
-runName = '20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
-runNameShort = 'alpha5_59_fallback'
+#modeldir = '/compyfs/zhen797/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist/'
+#runName = '20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
+#runNameShort = 'alpha5_59_fallback'
 
 outdir = './timeseries_data/{}'.format(runNameShort)
 if not os.path.isdir(outdir):
@@ -114,8 +142,10 @@ for year in years:
 
         datasets = []
         for month in range(1, 13):
-            inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
-                modeldir, runName, year, month)
+            #inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+            #    modeldir, runName, year, month)
+            inputFile = '{}/mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+                modeldir, year, month)
             if not os.path.exists(inputFile):
                 raise IOError('Input file: {} not found'.format(inputFile))
 
