@@ -23,12 +23,15 @@ from common_functions import hovmoeller_plot, add_inset
 
 meshName = 'EC30to60E2r2'
 restartFile = '/compyfs/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-regionMaskFile = '/compyfs/vene705/region_masks/{}_oceanOHCregions20201120.nc'.format(meshName)
-featureFile = '/compyfs/vene705/region_masks/oceanOHCregions20201120.geojson'
+regionMaskFile = '/compyfs/vene705/mpas-region_masks/{}_oceanOHCRegions20201120.nc'.format(meshName)
+featureFile = '/compyfs/vene705/mpas-region_masks/oceanOHCRegions.geojson'
 
-modeldir = '/compyfs/zhen797/E3SM_simulations/20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist'
-runName = '20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
-runNameShort = 'alpha5_55_fallback'
+#modeldir = '/compyfs/zhen797/E3SM_simulations/20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist'
+#runName = '20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
+#runNameShort = 'alpha5_55_fallback'
+modeldir = '/compyfs/zhen797/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist/'
+runName = '20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
+runNameShort = 'alpha5_59_fallback'
 
 outdir = './timeseries_data/{}'.format(runNameShort)
 if not os.path.isdir(outdir):
@@ -61,10 +64,10 @@ if os.path.exists(regionMaskFile):
     regionNames.append('Global')
     nRegions = np.size(regionNames)
 else:
-    raise IOError('No regional mask file found')
+    raise IOError('No regional mask file {} found'.format(regionMaskFile))
 
 startYear = 1
-endYear = 200
+endYear = 440
 calendar = 'gregorian'
 
 variables = [{'name': 'ohc',

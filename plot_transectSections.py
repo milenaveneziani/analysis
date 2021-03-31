@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 
-Plot vertical sections (Annual climatology),
+Plot vertical sections (annual and seasonal climatologies),
 given a certain transect mask
 
 """
@@ -10,6 +10,7 @@ given a certain transect mask
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 import os
+import glob
 import matplotlib as mpl
 mpl.use('Agg')
 import numpy as np
@@ -20,11 +21,12 @@ from matplotlib.colors import BoundaryNorm
 import cmocean
 import xarray as xr
 from netCDF4 import Dataset
-import glob
 from mpas_analysis.shared.io.utility import decode_strings
+import gsw
 
 earthRadius = 6367.44
 
+####### Settings for cori
 #casename = 'E3SM-Arctic-OSI_60to10' # no spaces
 #meshfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/meshes/ocean.ARRM60to10.180715.nc'
 #maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
@@ -32,13 +34,13 @@ earthRadius = 6367.44
 #climoyearEnd = 177
 #modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
 #
-casename = 'E3SM-LRdeck-historical1' # no spaces
-casename = 'E3SM-LRtunedHR' # no spaces
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
-climoyearStart = 26
-climoyearEnd = 55
-modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
+#casename = 'E3SM-LRdeck-historical1' # no spaces
+#casename = 'E3SM-LRtunedHR' # no spaces
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
+#climoyearStart = 26
+#climoyearEnd = 55
+#modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
 #
 #casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
@@ -47,36 +49,89 @@ modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCY
 #climoyearEnd = 55
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
 
-modelfile = '{}/mpaso_ANN_{:04d}01_{:04d}12_climo.nc'.format(
-             modeldir, climoyearStart, climoyearEnd)
+####### Settings for compy
+#casename = 'GM900'
+#meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#climoyearStart = 21
+#climoyearEnd = 40
+#modeldir = '/compyfs/vene705/E3SM_simulations/20210305.v2beta3GM900.piControl.ne30pg2_EC30to60E2r2.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
+#
+casename = 'alpha5_59'
+meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+climoyearStart = 281
+climoyearEnd = 300
+modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 
-# Options for transect names available in 'maskfile':
+seasons = ['JFM', 'JAS', 'ANN']
+
+## Options for transect names if maskfile=*_standardTransportSections.nc
 # "Africa-Ant", "Agulhas", "Antilles Inflow", "Barents Sea Opening", "Bering Strait", "Davis Strait",
 # "Drake Passage", "Florida-Bahamas", "Florida-Cuba", "Fram Strait", "Indonesian Throughflow",
 # "Lancaster Sound", "Mona Passage", "Mozambique Channel", "Nares Strait", "Tasmania-Ant", "Windward Passage"
+## Options for transect names if maskfile=*_arcticSections.nc
+# "Barents Sea Opening", "Bering Strait", "Davis Strait", "Denmark Strait", "Fram Strait", 
+# "Hudson Bay-Labrador Sea", "Iceland-Faroe-Scotland", "Lancaster Sound", "Nares Strait",
+# "OSNAP section East", "OSNAP section West"
 #transectNames = ['all']
-transectNames = ['Fram Strait']
+transectNames = ['OSNAP section East', 'OSNAP section West']
 
 # Figure details
-figdir = './verticalSections'
+figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
     os.mkdir(figdir)
 figsize = (10, 6)
 figdpi = 300
-colorIndices = [0, 10, 28, 57, 85, 113, 142, 170, 198, 227, 242, 255]
-clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 8.0, 12.]
-clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 35.0, 35.5, 36.0]
+colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
+#clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 8.0, 12.]
+#clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 35.0, 35.5, 36.0]
+clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
+clevelsS = [31.0, 33.0, 33.5, 33.8, 34.2, 34.6, 34.8, 34.85, 34.9, 34.95, 35.0, 35.2, 35.5]
 clevelsV = [-0.2, -0.15, -0.1, -0.05, -0.02, 0.0, 0.02, 0.05, 0.1, 0.15, 0.2]
 colormapT = plt.get_cmap('RdBu_r')
 colormapS = cmocean.cm.haline
 colormapV = plt.get_cmap('RdBu_r')
 #colormapV = cmocean.cm.balance
+#
+underColor = colormapT(colorIndices0[0])
+overColor = colormapT(colorIndices0[-1])
+if len(clevelsT) + 1 == len(colorIndices0):
+    # we have 2 extra values for the under/over so make the colormap
+    # without these values
+    colorIndices = colorIndices0[1:-1]
+elif len(clevelsT) - 1 != len(colorIndices0):
+    # indices list must be either one element shorter
+    # or one element longer than colorbarLevels list
+    raise ValueError('length mismatch between indices and '
+                     'T colorbarLevels')
 colormapT = cols.ListedColormap(colormapT(colorIndices))
+colormapT.set_under(underColor)
+colormapT.set_over(overColor)
+underColor = colormapS(colorIndices0[0])
+overColor = colormapS(colorIndices0[-1])
+if len(clevelsS) + 1 == len(colorIndices0):
+    # we have 2 extra values for the under/over so make the colormap
+    # without these values
+    colorIndices = colorIndices0[1:-1]
+elif len(clevelsS) - 1 != len(colorIndices0):
+    # indices list must be either one element shorter
+    # or one element longer than colorbarLevels list
+    raise ValueError('length mismatch between indices and '
+                     'S colorbarLevels')
 colormapS = cols.ListedColormap(colormapS(colorIndices))
+colormapS.set_under(underColor)
+colormapS.set_over(overColor)
 colormapV = cols.ListedColormap(colormapV(colorIndices))
+#
 cnormT = mpl.colors.BoundaryNorm(clevelsT, colormapT.N)
 cnormS = mpl.colors.BoundaryNorm(clevelsS, colormapS.N)
 cnormV = mpl.colors.BoundaryNorm(clevelsV, colormapV.N)
+
+#sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
+sigma2contours = None
+sigma0contours = np.arange(26.0, 28.0, 0.2)
+#sigma0contours = None
 
 # Load in MPAS mesh and transect mask file
 mesh = xr.open_dataset(meshfile)
@@ -90,10 +145,10 @@ if transectNames[0]=='all' or transectNames[0]=='StandardTransportSectionsRegion
 z = mesh.refBottomDepth.values
 nlevels = len(z)
 
-# Load in T, S, and normalVelocity for each transect, and plot them
 nTransects = len(transectNames)
 maxEdges = mask.dims['maxEdgesInTransect']
 for n in range(nTransects):
+    # Identify transect
     transectName = transectNames[n]
     transectIndex = allTransects.index(transectName)
     print('Plotting sections for transect: ', transectName)
@@ -167,111 +222,139 @@ for n in range(nTransects):
     #print('latCell0=', 180/np.pi*mesh.latCell.sel(nCells=cellsOnEdge1-1).values)
     #print('lonCell1=', 180/np.pi*mesh.lonCell.sel(nCells=cellsOnEdge2-1).values)
     #print('latCell1=', 180/np.pi*mesh.latCell.sel(nCells=cellsOnEdge2-1).values)
+    latmean = 180.0/np.pi*np.nanmean(latEdges)
+    lonmean = 180.0/np.pi*np.nanmean(lonEdges)
+    pressure = gsw.p_from_z(-z, latmean)
 
-    ncid = Dataset(modelfile, 'r')
-    # Load in normalVelocity (on edge centers)
-    if 'timeMonthly_avg_normalTransportVelocity' in ncid.variables.keys():
-        vel = ncid.variables['timeMonthly_avg_normalTransportVelocity'][0, transectEdges-1, :]
-    elif 'timeMonthly_avg_normalVelocity' in ncid.variables.keys():
-        vel = ncid.variables['timeMonthly_avg_normalVelocity'][0, transectEdges-1, :]
-        if 'timeMonthly_avg_normalGMBolusVelocity' in ncid.variables.keys():
-            vel += ncid.variables['timeMonthly_avg_normalGMBolusVelocity'][0, transectEdges-1, :]
-    else:
-        raise KeyError('no appropriate normalVelocity variable found')
-    # Load in T and S (on cellsOnEdge centers)
-    tempOnCell1 = ncid.variables['timeMonthly_avg_activeTracers_temperature'][0, cellsOnEdge1-1, :]
-    tempOnCell2 = ncid.variables['timeMonthly_avg_activeTracers_temperature'][0, cellsOnEdge2-1, :]
-    saltOnCell1 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge1-1, :]
-    saltOnCell2 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge2-1, :]
-    ncid.close()
-    # Mask T,S values that fall on land and topography
-    tempOnCell1 = np.ma.masked_array(tempOnCell1, ~cellMask1)
-    tempOnCell2 = np.ma.masked_array(tempOnCell2, ~cellMask2)
-    saltOnCell1 = np.ma.masked_array(saltOnCell1, ~cellMask1)
-    saltOnCell2 = np.ma.masked_array(saltOnCell2, ~cellMask2)
-    # Interpolate T,S values onto edges
-    temp = np.nanmean(np.array([tempOnCell1, tempOnCell2]), axis=0)
-    salt = np.nanmean(np.array([saltOnCell1, saltOnCell2]), axis=0)
-    # Mask V values that fall on land and topography
-    vel = np.ma.masked_array(vel, ~edgeMask)
-    # Get normalVelocity direction
-    normalVel = vel*edgeSigns[:, np.newaxis]
+    # Load in T, S, and normalVelocity for each season, and plot them
+    for s in seasons:
+        print('   season: ', s)
+        modelfile = glob.glob('{}/mpaso_{}_{:04d}??_{:04d}??_climo.nc'.format(
+                    modeldir, s, climoyearStart, climoyearEnd))[0]
+        ncid = Dataset(modelfile, 'r')
+        # Try loading in normalVelocity (on edge centers)
+        try:
+            vel = ncid.variables['timeMonthly_avg_normalVelocity'][0, transectEdges-1, :]
+            if 'timeMonthly_avg_normalGMBolusVelocity' in ncid.variables.keys():
+                vel += ncid.variables['timeMonthly_avg_normalGMBolusVelocity'][0, transectEdges-1, :]
+        except:
+            print('*** normalVelocity variable not found: skipping it...')
+            vel = None
+        # Load in T and S (on cellsOnEdge centers)
+        tempOnCell1 = ncid.variables['timeMonthly_avg_activeTracers_temperature'][0, cellsOnEdge1-1, :]
+        tempOnCell2 = ncid.variables['timeMonthly_avg_activeTracers_temperature'][0, cellsOnEdge2-1, :]
+        saltOnCell1 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge1-1, :]
+        saltOnCell2 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge2-1, :]
+        ncid.close()
 
-    zmax = z[np.max(maxLevelEdge)]
+        # Mask T,S values that fall on land and topography
+        tempOnCell1 = np.ma.masked_array(tempOnCell1, ~cellMask1)
+        tempOnCell2 = np.ma.masked_array(tempOnCell2, ~cellMask2)
+        saltOnCell1 = np.ma.masked_array(saltOnCell1, ~cellMask1)
+        saltOnCell2 = np.ma.masked_array(saltOnCell2, ~cellMask2)
+        # Interpolate T,S values onto edges
+        temp = np.nanmean(np.array([tempOnCell1, tempOnCell2]), axis=0)
+        salt = np.nanmean(np.array([saltOnCell1, saltOnCell2]), axis=0)
 
-    # Plot sections
-    #  T first
-    figtitle = 'Temperature ({}), ANN (years={}-{})'.format(
-               transectName, climoyearStart, climoyearEnd)
-    figfile = '{}/Temp_{}_{}_ANN_years{:04d}-{:04d}.png'.format(
-              figdir, transectName.replace(' ', ''), casename, climoyearStart, climoyearEnd)
-    fig = plt.figure(figsize=figsize, dpi=figdpi)
-    ax = fig.add_subplot()
-    ax.set_facecolor('darkgrey')
-    cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT)
-    #cf = ax.pcolormesh(x, y, temp, cmap=colormapT, norm=cnormT)
-    cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-    cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
-    cbar.ax.tick_params(labelsize=12, labelcolor='black')
-    cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
-    ax.set_ylim(0, zmax)
-    ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-    ax.set_title(figtitle, fontsize=14, fontweight='bold')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.invert_yaxis()
-    plt.savefig(figfile, bbox_inches='tight')
-    plt.close()
+        # Compute sigma's
+        SA = gsw.SA_from_SP(salt, pressure[np.newaxis, :], lonmean, latmean)
+        CT = gsw.CT_from_pt(SA, temp)
+        sigma2 = gsw.density.sigma2(SA, CT)
+        sigma0 = gsw.density.sigma0(SA, CT)
 
-    #  then S
-    figtitle = 'Salinity ({}), ANN (years={}-{})'.format(
-               transectName, climoyearStart, climoyearEnd)
-    figfile = '{}/Salt_{}_{}_ANN_years{:04d}-{:04d}.png'.format(
-              figdir, transectName.replace(' ', ''), casename, climoyearStart, climoyearEnd)
-    fig = plt.figure(figsize=figsize, dpi=figdpi)
-    ax = fig.add_subplot()
-    ax.set_facecolor('darkgrey')
-    cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS)
-    cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-    cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
-    cbar.ax.tick_params(labelsize=12, labelcolor='black')
-    cbar.set_label('psu', fontsize=12, fontweight='bold')
-    ax.set_ylim(0, zmax)
-    ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-    ax.set_title(figtitle, fontsize=14, fontweight='bold')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.invert_yaxis()
-    plt.savefig(figfile, bbox_inches='tight')
-    plt.close()
+        zmax = z[np.max(maxLevelEdge)]
 
-    #  and finally normalVelocity
-    figtitle = 'Velocity ({}), ANN (years={}-{})'.format(
-               transectName, climoyearStart, climoyearEnd)
-    figfile = '{}/Vel_{}_{}_ANN_years{:04d}-{:04d}.png'.format(
-              figdir, transectName.replace(' ', ''), casename, climoyearStart, climoyearEnd)
-    fig = plt.figure(figsize=figsize, dpi=figdpi)
-    ax = fig.add_subplot()
-    ax.set_facecolor('darkgrey')
-    cf = ax.contourf(x, y, normalVel, cmap=colormapV, norm=cnormV, levels=clevelsV)
-    cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-    cbar = plt.colorbar(cf, cax=cax, ticks=clevelsV, boundaries=clevelsV, **kw)
-    cbar.ax.tick_params(labelsize=12, labelcolor='black')
-    cbar.set_label('m/s', fontsize=12, fontweight='bold')
-    ax.set_ylim(0, zmax)
-    ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-    ax.set_title(figtitle, fontsize=14, fontweight='bold')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-    ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-    ax.invert_yaxis()
-    plt.savefig(figfile, bbox_inches='tight')
-    plt.close()
+        # Plot sections
+        #  T first
+        figtitle = 'Temperature ({}), {} (years={}-{})'.format(
+                   transectName, s, climoyearStart, climoyearEnd)
+        figfile = '{}/Temp_{}_{}_{}_years{:04d}-{:04d}.png'.format(
+                  figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
+        fig = plt.figure(figsize=figsize, dpi=figdpi)
+        ax = fig.add_subplot()
+        ax.set_facecolor('darkgrey')
+        cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='max')
+        #cf = ax.pcolormesh(x, y, temp, cmap=colormapT, norm=cnormT)
+        cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
+        cbar.ax.tick_params(labelsize=12, labelcolor='black')
+        cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
+        if sigma2contours is not None:
+            cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+            cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        if sigma0contours is not None:
+            cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+            cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        ax.set_ylim(0, zmax)
+        ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+        ax.set_title(figtitle, fontsize=14, fontweight='bold')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        ax.invert_yaxis()
+        plt.savefig(figfile, bbox_inches='tight')
+        plt.close()
+
+        #  then S
+        figtitle = 'Salinity ({}), {} (years={}-{})'.format(
+                   transectName, s, climoyearStart, climoyearEnd)
+        figfile = '{}/Salt_{}_{}_{}_years{:04d}-{:04d}.png'.format(
+                  figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
+        fig = plt.figure(figsize=figsize, dpi=figdpi)
+        ax = fig.add_subplot()
+        ax.set_facecolor('darkgrey')
+        cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='max')
+        cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
+        cbar.ax.tick_params(labelsize=12, labelcolor='black')
+        cbar.set_label('psu', fontsize=12, fontweight='bold')
+        if sigma2contours is not None:
+            cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+            cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        if sigma0contours is not None:
+            cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+            cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        ax.set_ylim(0, zmax)
+        ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+        ax.set_title(figtitle, fontsize=14, fontweight='bold')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        ax.invert_yaxis()
+        plt.savefig(figfile, bbox_inches='tight')
+        plt.close()
+
+        #  and finally normalVelocity (if vel is not None)
+        if vel is not None:
+            # Mask velocity values that fall on land and topography
+            vel = np.ma.masked_array(vel, ~edgeMask)
+            # Get normalVelocity direction
+            normalVel = vel*edgeSigns[:, np.newaxis]
+
+            figtitle = 'Velocity ({}), {} (years={}-{})'.format(
+                       transectName, s, climoyearStart, climoyearEnd)
+            figfile = '{}/Vel_{}_{}_{}_years{:04d}-{:04d}.png'.format(
+                       figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
+            fig = plt.figure(figsize=figsize, dpi=figdpi)
+            ax = fig.add_subplot()
+            ax.set_facecolor('darkgrey')
+            cf = ax.contourf(x, y, normalVel, cmap=colormapV, norm=cnormV, levels=clevelsV)
+            cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+            cbar = plt.colorbar(cf, cax=cax, ticks=clevelsV, boundaries=clevelsV, **kw)
+            cbar.ax.tick_params(labelsize=12, labelcolor='black')
+            cbar.set_label('m/s', fontsize=12, fontweight='bold')
+            ax.set_ylim(0, zmax)
+            ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+            ax.set_title(figtitle, fontsize=14, fontweight='bold')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            ax.invert_yaxis()
+            plt.savefig(figfile, bbox_inches='tight')
+            plt.close()
