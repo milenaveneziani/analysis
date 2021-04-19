@@ -23,30 +23,22 @@ from common_functions import hovmoeller_plot, add_inset
 
 # Settings for blues
 meshName = 'EC30to60E2r2'
-restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-#meshName = 'oEC60to30v3'
-#restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/oEC60to30v3_60layer.170506.nc'.format(meshName)
-#meshName ='SOwISC12to60E2r4'
-#restartFile = '/home/ac.dcomeau/cryo/SOwISC12to60E2r4/ocean.SOwISC12to60E2r4.210107.nc'
+restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.210210.nc'.format(meshName)
 
 regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
 featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/oceanOHCRegions.geojson'
 
-runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
-runNameShort = 'JRA_POPvertMix_noSSSrestoring'
-modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
-#runName = '20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis'
-#runNameShort = 'v2_newICs.piControl.ne30pg2_EC30to60E2r2'
-#modeldir = '/lcrc/group/acme/ac.golaz/E3SM_simulations/20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis/archive/ocn/hist'
-#runName = '20201202_JRA_brokenAdv_EC30to60E2r2'
-#runNameShort = 'JRA_brokenAdv_EC30to60E2r2'
-#modeldir = '/lcrc/group/acme/ac.vanroekel/acme_scratch/anvil/20201202_JRA_brokenAdv_EC30to60E2r2/run'
-#runName = '20200812_CORE_GMPAS-IAF.T62_oECv3_anvil'
-#runNameShort = 'CORE_GMPAS-IAF.T62_oECv3'
-#modeldir = '/lcrc/group/acme/ac.vanroekel/acme_scratch/anvil/20200812_CORE_GMPAS-IAF.T62_oECv3_anvil/run'
-#runName = 'SORRMr4.Btest'
-#runNameShort = 'SOwISC12to60E2r4.beta1'
-#modeldir = '/lcrc/group/acme/ac.dcomeau/scratch/anvil/20210120.A_WCYCL1850S_CMIP6.ne30pg2_SOwISC12to60E2r4.beta1.maptest.anvil/run'
+#runName = '20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2'
+#runNameShort = 'JRA_tidalMixingBnLwithKPP'
+#modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2/run'
+#
+runName = '20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2'
+runNameShort = 'JRA_tidalMixingBnLhighKsWithKPP'
+modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2/run'
+#
+#runName = '20210401_JRA_constantMix_EC30to60E2r2'
+#runNameShort = 'JRA_constantMix'
+#modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210401_JRA_constantMix_EC30to60E2r2/run'
 
 # Settings for compy
 #meshName = 'EC30to60E2r2'
@@ -95,33 +87,18 @@ else:
     raise IOError('No regional mask file {} found'.format(regionMaskFile))
 
 startYear = 1
-endYear = 54
+endYear = 10
 calendar = 'gregorian'
 
-variables = [{'name': 'ohc',
-              'title': 'OHC',
-              'units': 'x10$^{22}$ J',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-              'colormap': cmocean.cm.balance,
-              'clevels': [-2.4, -0.8, -0.4, -0.2, 0, 0.2, 0.4, 0.8, 2.4],
+variables = [{'name': 'kvertical',
+              'title': 'Vertical diffusivity',
+              'units': 'x1e-4 m$^2$/s',
+              'mpas': 'timeMonthly_avg_vertDiffTopOfCell',
+              'colormap': cmocean.cm.thermal,
+              #'clevels': np.log10([0.2e-4, 0.5e-4, 1.0e-4, 2.0e-4, 4.0e-4, 6.0e-4, 8.0e-4, 10.0e-4, 15.0e-4]),
+              'clevels': [5.0, 7.5, 10.0, 15.0, 20.0, 30.0, 50.0, 75.0, 100.0],
               'colorIndices': [0, 28, 57, 85, 113, 142, 170, 198, 227, 255],
-              'fac': 1e-22*1026.0*3996.0}, # 1e-22*rho0*cp (where rho0=config_density0 and cp=config_specific_heat_sea_water)
-             {'name': 'temperature',
-              'title': 'Temperature',
-              'units': '$^\circ$C',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-              'colormap': cmocean.cm.balance,
-              'clevels': [-2.0, -1.0, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1.0, 2.0],
-              'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
-              'fac': 1},
-             {'name': 'salinity',
-              'title': 'Salinity',
-              'units': 'psu',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-              'colormap': cmocean.cm.balance,
-              'clevels': [-1.0, -0.5, -0.2, -0.1, -0.02, 0, 0.02, 0.1, 0.2, 0.5, 1.0],
-              'colorIndices': [0, 28, 57, 85, 113, 125, 130, 142, 170, 198, 227, 255],
-              'fac': 1}]
+              'fac': 1e4}]
 
 startDate = '{:04d}-01-01_00:00:00'.format(startYear)
 endDate = '{:04d}-12-31_23:59:59'.format(endYear)
@@ -130,7 +107,7 @@ years = range(startYear, endYear + 1)
 variableList = [var['mpas'] for var in variables] + \
     ['timeMonthly_avg_layerThickness']
 
-timeSeriesFile0 = '{}/OHC_T_S_trends_vsdepth'.format(outdir)
+timeSeriesFile0 = '{}/Kv_trends_vsdepth'.format(outdir)
 
 # Compute regional averages one year at a time
 for year in years:
@@ -142,10 +119,10 @@ for year in years:
 
         datasets = []
         for month in range(1, 13):
-            #inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
-            #    modeldir, runName, year, month)
-            inputFile = '{}/mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
-                modeldir, year, month)
+            inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+                modeldir, runName, year, month)
+            #inputFile = '{}/mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+            #    modeldir, year, month)
             if not os.path.exists(inputFile):
                 raise IOError('Input file: {} not found'.format(inputFile))
 
@@ -200,22 +177,19 @@ for year in years:
                 outName = var['name']
                 mpasVarName = var['mpas']
                 units = var['units']
-                factor = var['fac']
                 description = var['title']
 
                 timeSeries = dsIn[mpasVarName]
+                timeSeries = timeSeries.rolling(nVertLevelsP1=2, center=True).mean().dropna('nVertLevelsP1')
+                timeSeries = timeSeries.rename({'nVertLevelsP1': 'nVertLevels'})
                 timeSeries = timeSeries.where(depthMask, drop=False)
                 if regionName=='Global':
-                    timeSeries = (layerVol*timeSeries).sum(dim='nCells')
-                    if outName!='ohc':
-                        timeSeries = timeSeries / layerVol.sum(dim='nCells')
+                    timeSeries = (layerVol*timeSeries).sum(dim='nCells') / layerVol.sum(dim='nCells')
                 else:
                     timeSeries = timeSeries.where(cellMask, drop=True)
-                    timeSeries = (localLayerVol*timeSeries).sum(dim='nCells')
-                    if outName!='ohc':
-                        timeSeries = timeSeries / localLayerVol.sum(dim='nCells')
+                    timeSeries = (localLayerVol*timeSeries).sum(dim='nCells') / localLayerVol.sum(dim='nCells')
 
-                dsOut[outName] = factor*timeSeries
+                dsOut[outName] = timeSeries
                 dsOut[outName].attrs['units'] = units
                 dsOut[outName].attrs['description'] = description
 
@@ -254,7 +228,8 @@ for regionIndex, regionName in enumerate(regionNames):
     dsIn = xarray.open_mfdataset(timeSeriesFiles, combine='nested',
                                  concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
-    movingAverageMonths = 12
+    #movingAverageMonths = 12
+    movingAverageMonths = 1
 
     depths = dsIn.refBottomDepth.values[0]
     z = np.zeros(depths.shape)
@@ -265,6 +240,7 @@ for regionIndex, regionName in enumerate(regionNames):
 
     for var in variables:
         varName = var['name']
+        factor = var['fac']
 
         clevels = var['clevels']
         colormap0 = var['colormap']
@@ -282,14 +258,14 @@ for regionIndex, regionName in enumerate(regionNames):
         colormap.set_over(overColor)
         cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
 
-        field = dsIn[varName]
+        field = factor*dsIn[varName]
 
         # Compute first-year average (note that this assumes monthly fields)
         fieldMean = field.isel(Time=range(12)).mean(dim='Time')
 
         # Compute moving average of the anomaly with respect to first-year average
+        N = movingAverageMonths
         if movingAverageMonths != 1:
-            N = movingAverageMonths
             movingAverageDepthSlices = []
             for nVertLevel in range(nVertLevels):
                 depthSlice = field.isel(nVertLevels=nVertLevel) - fieldMean.isel(nVertLevels=nVertLevel)
@@ -299,13 +275,17 @@ for regionIndex, regionName in enumerate(regionNames):
                 mean = mean[int(N / 2.0):-int(round(N / 2.0) - 1)]
                 movingAverageDepthSlices.append(mean)
             field = xarray.DataArray(movingAverageDepthSlices)
+        else:
+            field = field.transpose()
 
         xLabel = 'Time (yr)'
-        yLabel = '{} ({})'.format(var['title'], var['units'])
-        title = '{} Anomaly, {}'.format(var['title'], regionName)
+        yLabel = 'Depth (m)'
+        #title = '{} Anomaly, {}'.format(var['title'], regionName)
+        title = '{}, {}\n{}'.format(var['title'], regionName, runNameShort)
         figFileName = '{}/{}vsTimeDepth_{}.png'.format(figdir, varName,
                 regionName[0].lower()+regionName[1:].replace(' ', ''))
 
+        #fig = hovmoeller_plot(Time[N-1:], z, np.log10(field.values), colormap, cnorm, clevels,
         fig = hovmoeller_plot(Time[N-1:], z, field.values, colormap, cnorm, clevels,
                               title, xLabel, yLabel, calendar, colorbarLabel=var['units'],
                               titleFontSize=None, figsize=(15, 6), dpi=None)

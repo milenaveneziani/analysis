@@ -57,12 +57,20 @@ earthRadius = 6367.44
 #climoyearEnd = 40
 #modeldir = '/compyfs/vene705/E3SM_simulations/20210305.v2beta3GM900.piControl.ne30pg2_EC30to60E2r2.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 #
-casename = 'alpha5_59'
-meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
-climoyearStart = 281
-climoyearEnd = 300
-modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
+#casename = 'alpha5_59'
+#meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#climoyearStart = 281
+#climoyearEnd = 300
+#modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
+
+####### Settings for blues
+casename = 'noiceIC_SSSrest'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+climoyearStart = 111
+climoyearEnd = 130
+modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210222_JRA_noiceIC_SSSrest_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 seasons = ['JFM', 'JAS', 'ANN']
 
@@ -80,7 +88,7 @@ transectNames = ['OSNAP section East', 'OSNAP section West']
 # Figure details
 figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
-    os.mkdir(figdir)
+    os.makedirs(figdir)
 figsize = (10, 6)
 figdpi = 300
 colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
