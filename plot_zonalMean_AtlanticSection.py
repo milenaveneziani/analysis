@@ -42,6 +42,7 @@ climoYear1 = 6
 climoYear2 = 10
 
 seasons = ['ANN', 'JFM', 'JAS']
+#seasons = ['ANN']
 
 regionMaskFile = '{}/{}_oceanSubBasins20210315.nc'.format(regionMaskDir, meshName)
 if os.path.exists(regionMaskFile):
@@ -60,7 +61,7 @@ figsize = (32, 5)
 figdpi = 300
 colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
-clevelsS = [10.0, 15.0, 20.0, 25.0, 28.0, 30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 35.0, 36.0]
+clevelsS = [30.0, 31.0, 32.0, 33.0, 34.0, 34.2, 34.4, 34.6, 34.8, 35.0, 35.2, 35.5, 36.0]
 colormapT = plt.get_cmap('RdBu_r')
 colormapS = cmocean.cm.haline
 #
@@ -131,19 +132,21 @@ for season in seasons:
         raise IOError('Climatology file: {} not found'.format(climofile))
     ds = xr.open_dataset(climofile)
     ds = ds.isel(Time=0, drop=True)
+
+    # Global depth-masked layer thickness and layer volume
+    layerThickness = ds.timeMonthly_avg_layerThickness
+    layerThickness = layerThickness.where(depthMask, drop=False)
+    volCell = areaCell*layerThickness
+
     temp = ds['timeMonthly_avg_activeTracers_temperature']
     salt = ds['timeMonthly_avg_activeTracers_salinity']
     # Apply depthMask
     temp = temp.where(depthMask, drop=False)
     salt = salt.where(depthMask, drop=False)
-    # Apply NaN mask (for some reason the MPAS-Analysis generated
-    # climatologies have unexplained values of -1e+34, even after
-    # applying the depthMask
-    temp = temp.where(temp > -20., drop=False)
-    salt = salt.where(salt >   0., drop=False)
 
     # Compute regional quantities and plot them
-    fig, ax = plt.subplots(1, len(regionsToPlot), figsize=figsize)
+    fig1, ax1 = plt.subplots(1, len(regionsToPlot), figsize=figsize) # Salinity
+    fig2, ax2 = plt.subplots(1, len(regionsToPlot), figsize=figsize) # Temperature
     for iregion in range(len(regionsToPlot)):
 
         regionName = regionsToPlot[iregion]
@@ -156,36 +159,40 @@ for season in seasons:
         if openOceanMask is not None:
             cellMask = np.logical_and(cellMask, openOceanMask)
         latRegion = 180./np.pi*latCell.where(cellMask, drop=True)
-        areaRegion = areaCell.where(cellMask, drop=True)
+        volRegion = volCell.where(cellMask, drop=True)
         tempRegion = temp.where(cellMask, drop=True)
         saltRegion = salt.where(cellMask, drop=True)
 
-        # Create 0.5deg wide latitude bins
-        latbins = np.arange(np.min(latRegion.values), np.max(latRegion.values), 0.5)
+        # Create 0.5deg-wide latitude bins
+        latmin = np.min(latRegion.values)
+        latmax = np.max(latRegion.values)
+        dlat = 0.5
+        latbins = np.arange(latmin, latmax+dlat, dlat)
+        latbincenters = 0.5*(latbins[:-1] + latbins[1:])
 
         # Create output dataset for each region
         dsOut = xr.Dataset(
                 {
                        'zonalAvgTemp': (['nLatbins', 'nVertLevels'], 
-                           np.nan*np.ones([len(latbins)-1, nVertLevels])),
+                           np.nan*np.ones([len(latbincenters), nVertLevels])),
                        'zonalAvgSalt': (['nLatbins', 'nVertLevels'],
-                           np.nan*np.ones([len(latbins)-1, nVertLevels])),
+                           np.nan*np.ones([len(latbincenters), nVertLevels])),
                 },
                 coords={
                        'latbins': (['nLatbins'],
-                           latbins[:-1]),
+                           latbincenters),
                        'depth': (['nVertLevels'],
                            -refBottomDepth),
                 },
         )
         # Compute averages for each latitude bin
         for ilat in range(1, len(latbins)):
-            binMask = np.logical_and(latRegion >= latbins[ilat-1], latRegion <= latbins[ilat])
-            binArea = areaRegion.where(binMask, drop=True)
+            binMask = np.logical_and(latRegion >= latbins[ilat-1], latRegion < latbins[ilat])
+            binVol = volRegion.where(binMask, drop=True)
             binTemp = tempRegion.where(binMask, drop=True)
-            binTemp = (binTemp*binArea).sum(dim='nCells') / binArea.sum(dim='nCells')
+            binTemp = (binTemp*binVol).sum(dim='nCells') / binVol.sum(dim='nCells')
             binSalt = saltRegion.where(binMask, drop=True)
-            binSalt = (binSalt*binArea).sum(dim='nCells') / binArea.sum(dim='nCells')
+            binSalt = (binSalt*binVol).sum(dim='nCells') / binVol.sum(dim='nCells')
             
             dsOut['zonalAvgTemp'][ilat-1, :] = binTemp
             dsOut['zonalAvgTemp'].attrs['units'] = '$^\circ$C'
@@ -194,44 +201,56 @@ for season in seasons:
             dsOut['zonalAvgSalt'].attrs['units'] = 'psu'
             dsOut['zonalAvgSalt'].attrs['description'] = 'Zonal average of regional salinity'
 
-        x = latbins[:-1]
+        x = latbincenters
         y = -refBottomDepth
         fldtemp = dsOut.zonalAvgTemp.values.T
         fldsalt = dsOut.zonalAvgSalt.values.T
-        print(np.min(fldsalt), np.max(fldsalt))
         # Compute sigma0 and sigma2
         [lat, z] = np.meshgrid(x, y)
         pressure = gsw.p_from_z(z, lat)
-        print(np.shape(pressure))
         SA = gsw.SA_from_SP(fldsalt, pressure, 0., lat)
         CT = gsw.CT_from_pt(SA, fldtemp)
         sigma2 = gsw.density.sigma2(SA, CT)
         sigma0 = gsw.density.sigma0(SA, CT)
-        print(np.min(sigma2), np.max(sigma2))
-        print(np.min(sigma0), np.max(sigma0))
 
-        ax[iregion].set_facecolor('darkgrey')
-        cf = ax[iregion].contourf(x, y, fldsalt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
+        ax1[iregion].set_facecolor('darkgrey')
+        cfS = ax1[iregion].contourf(x, y, fldsalt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
         if sigma2contours is not None:
-            cs1 = ax[iregion].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-            cs2 = ax[iregion].contour(x, y, sigma2, sigma2contoursCessi, colors='k', linewidths=2.5)
+            cs1 = ax1[iregion].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+            cs2 = ax1[iregion].contour(x, y, sigma2, sigma2contoursCessi, colors='k', linewidths=2.5)
             plt.clabel(cs1, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
             plt.clabel(cs2, levels=sigma2contoursCessi, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
         if sigma0contours is not None:
-            cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+            cs = ax1[iregion].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
             plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        ax1[iregion].set_title(regionName, fontsize=28, fontweight='bold')
 
-        ax[iregion].set_xlabel('Latitude', fontsize=24, fontweight='bold')
-        ax[iregion].set_title(regionName, fontsize=28, fontweight='bold')
-                    
-    ax[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
-    fig.tight_layout(pad=0.5)
-    #plt.colorbar(cf, format='%1.1f')
-    cax, kw = mpl.colorbar.make_axes(ax[-1], location='right', pad=0.05, shrink=0.9)
-    cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
+        ax2[iregion].set_facecolor('darkgrey')
+        cfT = ax2[iregion].contourf(x, y, fldtemp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
+        if sigma2contours is not None:
+            cs1 = ax2[iregion].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+            cs2 = ax2[iregion].contour(x, y, sigma2, sigma2contoursCessi, colors='k', linewidths=2.5)
+            plt.clabel(cs1, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            plt.clabel(cs2, levels=sigma2contoursCessi, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        if sigma0contours is not None:
+            cs = ax2[iregion].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+            plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        ax2[iregion].set_title(regionName, fontsize=28, fontweight='bold')
+ 
+    ax1[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
+    fig1.tight_layout(pad=0.5)
+    cax, kw = mpl.colorbar.make_axes(ax1[-1], location='right', pad=0.05, shrink=0.9)
+    cbar = fig1.colorbar(cfS, cax=cax, ticks=clevelsS, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
     cbar.set_label('psu', fontsize=16, fontweight='bold')
-
     figname = '{}/zonalAvgAtlanticSection_salt_{}_years{:04d}-{:04d}.png'.format(figdir, season, climoYear1, climoYear2)
-    plt.savefig(figname, dpi=figdpi, bbox_inches='tight')
-    plt.close()
+    fig1.savefig(figname, dpi=figdpi, bbox_inches='tight')
+ 
+    ax2[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
+    fig2.tight_layout(pad=0.5)
+    cax, kw = mpl.colorbar.make_axes(ax2[-1], location='right', pad=0.05, shrink=0.9)
+    cbar = fig2.colorbar(cfT, cax=cax, ticks=clevelsT, **kw)
+    cbar.ax.tick_params(labelsize=16, labelcolor='black')
+    cbar.set_label('C$^\circ$', fontsize=16, fontweight='bold')
+    figname = '{}/zonalAvgAtlanticSection_temp_{}_years{:04d}-{:04d}.png'.format(figdir, season, climoYear1, climoYear2)
+    fig2.savefig(figname, dpi=figdpi, bbox_inches='tight')
