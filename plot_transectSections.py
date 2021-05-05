@@ -27,50 +27,60 @@ import gsw
 earthRadius = 6367.44
 
 ####### Settings for cori
-#casename = 'E3SM-Arctic-OSI_60to10' # no spaces
 #meshfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/meshes/ocean.ARRM60to10.180715.nc'
 #maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
+#casename = 'E3SM-Arctic-OSI_60to10' # no spaces
 #climoyearStart = 166
 #climoyearEnd = 177
 #modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
 #
-#casename = 'E3SM-LRdeck-historical1' # no spaces
-#casename = 'E3SM-LRtunedHR' # no spaces
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
+#casename = 'E3SM-LRdeck-historical1' # no spaces
+#casename = 'E3SM-LRtunedHR' # no spaces
 #climoyearStart = 26
 #climoyearEnd = 55
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
 #
-#casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
+#casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
 #climoyearStart = 26
 #climoyearEnd = 55
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
 
 ####### Settings for compy
-#casename = 'GM900'
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
 #maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#casename = 'GM900'
 #climoyearStart = 21
 #climoyearEnd = 40
 #modeldir = '/compyfs/vene705/E3SM_simulations/20210305.v2beta3GM900.piControl.ne30pg2_EC30to60E2r2.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 #
-#casename = 'alpha5_59'
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
 #maskfile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#casename = 'alpha5_59'
 #climoyearStart = 281
 #climoyearEnd = 300
 #modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 ####### Settings for blues
-casename = 'noiceIC_SSSrest'
 meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
 maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
-climoyearStart = 111
-climoyearEnd = 130
-modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210222_JRA_noiceIC_SSSrest_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#casename = 'noiceIC_SSSrest'
+#climoyearStart = 111
+#climoyearEnd = 130
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210222_JRA_noiceIC_SSSrest_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+casename = 'v2rc1b'
+#casename = 'v2rc1a'
+climoyearStart = 1
+climoyearEnd = 5
+modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#climoyearStart = 151
+#climoyearEnd = 200
+#modeldir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
+#modeldir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 seasons = ['JFM', 'JAS', 'ANN']
 
@@ -138,7 +148,7 @@ cnormV = mpl.colors.BoundaryNorm(clevelsV, colormapV.N)
 
 #sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
 sigma2contours = None
-sigma0contours = np.arange(26.0, 28.0, 0.2)
+sigma0contours = np.arange(26.0, 28.0, 0.2) # Good for OSNAP, but not for all arcticSections
 #sigma0contours = None
 
 # Load in MPAS mesh and transect mask file
@@ -274,8 +284,8 @@ for n in range(nTransects):
 
         # Plot sections
         #  T first
-        figtitle = 'Temperature ({}), {} (years={}-{})'.format(
-                   transectName, s, climoyearStart, climoyearEnd)
+        figtitle = 'Temperature ({}), {} ({}, years={}-{})'.format(
+                   transectName, s, casename, climoyearStart, climoyearEnd)
         figfile = '{}/Temp_{}_{}_{}_years{:04d}-{:04d}.png'.format(
                   figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
         fig = plt.figure(figsize=figsize, dpi=figdpi)
@@ -284,7 +294,7 @@ for n in range(nTransects):
         cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='max')
         #cf = ax.pcolormesh(x, y, temp, cmap=colormapT, norm=cnormT)
         cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
+        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, **kw)
         cbar.ax.tick_params(labelsize=12, labelcolor='black')
         cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
         if sigma2contours is not None:
@@ -296,7 +306,7 @@ for n in range(nTransects):
         ax.set_ylim(0, zmax)
         ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
         ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-        ax.set_title(figtitle, fontsize=14, fontweight='bold')
+        ax.set_title(figtitle, fontsize=12, fontweight='bold')
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
@@ -306,8 +316,8 @@ for n in range(nTransects):
         plt.close()
 
         #  then S
-        figtitle = 'Salinity ({}), {} (years={}-{})'.format(
-                   transectName, s, climoyearStart, climoyearEnd)
+        figtitle = 'Salinity ({}), {} ({}, years={}-{})'.format(
+                   transectName, s, casename, climoyearStart, climoyearEnd)
         figfile = '{}/Salt_{}_{}_{}_years{:04d}-{:04d}.png'.format(
                   figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
         fig = plt.figure(figsize=figsize, dpi=figdpi)
@@ -315,7 +325,7 @@ for n in range(nTransects):
         ax.set_facecolor('darkgrey')
         cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='max')
         cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
+        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, **kw)
         cbar.ax.tick_params(labelsize=12, labelcolor='black')
         cbar.set_label('psu', fontsize=12, fontweight='bold')
         if sigma2contours is not None:
@@ -327,7 +337,7 @@ for n in range(nTransects):
         ax.set_ylim(0, zmax)
         ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
         ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-        ax.set_title(figtitle, fontsize=14, fontweight='bold')
+        ax.set_title(figtitle, fontsize=12, fontweight='bold')
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
@@ -343,8 +353,8 @@ for n in range(nTransects):
             # Get normalVelocity direction
             normalVel = vel*edgeSigns[:, np.newaxis]
 
-            figtitle = 'Velocity ({}), {} (years={}-{})'.format(
-                       transectName, s, climoyearStart, climoyearEnd)
+            figtitle = 'Velocity ({}), {} ({}, years={}-{})'.format(
+                       transectName, s, casename, climoyearStart, climoyearEnd)
             figfile = '{}/Vel_{}_{}_{}_years{:04d}-{:04d}.png'.format(
                        figdir, transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
             fig = plt.figure(figsize=figsize, dpi=figdpi)
@@ -352,13 +362,13 @@ for n in range(nTransects):
             ax.set_facecolor('darkgrey')
             cf = ax.contourf(x, y, normalVel, cmap=colormapV, norm=cnormV, levels=clevelsV)
             cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-            cbar = plt.colorbar(cf, cax=cax, ticks=clevelsV, boundaries=clevelsV, **kw)
+            cbar = plt.colorbar(cf, cax=cax, ticks=clevelsV, **kw)
             cbar.ax.tick_params(labelsize=12, labelcolor='black')
             cbar.set_label('m/s', fontsize=12, fontweight='bold')
             ax.set_ylim(0, zmax)
             ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
             ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-            ax.set_title(figtitle, fontsize=14, fontweight='bold')
+            ax.set_title(figtitle, fontsize=12, fontweight='bold')
             ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
             ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
             ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
