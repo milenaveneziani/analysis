@@ -26,9 +26,17 @@ from common_functions import timeseries_analysis_plot, add_inset
 regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
 meshName = 'EC30to60E2r2'
 restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-runName = '20210416_JRA_tidalMixingEnG_EC30to60E2r2'
-runNameShort = 'JRA_tidalMixingEnG'
+#runName = '20210416_JRA_tidalMixingEnG_EC30to60E2r2'
+#runNameShort = 'JRA_tidalMixingEnG'
+#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
+runName = '20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2'
+runNameShort = 'v2rc1b'
 climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
+climodir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
+#runName = '20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2'
+#runNameShort = 'v2rc1a'
+#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
+#climodir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
 
 # Settings for cori
 #regionMaskDir = '/global/cscratch1/sd/milena/mpas-region_masks'
@@ -38,8 +46,10 @@ climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmaske
 #runNameShort = 'E3SM-Arctic-OSI60to10'
 #climodir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
 
-climoYear1 = 6
-climoYear2 = 10
+climoYear1 = 151
+climoYear2 = 200
+#climoYear1 = 40
+#climoYear2 = 59
 
 seasons = ['ANN', 'JFM', 'JAS']
 #seasons = ['ANN']
@@ -61,7 +71,7 @@ figsize = (32, 5)
 figdpi = 300
 colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
-clevelsS = [30.0, 31.0, 32.0, 33.0, 34.0, 34.2, 34.4, 34.6, 34.8, 35.0, 35.2, 35.5, 36.0]
+clevelsS = [32.0, 33.0, 34.0, 34.2, 34.4, 34.6, 34.7, 34.8, 34.9, 35.0, 35.2, 35.5, 36.0]
 colormapT = plt.get_cmap('RdBu_r')
 colormapS = cmocean.cm.haline
 #
@@ -98,8 +108,8 @@ colormapS.set_over(overColor)
 cnormT = mpl.colors.BoundaryNorm(clevelsT, colormapT.N)
 cnormS = mpl.colors.BoundaryNorm(clevelsS, colormapS.N)
 #
-sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2]
-sigma2contoursCessi = [30, 32, 35, 36, 36.5, 36.8, 37, 37.25, 37.44, 37.52, 37.6]
+sigma2contours = [30, 35, 36, 36.5, 36.8, 37.1, 37.2]
+sigma2contoursCessi = [32, 37, 37.25, 37.44, 37.52, 37.6]
 #sigma2contours = None
 #sigma0contours = np.arange(26.0, 28.0, 0.2)
 sigma0contours = None
@@ -223,6 +233,8 @@ for season in seasons:
         if sigma0contours is not None:
             cs = ax1[iregion].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
             plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        if iregion > 0:
+            ax1[iregion].set_yticklabels([])
         ax1[iregion].set_title(regionName, fontsize=28, fontweight='bold')
 
         ax2[iregion].set_facecolor('darkgrey')
@@ -235,10 +247,13 @@ for season in seasons:
         if sigma0contours is not None:
             cs = ax2[iregion].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
             plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+        if iregion > 0:
+            ax2[iregion].set_yticklabels([])
         ax2[iregion].set_title(regionName, fontsize=28, fontweight='bold')
  
     ax1[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
     fig1.tight_layout(pad=0.5)
+    fig1.suptitle('{} (years={}-{})'.format(runNameShort, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
     cax, kw = mpl.colorbar.make_axes(ax1[-1], location='right', pad=0.05, shrink=0.9)
     cbar = fig1.colorbar(cfS, cax=cax, ticks=clevelsS, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
@@ -248,6 +263,7 @@ for season in seasons:
  
     ax2[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
     fig2.tight_layout(pad=0.5)
+    fig2.suptitle('{} (years={}-{})'.format(runNameShort, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
     cax, kw = mpl.colorbar.make_axes(ax2[-1], location='right', pad=0.05, shrink=0.9)
     cbar = fig2.colorbar(cfT, cax=cax, ticks=clevelsT, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
