@@ -21,20 +21,34 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import hovmoeller_plot, add_inset
 
+startYear = 1
+endYear = 54
+calendar = 'gregorian'
+
+# Settings for cori
+meshName = 'ARRM60to10'
+restartFile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+regionMaskFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+featureFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
+#runName = 'ARRM60to10_JRA_GM_ramp'
+#runNameShort = 'E3SM-Arctic-OSI'
+#modeldir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
+runName = '20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl'
+runNameShort = 'E3SM-Arctic-coupled-beta1'
+modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run'
+
 # Settings for blues
-meshName = 'EC30to60E2r2'
-restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
+#meshName = 'EC30to60E2r2'
+#restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
 #meshName = 'oEC60to30v3'
 #restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/oEC60to30v3_60layer.170506.nc'.format(meshName)
 #meshName ='SOwISC12to60E2r4'
 #restartFile = '/home/ac.dcomeau/cryo/SOwISC12to60E2r4/ocean.SOwISC12to60E2r4.210107.nc'
-
-regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
-featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/oceanOHCRegions.geojson'
-
-runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
-runNameShort = 'JRA_POPvertMix_noSSSrestoring'
-modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+#regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+#featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/oceanOHCRegions.geojson'
+#runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
+#runNameShort = 'JRA_POPvertMix_noSSSrestoring'
+#modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
 #runName = '20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis'
 #runNameShort = 'v2_newICs.piControl.ne30pg2_EC30to60E2r2'
 #modeldir = '/lcrc/group/acme/ac.golaz/E3SM_simulations/20210212.v2_newICs.piControl.ne30pg2_EC30to60E2r2.chrysalis/archive/ocn/hist'
@@ -53,7 +67,6 @@ modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_
 #restartFile = '/compyfs/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
 #regionMaskFile = '/compyfs/vene705/mpas-region_masks/{}_oceanOHCRegions20201120.nc'.format(meshName)
 #featureFile = '/compyfs/vene705/mpas-region_masks/oceanOHCRegions.geojson'
-#
 #modeldir = '/compyfs/zhen797/E3SM_simulations/20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist'
 #runName = '20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
 #runNameShort = 'alpha5_55_fallback'
@@ -93,10 +106,6 @@ if os.path.exists(regionMaskFile):
     nRegions = np.size(regionNames)
 else:
     raise IOError('No regional mask file {} found'.format(regionMaskFile))
-
-startYear = 1
-endYear = 54
-calendar = 'gregorian'
 
 variables = [{'name': 'ohc',
               'title': 'OHC',

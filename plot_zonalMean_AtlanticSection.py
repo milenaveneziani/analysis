@@ -23,33 +23,33 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import timeseries_analysis_plot, add_inset
 
 # Settings for anvil/chrysalis
-regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
-meshName = 'EC30to60E2r2'
-restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
+#regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
+#meshName = 'EC30to60E2r2'
+#restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
 #runName = '20210416_JRA_tidalMixingEnG_EC30to60E2r2'
 #runNameShort = 'JRA_tidalMixingEnG'
 #climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
-runName = '20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2'
-runNameShort = 'v2rc1b'
-climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
-climodir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
+#runName = '20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2'
+#runNameShort = 'v2rc1b'
+#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
+#climodir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
 #runName = '20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2'
 #runNameShort = 'v2rc1a'
 #climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
 #climodir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
 
 # Settings for cori
-#regionMaskDir = '/global/cscratch1/sd/milena/mpas-region_masks'
-#meshName = 'ARRM60to10'
-#restartFile = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run/mpaso.rst.0004-01-01_00000.nc'
-#runName = 'ARRM60to10_JRA_GM_ramp'
-#runNameShort = 'E3SM-Arctic-OSI60to10'
-#climodir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
+regionMaskDir = '/global/project/projectdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM60to10'
+restartFile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+runName = 'ARRM60to10_JRA_GM_ramp'
+runNameShort = 'E3SM-Arctic-OSI'
+climodir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_{}'.format(meshName)
 
-climoYear1 = 151
-climoYear2 = 200
-#climoYear1 = 40
-#climoYear2 = 59
+#climoYear1 = 151
+#climoYear2 = 200
+climoYear1 = 166
+climoYear2 = 177
 
 seasons = ['ANN', 'JFM', 'JAS']
 #seasons = ['ANN']

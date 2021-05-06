@@ -14,13 +14,23 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset
 
-regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
+startYear = 1
+endYear = 54
+calendar = 'gregorian'
 
-meshName = 'EC30to60E2r2'
-restartFile = '/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
-runNameShort = 'JRA_POPvertMix_noSSSrestoring'
-rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+# Settings for cori
+regionMaskDir = '/global/project/projectdirs/m1199/milena/mpas-region_masks'
+
+meshName = 'ARRM60to10'
+restartFile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+regionMaskFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+featureFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
+#runName = 'ARRM60to10_JRA_GM_ramp'
+#runNameShort = 'E3SM-Arctic-OSI'
+#rundir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
+runName = '20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl'
+runNameShort = 'E3SM-Arctic-coupled-beta1'
+rundir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run'
 #
 #meshName = 'oEC60to30v3wLI'
 #restartFile = '/global/cscratch1/sd/hoffman2/acme_scratch/edison/20190306.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.edison/run/mpaso.rst.0002-01-01_00000.nc'
@@ -44,6 +54,15 @@ rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC
 #runName = 'ARRM60to10_JRA_GM_ramp'
 #runNameShort = 'E3SM-Arctic-OSI60to10'
 #rundir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
+#
+# Settings for lcrc
+#regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
+#
+#meshName = 'EC30to60E2r2'
+#restartFile = '/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
+#runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
+#runNameShort = 'JRA_POPvertMix_noSSSrestoring'
+#rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
 
 outdir = './timeseries_data/{}'.format(runNameShort)
 if not os.path.isdir(outdir):
@@ -66,10 +85,6 @@ areaCell = dsRestart.areaCell
 globalArea = areaCell.sum()
 refBottomDepth = dsRestart.refBottomDepth
 maxLevelCell = dsRestart.maxLevelCell
-
-startYear = 1
-endYear = 54
-calendar = 'gregorian'
 
 regionGroups = ['Arctic Regions', 'OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
