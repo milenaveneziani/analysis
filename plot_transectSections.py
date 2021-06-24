@@ -27,19 +27,30 @@ import gsw
 earthRadius = 6367.44
 
 ####### Settings for cori
-#meshfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/meshes/ocean.ARRM60to10.180715.nc'
-#maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
-#casename = 'E3SM-Arctic-OSI_60to10' # no spaces
-#climoyearStart = 166
-#climoyearEnd = 177
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+##maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
+##maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_arcticSections20210323.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/ARRM60to10_arcticSections20210514.nc'
+#casename = 'E3SM-Arctic-OSI' # no spaces
+#climoyearStart = 40
+#climoyearEnd = 59
 #modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
+#casename = 'E3SM-Arctic-OSIv2' # no spaces
+#casename = 'E3SM-Arctic-coupledv2beta1' # no spaces
+#climoyearStart = 21
+#climoyearEnd = 30
+#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
+#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+##maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
+maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_arcticSections20210514.nc'
+casename = 'E3SM60to30-OSI' # no spaces
 #casename = 'E3SM-LRdeck-historical1' # no spaces
 #casename = 'E3SM-LRtunedHR' # no spaces
-#climoyearStart = 26
-#climoyearEnd = 55
+climoyearStart = 40
+climoyearEnd = 59
+modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
 #
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
@@ -65,24 +76,25 @@ earthRadius = 6367.44
 #modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 ####### Settings for blues
-meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
 #casename = 'noiceIC_SSSrest'
 #climoyearStart = 111
 #climoyearEnd = 130
 #modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210222_JRA_noiceIC_SSSrest_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
-casename = 'v2rc1b'
+#casename = 'v2rc1b'
 #casename = 'v2rc1a'
-climoyearStart = 1
-climoyearEnd = 5
-modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#climoyearStart = 1
+#climoyearEnd = 5
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
 #modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
 #climoyearStart = 151
 #climoyearEnd = 200
 #modeldir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
 #modeldir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
 
-seasons = ['JFM', 'JAS', 'ANN']
+#seasons = ['JFM', 'JAS', 'ANN']
+seasons = ['ANN']
 
 ## Options for transect names if maskfile=*_standardTransportSections.nc
 # "Africa-Ant", "Agulhas", "Antilles Inflow", "Barents Sea Opening", "Bering Strait", "Davis Strait",
@@ -93,6 +105,9 @@ seasons = ['JFM', 'JAS', 'ANN']
 # "Hudson Bay-Labrador Sea", "Iceland-Faroe-Scotland", "Lancaster Sound", "Nares Strait",
 # "OSNAP section East", "OSNAP section West"
 #transectNames = ['all']
+#transectNames = ['Barents Sea Opening', 'Fram Strait']
+#transectNames = ['Barents Sea Opening', 'Bering Strait', 'Davis Strait',
+#                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
 transectNames = ['OSNAP section East', 'OSNAP section West']
 
 # Figure details
@@ -102,11 +117,12 @@ if not os.path.isdir(figdir):
 figsize = (10, 6)
 figdpi = 300
 colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
-#clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 8.0, 12.]
-#clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 35.0, 35.5, 36.0]
+#clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10., 12.]
+#clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 34.85, 34.9, 34.95, 35.0, 35.5]
+# Better for OSNAP:
 clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
 clevelsS = [31.0, 33.0, 33.5, 33.8, 34.2, 34.6, 34.8, 34.85, 34.9, 34.95, 35.0, 35.2, 35.5]
-clevelsV = [-0.2, -0.15, -0.1, -0.05, -0.02, 0.0, 0.02, 0.05, 0.1, 0.15, 0.2]
+clevelsV = [-0.25, -0.2, -0.15, -0.1, -0.02, 0.0, 0.02, 0.1, 0.2, 0.3, 0.5]
 colormapT = plt.get_cmap('RdBu_r')
 colormapS = cmocean.cm.haline
 colormapV = plt.get_cmap('RdBu_r')
@@ -148,7 +164,8 @@ cnormV = mpl.colors.BoundaryNorm(clevelsV, colormapV.N)
 
 #sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
 sigma2contours = None
-sigma0contours = np.arange(26.0, 28.0, 0.2) # Good for OSNAP, but not for all arcticSections
+#sigma0contours = np.arange(26.0, 28.0, 0.2) # Good for OSNAP, but not for all arcticSections
+sigma0contours = [24.0, 25.0, 26.0, 27.0, 27.2, 27.4, 27.6, 27.8, 28.0]
 #sigma0contours = None
 
 # Load in MPAS mesh and transect mask file

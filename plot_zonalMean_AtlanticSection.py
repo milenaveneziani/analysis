@@ -24,39 +24,43 @@ from common_functions import timeseries_analysis_plot, add_inset
 
 # Settings for anvil/chrysalis
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
-#meshName = 'EC30to60E2r2'
-#restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-#runName = '20210416_JRA_tidalMixingEnG_EC30to60E2r2'
-#runNameShort = 'JRA_tidalMixingEnG'
-#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
-#runName = '20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2'
-#runNameShort = 'v2rc1b'
-#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
-#climodir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
-#runName = '20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2'
-#runNameShort = 'v2rc1a'
-#climodir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/{}/clim/mpas/avg/unmasked_{}'.format(runName, meshName)
-#climodir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_{}'.format(meshName)
-
-# Settings for cori
-regionMaskDir = '/global/project/projectdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM60to10'
-restartFile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-runName = 'ARRM60to10_JRA_GM_ramp'
-runNameShort = 'E3SM-Arctic-OSI'
-climodir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_{}'.format(meshName)
-
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_oceanSubBasins20210315.nc'
+#casename = 'JRA_tidalMixingEnG'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210416_JRA_tidalMixingEnG_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#casename = 'v2rc1b'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#modeldir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
+#casename = 'v2rc1a'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
+#modeldir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
 #climoYear1 = 151
 #climoYear2 = 200
+
+# Settings for cori
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+#maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_oceanSubBasins20210315.nc'
+#casename = 'E3SM-Arctic-OSI'
+#modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
+#casename = 'E3SM-Arctic-OSIv2'
+#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
+#casename = 'E3SM-Arctic-coupledv2beta1'
+#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
+#climoYear1 = 21
+#climoYear2 = 30
+#
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_oceanSubBasins20210315.nc'
+casename = 'E3SM60to30-OSI' # no spaces
+modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
 climoYear1 = 166
 climoYear2 = 177
 
 seasons = ['ANN', 'JFM', 'JAS']
 #seasons = ['ANN']
 
-regionMaskFile = '{}/{}_oceanSubBasins20210315.nc'.format(regionMaskDir, meshName)
-if os.path.exists(regionMaskFile):
-     dsRegionMask = xr.open_dataset(regionMaskFile)
+if os.path.exists(maskfile):
+     dsRegionMask = xr.open_dataset(maskfile)
      regionNames = decode_strings(dsRegionMask.regionNames)
      regionsToPlot = ['Southern Ocean Atlantic Sector',
                       'South Atlantic Basin', 'North Atlantic Basin',
@@ -64,7 +68,7 @@ if os.path.exists(regionMaskFile):
 else:
      raise IOError('No regional mask file found')
 
-figdir = './verticalSections/{}'.format(runNameShort)
+figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 figsize = (32, 5)
@@ -114,8 +118,8 @@ sigma2contoursCessi = [32, 37, 37.25, 37.44, 37.52, 37.6]
 #sigma0contours = np.arange(26.0, 28.0, 0.2)
 sigma0contours = None
 
-if os.path.exists(restartFile):
-    dsRestart = xr.open_dataset(restartFile)
+if os.path.exists(meshfile):
+    dsRestart = xr.open_dataset(meshfile)
     dsRestart = dsRestart.isel(Time=0)
 else:
     raise IOError('No MPAS restart/mesh file found')
@@ -137,7 +141,7 @@ for season in seasons:
     print('\nPlotting Atlantic section for season {}...'.format(season))
     # Read in global data from climofile
     climofile = glob.glob('{}/mpaso_{}_{:04d}??_{:04d}??_climo.nc'.format(
-                    climodir, season, climoYear1, climoYear2))[0]
+                    modeldir, season, climoYear1, climoYear2))[0]
     if not os.path.exists(climofile):
         raise IOError('Climatology file: {} not found'.format(climofile))
     ds = xr.open_dataset(climofile)
@@ -253,7 +257,7 @@ for season in seasons:
  
     ax1[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
     fig1.tight_layout(pad=0.5)
-    fig1.suptitle('{} (years={}-{})'.format(runNameShort, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
+    fig1.suptitle('{} (years={}-{})'.format(casename, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
     cax, kw = mpl.colorbar.make_axes(ax1[-1], location='right', pad=0.05, shrink=0.9)
     cbar = fig1.colorbar(cfS, cax=cax, ticks=clevelsS, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
@@ -263,7 +267,7 @@ for season in seasons:
  
     ax2[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
     fig2.tight_layout(pad=0.5)
-    fig2.suptitle('{} (years={}-{})'.format(runNameShort, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
+    fig2.suptitle('{} (years={}-{})'.format(casename, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
     cax, kw = mpl.colorbar.make_axes(ax2[-1], location='right', pad=0.05, shrink=0.9)
     cbar = fig2.colorbar(cfT, cax=cax, ticks=clevelsT, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
