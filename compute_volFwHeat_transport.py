@@ -247,7 +247,7 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
         plt.ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
         plt.xlabel('Time (Years)', fontsize=12, fontweight='bold')
         plt.title('Heat transport for {} ({}, mean (net)={:5.2f} $\pm$ {:5.2f})'.format(searchString, casename, \
-                  np.nanmean(heat_transport[:,i]), np.nanstd(heat_transport[:,i]), fontsize=16, fontweight='bold'))
+                  np.nanmean(heat_transportTfp[:,i]), np.nanstd(heat_transportTfp[:,i]), fontsize=16, fontweight='bold'))
         plt.legend()
         plt.savefig(figfile, bbox_inches='tight')
 
@@ -336,8 +336,8 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
 #######################################################
 
 # years for transport time series (empty if plotting full time series)
-#years = '000[1-3]'
-years = ''
+years = '000[1-2]'
+#years = ''
 
 meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
 #maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
