@@ -13,6 +13,7 @@ import matplotlib.colors as cols
 from matplotlib.pyplot import cm
 from matplotlib.colors import BoundaryNorm
 mpl.use('Agg')
+from cm_xml_to_matplotlib import make_cmap
 
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import decode_strings
@@ -38,26 +39,26 @@ from common_functions import timeseries_analysis_plot, add_inset
 #climoYear2 = 200
 
 # Settings for cori
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-#maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_oceanSubBasins20210315.nc'
-#casename = 'E3SM-Arctic-OSI'
-#modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_oceanSubBasins20210315.nc'
+casename = 'E3SM-Arctic-OSI'
+modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
 #casename = 'E3SM-Arctic-OSIv2'
 #modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
 #casename = 'E3SM-Arctic-coupledv2beta1'
 #modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
-#climoYear1 = 21
-#climoYear2 = 30
-#
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_oceanSubBasins20210315.nc'
-casename = 'E3SM60to30-OSI' # no spaces
-modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
-climoYear1 = 166
+climoYear1 = 148
 climoYear2 = 177
+#
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_oceanSubBasins20210315.nc'
+#casename = 'E3SM-LR-OSI' # no spaces
+#modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
+#climoYear1 = 148
+#climoYear2 = 177
 
-seasons = ['ANN', 'JFM', 'JAS']
-#seasons = ['ANN']
+#seasons = ['ANN', 'JFM', 'JAS']
+seasons = ['ANN']
 
 if os.path.exists(maskfile):
      dsRegionMask = xr.open_dataset(maskfile)
@@ -77,7 +78,8 @@ colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
 clevelsS = [32.0, 33.0, 34.0, 34.2, 34.4, 34.6, 34.7, 34.8, 34.9, 35.0, 35.2, 35.5, 36.0]
 colormapT = plt.get_cmap('RdBu_r')
-colormapS = cmocean.cm.haline
+colormapS = make_cmap('./samselColormaps/1-3wbgy.xml')
+#colormapS = cmocean.cm.haline
 #
 underColor = colormapT(colorIndices0[0])
 overColor = colormapT(colorIndices0[-1])
@@ -229,6 +231,7 @@ for season in seasons:
 
         ax1[iregion].set_facecolor('darkgrey')
         cfS = ax1[iregion].contourf(x, y, fldsalt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
+        #cfS = ax1[iregion].pcolor(x, y, fldsalt, cmap=colormapS, vmin=clevelsS[0], vmax=clevelsS[-1])
         if sigma2contours is not None:
             cs1 = ax1[iregion].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
             cs2 = ax1[iregion].contour(x, y, sigma2, sigma2contoursCessi, colors='k', linewidths=2.5)
@@ -259,10 +262,11 @@ for season in seasons:
     fig1.tight_layout(pad=0.5)
     fig1.suptitle('{} (years={}-{})'.format(casename, climoYear1, climoYear2), fontsize=28, fontweight='bold', y=1.1)
     cax, kw = mpl.colorbar.make_axes(ax1[-1], location='right', pad=0.05, shrink=0.9)
+    #cbar = fig1.colorbar(cfS, cax=cax, **kw)
     cbar = fig1.colorbar(cfS, cax=cax, ticks=clevelsS, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
     cbar.set_label('psu', fontsize=16, fontweight='bold')
-    figname = '{}/zonalAvgAtlanticSection_salt_{}_years{:04d}-{:04d}.png'.format(figdir, season, climoYear1, climoYear2)
+    figname = '{}/zonalAvgAtlanticSection_salt_{}_{}_years{:04d}-{:04d}.png'.format(figdir, casename, season, climoYear1, climoYear2)
     fig1.savefig(figname, dpi=figdpi, bbox_inches='tight')
  
     ax2[0].set_ylabel('Depth (m)', fontsize=24, fontweight='bold')
@@ -272,5 +276,5 @@ for season in seasons:
     cbar = fig2.colorbar(cfT, cax=cax, ticks=clevelsT, **kw)
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
     cbar.set_label('C$^\circ$', fontsize=16, fontweight='bold')
-    figname = '{}/zonalAvgAtlanticSection_temp_{}_years{:04d}-{:04d}.png'.format(figdir, season, climoYear1, climoYear2)
+    figname = '{}/zonalAvgAtlanticSection_temp_{}_{}_years{:04d}-{:04d}.png'.format(figdir, casename, season, climoYear1, climoYear2)
     fig2.savefig(figname, dpi=figdpi, bbox_inches='tight')
