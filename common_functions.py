@@ -21,7 +21,69 @@ import pandas as pd
 import numpy as np
 import datetime
 import netCDF4
+import os
+import subprocess
+from distutils.spawn import find_executable
 
+
+def compute_regional_maskfile(meshFile, featureFile, outFile):
+    """
+    Compute MPAS regional mask file using MPAS-Tool
+    ``compute_mpas_region_masks``.
+
+    Parameters
+    ----------
+    meshFile : str
+        Name of the mesh file.
+
+    featureFile : str
+        Name of the geojson feature file.
+
+    outFile: str
+        Name of output mask file.
+
+    Raises
+    ------
+    OSError
+        If inexistent ``meshFile`` or ``featureFile`` is supplied,
+        or if ``compute_mpas_region_masks`` is not in the system path.
+    """
+    # Authors
+    # -------
+    # Milena Veneziani
+
+    if not (os.path.isfile(meshFile)):
+        raise OSError('Mesh file {} not found'.format(meshFile))
+    if not (os.path.isfile(featureFile)):
+        raise OSError('Feature file {} not found'.format(featureFile))
+
+    if find_executable('compute_mpas_region_masks') is None:
+        raise OSError('compute_mpas_region_masks not found. Make sure the latest '
+                      'e3sm-unified environment or other python environment with '
+                      'MPAS-Tools packages is installed.')
+
+    args = ['compute_mpas_region_masks',
+            '--show_progress',
+            '-m', meshFile,
+            '-g', featureFile,
+            '-o', outFile,
+            '-t cell edge vertex']
+    process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    #stdout, stderr = process.communicate()
+
+    #if stdout:
+    #    stdout = stdout.decode('utf-8')
+    #    for line in stdout.split('\n'):
+    #        self.logger.info(line)
+    #if stderr:
+    #    stderr = stderr.decode('utf-8')
+    #    for line in stderr.split('\n'):
+    #        self.logger.error(line)
+
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode,
+                                            ' '.join(args))
 
 def days_to_datetime(days, calendar='gregorian', referenceDate='0001-01-01'):
     """
@@ -597,9 +659,10 @@ def timeseries_analysis_plot_polar(dsvalues, N, title,
 
 
 def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
-                    title, xlabel, ylabel, calendar, colorbarLabel=None,
-                    titleFontSize=None, figsize=(15, 6), dpi=None,
-                    firstYearXTicks=None, yearStrideXTicks=None, maxXTicks=20):
+                    title, xlabel, ylabel, calendar, kmax=None,
+                    mld=None, bld=None, colorbarLabel=None, titleFontSize=None,
+                    figsize=(15, 6), dpi=None, firstYearXTicks=None,
+                    yearStrideXTicks=None, maxXTicks=20):
     """
     Plots Hovmoeller graph
 
@@ -615,6 +678,12 @@ def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
 
     calendar : str
         the calendar to use for formatting the time axis
+
+    kmax : int, optional
+        maximum of maxLevelCell (if None kmax=nVertLevels)
+
+    mld : numpy array, optional
+        mixed layer depth timeseries
 
     titleFontSize : int, optional
         the size of the title font
@@ -657,6 +726,7 @@ def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
                   'weight': 'normal'}
 
     fig = plt.figure(figsize=figsize, dpi=dpi)
+    ax = fig.add_subplot()
 
     [x ,y] = np.meshgrid(Time, z)
 
@@ -667,6 +737,11 @@ def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
 #                        aspect=9, ticks=clevels, boundaries=clevels)
     if colorbarLabel is not None:
         cbar.set_label(colorbarLabel)
+    if mld is not None:
+        plt.plot(Time, -mld, linewidth=2, color='k')
+    if bld is not None:
+        plt.plot(Time, -bld, linewidth=2, color='b')
+    ax.set_ylim(z[kmax-1], 0)
 
     minDays = np.min(Time)
     maxDays = np.max(Time)

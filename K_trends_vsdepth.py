@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import os
+import subprocess
+from distutils.spawn import find_executable
 import xarray
 import pandas as pd
 import numpy as np
@@ -19,31 +21,40 @@ from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
 
 from geometric_features import FeatureCollection, read_feature_collection
 
-from common_functions import hovmoeller_plot, add_inset
+from common_functions import hovmoeller_plot, add_inset, compute_regional_maskfile
 
 # Settings for blues
-meshName = 'EC30to60E2r2'
-restartFile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.210210.nc'.format(meshName)
-
-regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
-featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/oceanOHCRegions.geojson'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticRegions20211105.nc'
+featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
 
 #runName = '20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2'
 #runNameShort = 'JRA_tidalMixingBnLwithKPP'
 #modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2/run'
 #
-runName = '20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2'
-runNameShort = 'JRA_tidalMixingBnLhighKsWithKPP'
-modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2/run'
+#runName = '20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2'
+#runNameShort = 'JRA_tidalMixingBnLhighKsWithKPP'
+#modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210414_JRA_tidalMixingBnLhighKsWithKPP_EC30to60E2r2/run'
 #
 #runName = '20210401_JRA_constantMix_EC30to60E2r2'
 #runNameShort = 'JRA_constantMix'
 #modeldir = '/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/20210401_JRA_constantMix_EC30to60E2r2/run'
+#
+#runName = 'v2Visbeck_RediequalGM_lowMaxKappa.LR.picontrol'
+#runNameShort = 'v2Visbeck_RediequalGM_lowMaxKappa.LR.picontrol'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SMv2/v2Visbeck_RediequalGM_lowMaxKappa.LR.picontrol/run'
+#
+#runName = 'v2Visbeck_RediequalGM.LR.picontrol'
+#runNameShort = 'v2Visbeck_RediequalGM.LR.picontrol'
+#modeldir = '/lcrc/group/e3sm/ac.milena/E3SMv2/v2Visbeck_RediequalGM.LR.picontrol/run'
+#
+runName = 'v2plusKPP_GM_Redi_mods.LR.piControl'
+runNameShort = 'v2plusKPP_GM_Redi_mods.LR.piControl'
+modeldir = '/lcrc/group/e3sm/ac.vanroekel/E3SMv2/v2plusKPP_GM_Redi_mods.LR.piControl/run'
 
 # Settings for compy
-#meshName = 'EC30to60E2r2'
-#restartFile = '/compyfs/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
-#regionMaskFile = '/compyfs/vene705/mpas-region_masks/{}_oceanOHCRegions20201120.nc'.format(meshName)
+#meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
+#regionMaskFile = '/compyfs/vene705/mpas-region_masks/EC30to60E2r2_oceanOHCRegions20201120.nc'
 #featureFile = '/compyfs/vene705/mpas-region_masks/oceanOHCRegions.geojson'
 #
 #modeldir = '/compyfs/zhen797/E3SM_simulations/20201108.alpha5_55_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist'
@@ -60,43 +71,44 @@ figdir = './timeseries/{}'.format(runNameShort)
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
-if os.path.exists(restartFile):
-    dsRestart = xarray.open_dataset(restartFile)
-    dsRestart = dsRestart.isel(Time=0)
+if os.path.exists(meshfile):
+    dsMesh = xarray.open_dataset(meshfile)
+    dsMesh = dsMesh.isel(Time=0)
 else:
-    raise IOError('No MPAS restart/mesh file found')
-areaCell = dsRestart.areaCell
-if 'landIceMask' in dsRestart:
+    raise IOError('No MPAS mesh file found')
+areaCell = dsMesh.areaCell
+if 'landIceMask' in dsMesh:
     # only the region outside of ice-shelf cavities
-    openOceanMask = dsRestart.landIceMask == 0
+    openOceanMask = dsMesh.landIceMask == 0
 else:
     openOceanMask = None
-refBottomDepth = dsRestart.refBottomDepth
-maxLevelCell = dsRestart.maxLevelCell
-nVertLevels = dsRestart.sizes['nVertLevels']
+refBottomDepth = dsMesh.refBottomDepth
+maxLevelCell = dsMesh.maxLevelCell
+nVertLevels = dsMesh.sizes['nVertLevels']
 vertIndex = xarray.DataArray.from_dict(
     {'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
 depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
-if os.path.exists(regionMaskFile):
-    dsRegionMask = xarray.open_dataset(regionMaskFile)
-    regionNames = decode_strings(dsRegionMask.regionNames)
-    regionNames.append('Global')
-    nRegions = np.size(regionNames)
-else:
-    raise IOError('No regional mask file {} found'.format(regionMaskFile))
+if not os.path.exists(regionMaskFile):
+    compute_regional_maskfile(meshfile, featureFile, regionMaskFile)
+dsRegionMask = xarray.open_dataset(regionMaskFile)
+regionNames = decode_strings(dsRegionMask.regionNames)
+regionNames.append('Global')
+nRegions = np.size(regionNames)
 
 startYear = 1
-endYear = 10
+#endYear = 100
+endYear = 69
 calendar = 'gregorian'
 
 variables = [{'name': 'kvertical',
               'title': 'Vertical diffusivity',
               'units': 'x1e-4 m$^2$/s',
               'mpas': 'timeMonthly_avg_vertDiffTopOfCell',
-              'colormap': cmocean.cm.thermal,
+              'colormap': plt.get_cmap('viridis'),
+              #'colormap': cmocean.cm.thermal,
               #'clevels': np.log10([0.2e-4, 0.5e-4, 1.0e-4, 2.0e-4, 4.0e-4, 6.0e-4, 8.0e-4, 10.0e-4, 15.0e-4]),
-              'clevels': [5.0, 7.5, 10.0, 15.0, 20.0, 30.0, 50.0, 75.0, 100.0],
+              'clevels': [5.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0, 150.0, 200.0],
               'colorIndices': [0, 28, 57, 85, 113, 142, 170, 198, 227, 255],
               'fac': 1e4}]
 
@@ -105,7 +117,8 @@ endDate = '{:04d}-12-31_23:59:59'.format(endYear)
 years = range(startYear, endYear + 1)
 
 variableList = [var['mpas'] for var in variables] + \
-    ['timeMonthly_avg_layerThickness']
+    ['timeMonthly_avg_layerThickness'] + ['timeMonthly_avg_dThreshMLD'] + \
+    ['timeMonthly_avg_boundaryLayerDepth']
 
 timeSeriesFile0 = '{}/Kv_trends_vsdepth'.format(outdir)
 
@@ -154,6 +167,11 @@ for year in years:
                 totalArea = areaCell.sum()
                 if year==years[0]:
                     print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
+
+                regionMaxLevelCell = nVertLevels
+
+                mld = (dsIn['timeMonthly_avg_dThreshMLD']*areaCell).sum(dim='nCells') / totalArea
+                bld = (dsIn['timeMonthly_avg_boundaryLayerDepth']*areaCell).sum(dim='nCells') / totalArea
             else:
                 regionIndex = regionNames.index(regionName)
                 regionIndices.append(regionIndex)
@@ -168,6 +186,13 @@ for year in years:
                 if year==years[0]:
                     print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
                 localLayerVol = layerVol.where(cellMask, drop=True)
+
+                regionMaxLevelCell = np.max(maxLevelCell.where(cellMask, drop=True))
+
+                mld = dsIn['timeMonthly_avg_dThreshMLD'].where(cellMask, drop=True)
+                mld = (mld*localArea).sum(dim='nCells') / totalArea
+                bld = dsIn['timeMonthly_avg_boundaryLayerDepth'].where(cellMask, drop=True)
+                bld = (bld*localArea).sum(dim='nCells') / totalArea
 
             # Temporary dsOut (xarray dataset) containing results for
             # all variables for one single region
@@ -193,8 +218,14 @@ for year in years:
                 dsOut[outName].attrs['units'] = units
                 dsOut[outName].attrs['description'] = description
 
+            dsOut['mld'] = mld
+            dsOut.mld.attrs['units'] = 'm'
+            dsOut['bld'] = bld
+            dsOut.bld.attrs['units'] = 'm'
             dsOut['totalArea'] = totalArea
             dsOut.totalArea.attrs['units'] = 'm^2'
+            dsOut['regionMaxLevelCell'] = regionMaxLevelCell
+            dsOut.regionMaxLevelCell.attrs['description'] = 'Maximum of maxLevelCell for each region'
 
             datasets.append(dsOut)
 
@@ -237,6 +268,12 @@ for regionIndex, regionName in enumerate(regionNames):
     z[1:] = -0.5 * (depths[0:-1] + depths[1:])
 
     Time = dsIn.Time.values
+
+    regionMaxLevelCell = dsIn.regionMaxLevelCell.isel(Time=0).values
+    regionMaxLevelCell = np.floor(regionMaxLevelCell).astype(int)
+
+    mld = dsIn.mld
+    bld = dsIn.bld
 
     for var in variables:
         varName = var['name']
@@ -283,12 +320,14 @@ for regionIndex, regionName in enumerate(regionNames):
         #title = '{} Anomaly, {}'.format(var['title'], regionName)
         title = '{}, {}\n{}'.format(var['title'], regionName, runNameShort)
         figFileName = '{}/{}vsTimeDepth_{}.png'.format(figdir, varName,
-                regionName[0].lower()+regionName[1:].replace(' ', ''))
+                regionName[0].lower()+''.join(e for e in regionName[1:] if e.isalnum()))
+                #regionName[0].lower()+regionName[1:].replace(' ', '').replace(')', '').replace('(', '').replace('\\', ''))
 
         #fig = hovmoeller_plot(Time[N-1:], z, np.log10(field.values), colormap, cnorm, clevels,
         fig = hovmoeller_plot(Time[N-1:], z, field.values, colormap, cnorm, clevels,
-                              title, xLabel, yLabel, calendar, colorbarLabel=var['units'],
-                              titleFontSize=None, figsize=(15, 6), dpi=None)
+                              title, xLabel, yLabel, calendar, kmax=regionMaxLevelCell,
+                              mld=mld, bld=bld, colorbarLabel=var['units'], titleFontSize=None,
+                              figsize=(15, 6), dpi=None)
 
         # do this before the inset because otherwise it moves the inset
         # and cartopy doesn't play too well with tight_layout anyway
