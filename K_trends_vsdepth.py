@@ -24,10 +24,10 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import hovmoeller_plot, add_inset, compute_regional_maskfile
 
 # Settings for blues
-meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticRegions20211105.nc'
-featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
-
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#regionMaskFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticRegions20211105.nc'
+#featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
+#
 #runName = '20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2'
 #runNameShort = 'JRA_tidalMixingBnLwithKPP'
 #modeldir = '/lcrc/group/e3sm/ac.milena/scratch/anvil/20210413_JRA_tidalMixingBnLwithKPP_EC30to60E2r2/run'
@@ -48,9 +48,9 @@ featureFile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojso
 #runNameShort = 'v2Visbeck_RediequalGM.LR.picontrol'
 #modeldir = '/lcrc/group/e3sm/ac.milena/E3SMv2/v2Visbeck_RediequalGM.LR.picontrol/run'
 #
-runName = 'v2plusKPP_GM_Redi_mods.LR.piControl'
-runNameShort = 'v2plusKPP_GM_Redi_mods.LR.piControl'
-modeldir = '/lcrc/group/e3sm/ac.vanroekel/E3SMv2/v2plusKPP_GM_Redi_mods.LR.piControl/run'
+#runName = 'v2plusKPP_GM_Redi_mods.LR.piControl'
+#runNameShort = 'v2plusKPP_GM_Redi_mods.LR.piControl'
+#modeldir = '/lcrc/group/e3sm/ac.vanroekel/E3SMv2/v2plusKPP_GM_Redi_mods.LR.piControl/run'
 
 # Settings for compy
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
@@ -63,6 +63,15 @@ modeldir = '/lcrc/group/e3sm/ac.vanroekel/E3SMv2/v2plusKPP_GM_Redi_mods.LR.piCon
 #modeldir = '/compyfs/zhen797/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/archive/ocn/hist/'
 #runName = '20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
 #runNameShort = 'alpha5_59_fallback'
+
+# Settings for cori
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
+regionMaskFile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_arcticRegions20211105.nc'
+featureFile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/arcticRegions.geojson'
+#
+modeldir = '/global/cscratch1/sd/milena/E3SM_simulations/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/run'
+runName = 'theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG'
+runNameShort = 'HRv1.ne120_oRRS18v3_ICG'
 
 outdir = './timeseries_data/{}'.format(runNameShort)
 if not os.path.isdir(outdir):
@@ -90,15 +99,18 @@ vertIndex = xarray.DataArray.from_dict(
 depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
 if not os.path.exists(regionMaskFile):
+    print('\nComputing regional mask file {}'.format(regionMaskFile))
     compute_regional_maskfile(meshfile, featureFile, regionMaskFile)
 dsRegionMask = xarray.open_dataset(regionMaskFile)
 regionNames = decode_strings(dsRegionMask.regionNames)
 regionNames.append('Global')
 nRegions = np.size(regionNames)
 
-startYear = 1
+#startYear = 1
+startYear = 6
 #endYear = 100
-endYear = 69
+#endYear = 69
+endYear = 55
 calendar = 'gregorian'
 
 variables = [{'name': 'kvertical',
@@ -132,10 +144,11 @@ for year in years:
 
         datasets = []
         for month in range(1, 13):
-            inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
-                modeldir, runName, year, month)
-            #inputFile = '{}/mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
-            #    modeldir, year, month)
+            print('   month={}'.format(month))
+            #inputFile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+            #    modeldir, runName, year, month)
+            inputFile = '{}/mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
+                modeldir, year, month)
             if not os.path.exists(inputFile):
                 raise IOError('Input file: {} not found'.format(inputFile))
 
@@ -178,6 +191,7 @@ for year in years:
 
                 dsMask = dsRegionMask.isel(nRegions=regionIndex)
                 cellMask = dsMask.regionCellMasks == 1
+                del dsMask # this doesn't help
                 if openOceanMask is not None:
                     cellMask = np.logical_and(cellMask, openOceanMask)
 
@@ -185,7 +199,9 @@ for year in years:
                 totalArea = localArea.sum()
                 if year==years[0]:
                     print('      totalArea: {} mil. km^2'.format(1e-12*totalArea.values))
+                print('*** before computing regional mld ***')
                 localLayerVol = layerVol.where(cellMask, drop=True)
+                print('*** after making regional calculation ***')
 
                 regionMaxLevelCell = np.max(maxLevelCell.where(cellMask, drop=True))
 

@@ -67,20 +67,8 @@ def compute_regional_maskfile(meshFile, featureFile, outFile):
             '-m', meshFile,
             '-g', featureFile,
             '-o', outFile,
-            '-t cell edge vertex']
-    process = subprocess.Popen(args, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    #stdout, stderr = process.communicate()
-
-    #if stdout:
-    #    stdout = stdout.decode('utf-8')
-    #    for line in stdout.split('\n'):
-    #        self.logger.info(line)
-    #if stderr:
-    #    stderr = stderr.decode('utf-8')
-    #    for line in stderr.split('\n'):
-    #        self.logger.error(line)
-
+            '-t', 'cell', 'edge', 'vertex']
+    process = subprocess.run(args)
     if process.returncode != 0:
         raise subprocess.CalledProcessError(process.returncode,
                                             ' '.join(args))
