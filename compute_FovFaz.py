@@ -21,7 +21,17 @@ import xarray as xr
 from netCDF4 import Dataset
 import glob
 import platform
-import gsw
+
+
+def get_mask_short_names(mask):
+    # This is the right way to handle transects defined in the main transect file mask:
+    shortnames = [str(aname.values)[:str(aname.values).find(',')].strip()
+                  for aname in mask.transectNames]
+    #shortnames = mask.transectNames.values
+    mask['shortNames'] = xr.DataArray(shortnames, dims='nTransects')
+    mask = mask.set_index(nTransects=['transectNames', 'shortNames'])
+    return mask
+
 
 szero = 35.0
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
@@ -274,13 +284,3 @@ for j in range(nTransects):
     nLetters = len(transectList[j])
     transectNames[j, :nLetters] = transectList[j]
 ncid.close()
-
-
-def get_mask_short_names(mask):
-    # This is the right way to handle transects defined in the main transect file mask:
-    shortnames = [str(aname.values)[:str(aname.values).find(',')].strip()
-                  for aname in mask.transectNames]
-    #shortnames = mask.transectNames.values
-    mask['shortNames'] = xr.DataArray(shortnames, dims='nTransects')
-    mask = mask.set_index(nTransects=['transectNames', 'shortNames'])
-    return mask
