@@ -206,10 +206,19 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
         else:
             searchString = transectList[i]
 
+        if searchString in labelDict:
+            transectName_forfigfile = labelDict[searchString]
+        else:
+            transectName_forfigfile = searchString.replace(" ", "")
+
+        if searchString in obsDict:
+            bounds = obsDict[searchString]
+        else:
+            bounds = None
+
         # Plot Volume Transport
-        figfile = '{}/volTransport_{}_{}.png'.format(figdir, labelDict[searchString], casename)
+        figfile = '{}/volTransport_{}_{}.png'.format(figdir, transectName_forfigfile, casename)
         plt.figure(figsize=figsize, dpi=figdpi)
-        bounds = obsDict[searchString]
         plt.plot(t, vol_transport[:,i], 'k', linewidth=2, label='model (net)')
         plt.plot(t, vol_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
         plt.plot(t, vol_transportOut[:,i], 'b', linewidth=2, label='model (outflow)')
@@ -224,7 +233,7 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
         plt.savefig(figfile, bbox_inches='tight')
 
         # Plot Heat Transport wrt Tref=0
-        figfile = '{}/heatTransport_{}_{}.png'.format(figdir, labelDict[searchString], casename)
+        figfile = '{}/heatTransport_{}_{}.png'.format(figdir, transectName_forfigfile, casename)
         plt.figure(figsize=figsize, dpi=figdpi)
         plt.plot(t, heat_transport[:,i], 'k', linewidth=2, label='model (net)')
         plt.plot(t, heat_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
@@ -238,7 +247,7 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
         plt.savefig(figfile, bbox_inches='tight')
 
         # Plot Heat Transport wrt Tref=tempRef
-        figfile = '{}/heatTransportTfp_{}_{}.png'.format(figdir, labelDict[searchString], casename)
+        figfile = '{}/heatTransportTfp_{}_{}.png'.format(figdir, transectName_forfigfile, casename)
         plt.figure(figsize=figsize, dpi=figdpi)
         plt.plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label='model (net)')
         plt.plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label='model (inflow)')
@@ -252,7 +261,7 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
         plt.savefig(figfile, bbox_inches='tight')
 
         # Plot FW Transport
-        figfile = '{}/fwTransport_{}_{}.png'.format(figdir, labelDict[searchString], casename)
+        figfile = '{}/fwTransport_{}_{}.png'.format(figdir, transectName_forfigfile, casename)
         plt.figure(figsize=figsize, dpi=figdpi)
         plt.plot(t, salt_transport[:,i], 'k', linewidth=2, label='model (net)')
         plt.plot(t, salt_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
@@ -336,16 +345,23 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
 #######################################################
 
 # years for transport time series (empty if plotting full time series)
-years = '000[1-2]'
-#years = ''
+#years = '010[1-2]'
+years = ''
 
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-#maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
-maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_standardTransportSections20210323.nc'
-casename = 'E3SM-Arctic-OSI_60to10' # no spaces
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+casename = 'ne30pg2_ARRM10to60E2r1.baseline_bdvslat'
+historyFileList = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/20220810.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl/run/20220810.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+#casename = 'arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat'
+#historyFileList = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/20220810.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl/run/20220810.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+##maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
+#maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_standardTransportSections20210323.nc'
+#casename = 'E3SM-Arctic-OSI_60to10' # no spaces
 #casename = 'E3SM-Arctic-OSIv2'
 #casename = 'E3SM-Arctic-v2beta1'
-historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/ARRM60to10_JRA_GM_ramp/run/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+#historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/ARRM60to10_JRA_GM_ramp/run/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/run/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #
@@ -362,6 +378,20 @@ historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/ARRM60to1
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
 #casename = 'E3SM-HR'
 #historyFileList = '/global/cscratch1/sd/milena/E3SM_simulations/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/run/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+#
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
+##maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC_arcticTransects.nc'
+#casename = 'v2.LR.piControl'
+#historyFileList = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/v2.LR.piControl/archive/ocn/hist/{}.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(casename, years)
+#
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/WC14to60E2r3/ocean.WC14to60E2r3.200714.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/WC14to60E2r3_arcticSections20220914.nc'
+##maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/WC14_arcticTransects.nc'
+#casename = 'northamericax4v1pg2_WC14.piControl'
+#historyFileList = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210603.v2rc3c.piControl.northamericax4v1pg2_WC14to60E2r3.chrysalis/archive/ocn/hist/20210603.v2rc3c.piControl.northamericax4v1pg2_WC14to60E2r3.chrysalis.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+#casename = 'Interface.piControl'
+#historyFileList = '/global/cscratch1/sd/ethomas/E3SMv2/case_dirs/InterFACE.v2.ne30pg2_WC14.PIControl/archive/ocn/hist/InterFACE.v2.ne30pg2_WC14.PIControl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 
 print(historyFileList)
 

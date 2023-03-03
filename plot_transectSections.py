@@ -42,23 +42,26 @@ earthRadius = 6367.44
 #modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
 #modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
 #
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
 ##maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
-maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_arcticSections20210514.nc'
-casename = 'E3SM60to30-OSI' # no spaces
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_arcticSections20210514.nc'
+#casename = 'E3SM60to30-OSI' # no spaces
 #casename = 'E3SM-LRdeck-historical1' # no spaces
 #casename = 'E3SM-LRtunedHR' # no spaces
-climoyearStart = 40
-climoyearEnd = 59
-modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
+#climoyearStart = 40
+#climoyearEnd = 59
+#modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
+meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
+maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_southernOceanSections20221202.nc'
 #casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
 #climoyearStart = 26
 #climoyearEnd = 55
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
+casename = 'E3SM-HR-Gcase'
+modeldir = '/global/project/projectdirs/e3sm/milena/postprocessing/GMPAS-JRA-RYF8485_RRS18to6v3_spinup_anvil01/means_years8-12'
 
 ####### Settings for compy
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
@@ -104,11 +107,11 @@ seasons = ['ANN']
 # "Barents Sea Opening", "Bering Strait", "Davis Strait", "Denmark Strait", "Fram Strait", 
 # "Hudson Bay-Labrador Sea", "Iceland-Faroe-Scotland", "Lancaster Sound", "Nares Strait",
 # "OSNAP section East", "OSNAP section West"
-#transectNames = ['all']
+transectNames = ['all']
 #transectNames = ['Barents Sea Opening', 'Fram Strait']
 #transectNames = ['Barents Sea Opening', 'Bering Strait', 'Davis Strait',
 #                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
-transectNames = ['OSNAP section East', 'OSNAP section West']
+#transectNames = ['OSNAP section East', 'OSNAP section West']
 
 # Figure details
 figdir = './verticalSections/{}'.format(casename)

@@ -20,10 +20,13 @@ import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 
-casename1 = 'E3SM-Arctic-OSI_60to10'
-casename2 = 'E3SM60to30'
+#casename1 = 'E3SM-Arctic-OSI_60to10'
+#casename2 = 'E3SM60to30'
+#maxYears = 177
+casename1 = 'Interface.piControl'
+casename2 = 'v2.LR.piControl'
+maxYears = 200
 
-maxYears = 177
 monthsNum4runavg_yearly  = 12 # 1 year
 monthsNum4runavg  = 5*12 # 5 years
 
@@ -51,25 +54,25 @@ volobsDict = {'Drake Passage':[120, 184], 'Tasmania-Ant':[147, 167], 'Africa-Ant
               'Mona Passage':[-3.8, -1.4],'Windward Passage':[-7.2, -6.8], 'Florida-Cuba':[24.7, 35.3], 'Florida-Bahamas':[28.8, 35.4], \
               'Indonesian Throughflow':[-20, -10], 'Agulhas':[-90, -50], 'Mozambique Channel':[-20, -8], \
               'Bering Strait':[0.6, 1.0], 'Lancaster Sound':[-1.0, -0.5], 'Fram Strait':[-4.7, 0.7], \
-              'Robeson Channel':None, 'Davis Strait':[-1.1, -2.1], 'Barents Sea Opening':[1.4, 2.6], \
+              'Robeson Channel':None, 'Davis Strait':[-1.1, -2.1], 'Barents Sea Opening':[1.4, 2.6], 'Barents Strait Opening':[1.4, 2.6],\
               'Nares Strait':[-1.1, -0.5], 'Denmark Strait':None, 'Iceland-Faroe-Scotland':None}
 heatobsDict = {'Drake Passage':None, 'Tasmania-Ant':None, 'Africa-Ant':None, 'Antilles Inflow':None, \
                'Mona Passage':None,'Windward Passage':None, 'Florida-Cuba':None, 'Florida-Bahamas':None, \
                'Indonesian Throughflow':None, 'Agulhas':None, 'Mozambique Channel':None, \
                'Bering Strait':[10, 20], 'Lancaster Sound':None, 'Fram Strait':[30, 42], \
-               'Robeson Channel':None, 'Davis Strait':[1, 35], 'Barents Sea Opening':[50, 70], \
+               'Robeson Channel':None, 'Davis Strait':[1, 35], 'Barents Sea Opening':[50, 70], 'Barents Strait Opening':[50, 70], \
                'Nares Strait':None, 'Denmark Strait':None, 'Iceland-Faroe-Scotland':None}
 FWobsDict = {'Drake Passage':None, 'Tasmania-Ant':None, 'Africa-Ant':None, 'Antilles Inflow':None, \
              'Mona Passage':None,'Windward Passage':None, 'Florida-Cuba':None, 'Florida-Bahamas':None, \
              'Indonesian Throughflow':None, 'Agulhas':None, 'Mozambique Channel':None, \
              'Bering Strait':[2200, 2800], 'Lancaster Sound':[-1900, -950], 'Fram Strait':[-3188, -2132], \
-             'Robeson Channel':None, 'Davis Strait':[-3120, -2740], 'Barents Sea Opening':[-184, 4], \
+             'Robeson Channel':None, 'Davis Strait':[-3120, -2740], 'Barents Sea Opening':[-184, 4], 'Barents Strait Opening':[-184, 4],\
              'Nares Strait':[-1700, -1000], 'Denmark Strait':None, 'Iceland-Faroe-Scotland':None}
 labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'africaAnt', 'Antilles Inflow':'antilles', \
              'Mona Passage':'monaPassage', 'Windward Passage':'windwardPassage', 'Florida-Cuba':'floridaCuba', \
              'Florida-Bahamas':'floridaBahamas', 'Indonesian Throughflow':'indonesia', 'Agulhas':'agulhas', \
              'Mozambique Channel':'mozambique', 'Bering Strait':'beringStrait', 'Lancaster Sound':'lancasterSound', \
-             'Fram Strait':'framStrait', 'Robeson Channel':'robeson', 'Davis Strait':'davisStrait', 'Barents Sea Opening':'BarentsSea', \
+             'Fram Strait':'framStrait', 'Robeson Channel':'robeson', 'Davis Strait':'davisStrait', 'Barents Sea Opening':'BarentsSea', 'Barents Strait Opening':'BarentsStrait', \
              'Nares Strait':'naresStrait', 'Denmark Strait':'denmarkStrait', 'Iceland-Faroe-Scotland':'icelandFaroeScotland'}
 
 # Read data in from previously compute mass transports
@@ -108,6 +111,26 @@ FWTransportsOut2 = ds2.FWTransportOut.values
 nTimes2, nTransects = np.shape(volTransports2)
 
 for i in range(nTransects):
+    if transectNames[i] in labelDict:
+        transectName_forfigfile = labelDict[transectNames[i]]
+    else:
+        transectName_forfigfile = transectNames[i].replace(" ", "")
+
+    if transectNames[i] in volobsDict:
+        bounds = volobsDict[transectNames[i]]
+    else:
+        bounds = None
+    if transectNames[i] in heatobsDict:
+        heatbounds = heatobsDict[transectNames[i]]
+    else:
+        heatbounds = None
+    if transectNames[i] in FWobsDict:
+        FWbounds = FWobsDict[transectNames[i]]
+    else:
+        FWbounds = None
+
+    print(transectNames[i], transectName_forfigfile, bounds, heatbounds, FWbounds)
+
     volTransports_runavg_yearly1 = pd.Series.rolling(ds1.volTransport[:, i].to_pandas(),
                                                      monthsNum4runavg_yearly, center=True).mean()
     volTransports_runavg_yearly2 = pd.Series.rolling(ds2.volTransport[:, i].to_pandas(),
@@ -118,8 +141,7 @@ for i in range(nTransects):
                                               monthsNum4runavg, center=True).mean()
 
     # Plot Volume transport
-    bounds = volobsDict[transectNames[i]]
-    figfile = '{}/volTransport_{}_{}_{}.png'.format(figdir, labelDict[transectNames[i]],
+    figfile = '{}/volTransport_{}_{}_{}.png'.format(figdir, transectName_forfigfile,
                                                     casename1, casename2)
     fig =  plt.figure(figsize=figsize, dpi=figdpi)
     ax = fig.add_subplot()
@@ -133,38 +155,43 @@ for i in range(nTransects):
     ax.yaxis.get_offset_text().set_weight('bold')
 
     ax.plot(time1, volTransports_runavg_yearly1, color='firebrick', linewidth=3,
-            label='E3SM-Arctic-OSI annual mean ({:5.2f} $\pm$ {:5.2f} Sv)'.format(
+            label='{} annual mean ({:5.2f} $\pm$ {:5.2f} Sv)'.format(casename1,
             np.nanmean(volTransports_runavg_yearly1), np.nanstd(volTransports_runavg_yearly1)))
-    ax.plot(time1, volTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
-            label='E3SM-Arctic-OSI monthly')
-    if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
-        ax.plot(time2, volTransports_runavg_yearly2, color='k', linewidth=3,
-                label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} Sv)'.format(
-                np.nanmean(volTransports_runavg_yearly2), np.nanstd(volTransports_runavg_yearly2)))
+    #ax.plot(time1, volTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
+    #        label='{} monthly'.fotmat(casename1))
+    #if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
+    #    ax.plot(time2, volTransports_runavg_yearly2, color='k', linewidth=3,
+    #            label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} Sv)'.format(
+    #            np.nanmean(volTransports_runavg_yearly2), np.nanstd(volTransports_runavg_yearly2)))
+    ax.plot(time2, volTransports_runavg_yearly2, color='k', linewidth=3,
+            label='{} annual mean ({:5.2f} $\pm$ {:5.2f} Sv)'.format(casename2,
+            np.nanmean(volTransports_runavg_yearly2), np.nanstd(volTransports_runavg_yearly2)))
+    xmin = np.amax([np.amin(time1), np.amin(time2)])
+    xmax = np.amax([np.amax(time1), np.amax(time2)])
     if bounds is not None:
-        fig.gca().fill_between(range(1, maxYears+1),
-                               bounds[0]*np.ones_like(range(1, maxYears+1)),
-                               bounds[1]*np.ones_like(range(1, maxYears+1)),
+        #fig.gca().fill_between(range(1, maxYears+1),
+        #                       bounds[0]*np.ones_like(range(1, maxYears+1)),
+        #                       bounds[1]*np.ones_like(range(1, maxYears+1)),
+        fig.gca().fill_between([xmin, xmax], [bounds[0], bounds[0]], [bounds[1], bounds[1]],
                                color='limegreen', alpha=0.3, label='obs variability')
     if np.max(volTransports1[:, i])>0.0 and np.min(volTransports1[:, i])<0:
         ax.axhline(y=0, color='k', linewidth=1)
-    ax.axvline(x=59, color='blueviolet', linewidth=5)
-    ax.axvline(x=118, color='blueviolet', linewidth=5)
+    #ax.axvline(x=59, color='blueviolet', linewidth=5)
+    #ax.axvline(x=118, color='blueviolet', linewidth=5)
     ax.set_xlabel('Time (Years)', fontsize=fontsize_labels, fontweight='bold')
     ax.set_ylabel('Volume transport (Sv)', fontsize=fontsize_labels, fontweight='bold')
     ax.set_title('Volume transport for {}'.format(transectNames[i]), fontsize=fontsize_titles, fontweight='bold')
     ax.legend(prop=legend_properties)
-    ax.set_xlim(1, maxYears)
-    #ax.autoscale(enable=True, axis='x', tight=True)
+    #ax.set_xlim(1, maxYears)
+    ax.set_xlim(xmin, xmax)
+    ##ax.autoscale(enable=True, axis='x', tight=True)
     fig.savefig(figfile, bbox_inches='tight')
     plt.close(fig)
 
     # Plot Freshwater and Heat transport for Arctic gateways only
-    heatbounds = heatobsDict[transectNames[i]]
-    FWbounds = FWobsDict[transectNames[i]]
     if transectNames[i]=='Bering Strait' or transectNames[i]=='Lancaster Sound' or \
        transectNames[i]=='Fram Strait' or transectNames[i]=='Davis Strait' or \
-       transectNames[i]=='Barents Sea Opening' or transectNames[i]=='Nares Strait':
+       transectNames[i]=='Barents Sea Opening' or transectNames[i]=='Barents Strait Opening' or transectNames[i]=='Nares Strait':
         heatTransports_runavg_yearly1 = pd.Series.rolling(ds1.heatTransport[:, i].to_pandas(),
                                                           monthsNum4runavg_yearly, center=True).mean()
         heatTransports_runavg_yearly2 = pd.Series.rolling(ds2.heatTransport[:, i].to_pandas(),
@@ -191,7 +218,7 @@ for i in range(nTransects):
                                                  monthsNum4runavg, center=True).mean()
 
         f1.write('%s %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n' % \
-                 (labelDict[transectNames[i]], np.nanmean(volTransports1[:, i]), np.nanstd(volTransports1[:, i]), \
+                 (transectName_forfigfile, np.nanmean(volTransports1[:, i]), np.nanstd(volTransports1[:, i]), \
                  np.nanmean(volTransportsIn1[:, i]), np.nanstd(volTransportsIn1[:, i]), np.nanmean(volTransportsOut1[:, i]), np.nanstd(volTransportsOut1[:, i]), \
                  np.nanmean(heatTransports1[:, i]), np.nanstd(heatTransports1[:, i]), np.nanmean(heatTransportsIn1[:, i]), \
                  np.nanstd(heatTransportsIn1[:, i]), np.nanmean(heatTransportsOut1[:, i]), np.nanstd(heatTransportsOut1[:, i]), \
@@ -200,7 +227,7 @@ for i in range(nTransects):
                  np.nanmean(FWTransports1[:, i]), np.nanstd(FWTransports1[:, i]), np.nanmean(FWTransportsIn1[:, i]), \
                  np.nanstd(FWTransportsIn1[:, i]), np.nanmean(FWTransportsOut1[:, i]), np.nanstd(FWTransportsOut1[:, i])))
         f2.write('%s %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n' % \
-                 (labelDict[transectNames[i]], np.nanmean(volTransports2[:, i]), np.nanstd(volTransports2[:, i]), \
+                 (transectName_forfigfile, np.nanmean(volTransports2[:, i]), np.nanstd(volTransports2[:, i]), \
                  np.nanmean(volTransportsIn2[:, i]), np.nanstd(volTransportsIn2[:, i]), np.nanmean(volTransportsOut2[:, i]), np.nanstd(volTransportsOut2[:, i]), \
                  np.nanmean(heatTransports2[:, i]), np.nanstd(heatTransports2[:, i]), np.nanmean(heatTransportsIn2[:, i]), \
                  np.nanstd(heatTransportsIn2[:, i]), np.nanmean(heatTransportsOut2[:, i]), np.nanstd(heatTransportsOut2[:, i]), \
@@ -209,7 +236,7 @@ for i in range(nTransects):
                  np.nanmean(FWTransports2[:, i]), np.nanstd(FWTransports2[:, i]), np.nanmean(FWTransportsIn2[:, i]), \
                  np.nanstd(FWTransportsIn2[:, i]), np.nanmean(FWTransportsOut2[:, i]), np.nanstd(FWTransportsOut2[:, i])))
 
-        figfile = '{}/heatTransport_{}_{}_{}.png'.format(figdir, labelDict[transectNames[i]],
+        figfile = '{}/heatTransport_{}_{}_{}.png'.format(figdir, transectName_forfigfile,
                                                          casename1, casename2)
         fig =  plt.figure(figsize=figsize, dpi=figdpi)
         ax = fig.add_subplot()
@@ -223,32 +250,37 @@ for i in range(nTransects):
         ax.yaxis.get_offset_text().set_weight('bold')
 
         ax.plot(time1, heatTransports_runavg_yearly1, color='firebrick', linewidth=3,
-                label='E3SM-Arctic-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(casename1,
                 np.nanmean(heatTransports_runavg_yearly1), np.nanstd(heatTransports_runavg_yearly1)))
-        ax.plot(time1, heatTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
-                label='E3SM-Arctic-OSI monthly')
-        if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
-            ax.plot(time2, heatTransports_runavg_yearly2, color='k', linewidth=3,
-                    label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
-                    np.nanmean(heatTransports_runavg_yearly2), np.nanstd(heatTransports_runavg_yearly2)))
+        #ax.plot(time1, heatTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
+        #        label='{} monthly'.format(casename1)
+        #if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
+        #    ax.plot(time2, heatTransports_runavg_yearly2, color='k', linewidth=3,
+        #            label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
+        #            np.nanmean(heatTransports_runavg_yearly2), np.nanstd(heatTransports_runavg_yearly2)))
+        ax.plot(time2, heatTransports_runavg_yearly2, color='k', linewidth=3,
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(casename2,
+                np.nanmean(heatTransports_runavg_yearly2), np.nanstd(heatTransports_runavg_yearly2)))
         if heatbounds is not None:
-            fig.gca().fill_between(range(1, maxYears+1),
-                                   heatbounds[0]*np.ones_like(range(1, maxYears+1)),
-                                   heatbounds[1]*np.ones_like(range(1, maxYears+1)),
+            #fig.gca().fill_between(range(1, maxYears+1),
+            #                       heatbounds[0]*np.ones_like(range(1, maxYears+1)),
+            #                       heatbounds[1]*np.ones_like(range(1, maxYears+1)),
+            fig.gca().fill_between([xmin, xmax], [heatbounds[0], heatbounds[0]], [heatbounds[1], heatbounds[1]],
                                    color='limegreen', alpha=0.3, label='obs variability')
         if np.max(heatTransports1[:, i])>0.0 and np.min(heatTransports1[:, i])<0:
             ax.axhline(y=0, color='k', linewidth=1)
-        ax.axvline(x=59, color='blueviolet', linewidth=5)
-        ax.axvline(x=118, color='blueviolet', linewidth=5)
+        #ax.axvline(x=59, color='blueviolet', linewidth=5)
+        #ax.axvline(x=118, color='blueviolet', linewidth=5)
         ax.set_xlabel('Time (Years)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_ylabel('Heat transport (TW)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_title('Heat transport wrt 0 $^\circ$C for {}'.format(transectNames[i]), fontsize=fontsize_titles, fontweight='bold')
         ax.legend(prop=legend_properties)
-        ax.set_xlim(1, maxYears)
+        #ax.set_xlim(1, maxYears)
+        ax.set_xlim(xmin, xmax)
         fig.savefig(figfile, bbox_inches='tight')
         plt.close(fig)
 
-        figfile = '{}/heatTransportTfp_{}_{}_{}.png'.format(figdir, labelDict[transectNames[i]],
+        figfile = '{}/heatTransportTfp_{}_{}_{}.png'.format(figdir, transectName_forfigfile,
                                                             casename1, casename2)
         fig =  plt.figure(figsize=figsize, dpi=figdpi)
         ax = fig.add_subplot()
@@ -262,32 +294,37 @@ for i in range(nTransects):
         ax.yaxis.get_offset_text().set_weight('bold')
 
         ax.plot(time1, heatTransportsTfp_runavg_yearly1, color='firebrick', linewidth=3,
-                label='E3SM-Arctic-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(casename1,
                 np.nanmean(heatTransportsTfp_runavg_yearly1), np.nanstd(heatTransportsTfp_runavg_yearly1)))
-        ax.plot(time1, heatTransportsTfp1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
-                label='E3SM-Arctic-OSI monthly')
-        if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
-            ax.plot(time2, heatTransportsTfp_runavg_yearly2, color='k', linewidth=3,
-                    label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
-                    np.nanmean(heatTransportsTfp_runavg_yearly2), np.nanstd(heatTransportsTfp_runavg_yearly2)))
+        #ax.plot(time1, heatTransportsTfp1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
+        #        label='{} monthly'.format(casename1))
+        #if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
+        #    ax.plot(time2, heatTransportsTfp_runavg_yearly2, color='k', linewidth=3,
+        #            label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(
+        #            np.nanmean(heatTransportsTfp_runavg_yearly2), np.nanstd(heatTransportsTfp_runavg_yearly2)))
+        ax.plot(time2, heatTransportsTfp_runavg_yearly2, color='k', linewidth=3,
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} TW)'.format(casename2,
+                np.nanmean(heatTransportsTfp_runavg_yearly2), np.nanstd(heatTransportsTfp_runavg_yearly2)))
         if heatbounds is not None:
-            fig.gca().fill_between(range(1, maxYears+1),
-                                   heatbounds[0]*np.ones_like(range(1, maxYears+1)),
-                                   heatbounds[1]*np.ones_like(range(1, maxYears+1)),
+            #fig.gca().fill_between(range(1, maxYears+1),
+            #                       heatbounds[0]*np.ones_like(range(1, maxYears+1)),
+            #                       heatbounds[1]*np.ones_like(range(1, maxYears+1)),
+            fig.gca().fill_between([xmin, xmax], [heatbounds[0], heatbounds[0]], [heatbounds[1], heatbounds[1]],
                                    color='limegreen', alpha=0.3, label='obs variability')
         if np.max(heatTransportsTfp1[:, i])>0.0 and np.min(heatTransportsTfp1[:, i])<0:
             ax.axhline(y=0, color='k', linewidth=1)
-        ax.axvline(x=59, color='blueviolet', linewidth=5)
-        ax.axvline(x=118, color='blueviolet', linewidth=5)
+        #ax.axvline(x=59, color='blueviolet', linewidth=5)
+        #ax.axvline(x=118, color='blueviolet', linewidth=5)
         ax.set_xlabel('Time (Years)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_ylabel('Heat transport (TW)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_title('Heat transport wrt freezing point for {}'.format(transectNames[i]), fontsize=fontsize_titles, fontweight='bold')
         ax.legend(prop=legend_properties)
-        ax.set_xlim(1, maxYears)
+        #ax.set_xlim(1, maxYears)
+        ax.set_xlim(xmin, xmax)
         fig.savefig(figfile, bbox_inches='tight')
         plt.close(fig)
 
-        figfile = '{}/FWTransport_{}_{}_{}.png'.format(figdir, labelDict[transectNames[i]],
+        figfile = '{}/FWTransport_{}_{}_{}.png'.format(figdir, transectName_forfigfile,
                                                        casename1, casename2)
         fig =  plt.figure(figsize=figsize, dpi=figdpi)
         ax = fig.add_subplot()
@@ -301,34 +338,39 @@ for i in range(nTransects):
         ax.yaxis.get_offset_text().set_weight('bold')
 
         ax.plot(time1, FWTransports_runavg_yearly1, color='firebrick', linewidth=3,
-                label='E3SM-Arctic-OSI annual mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(casename1,
                 np.nanmean(FWTransports_runavg_yearly1), np.nanstd(FWTransports_runavg_yearly1)))
-        ax.plot(time1, FWTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
-                label='E3SM-Arctic-OSI monthly')
+        #ax.plot(time1, FWTransports1[:, i], color='salmon', alpha=0.5, linewidth=1.5,
+        #        label='{} monthly'.format(casename1))
         #ax.plot(time1, FWTransports_runavg1, color='k', linewidth=3,
         #        label='60to10 5-year mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(
         #        np.nanmean(FWTransports_runavg1), np.nanstd(FWTransports_runavg1)))
         #ax.plot(time2, FWTransports_runavg2, color='firebrick', linewidth=3,
         #        label='60to6 5-year mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(
         #        np.nanmean(FWTransports_runavg2), np.nanstd(FWTransports_runavg2)))
-        if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
-            ax.plot(time2, FWTransports_runavg_yearly2, color='k', linewidth=3,
-                    label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(
-                    np.nanmean(FWTransports_runavg_yearly2), np.nanstd(FWTransports_runavg_yearly2)))
+        #if transectNames[i] != 'Nares Strait': # skip plotting of Nares Strait for E3SM-LR (strait is closed)
+        #    ax.plot(time2, FWTransports_runavg_yearly2, color='k', linewidth=3,
+        #            label='E3SM-LR-OSI annual mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(
+        #            np.nanmean(FWTransports_runavg_yearly2), np.nanstd(FWTransports_runavg_yearly2)))
+        ax.plot(time2, FWTransports_runavg_yearly2, color='k', linewidth=3,
+                label='{} annual mean ({:5.2f} $\pm$ {:5.2f} km$^3$/year)'.format(casename2,
+                np.nanmean(FWTransports_runavg_yearly2), np.nanstd(FWTransports_runavg_yearly2)))
         if FWbounds is not None:
-            fig.gca().fill_between(range(1, maxYears+1),
-                                   FWbounds[0]*np.ones_like(range(1, maxYears+1)),
-                                   FWbounds[1]*np.ones_like(range(1, maxYears+1)),
+            #fig.gca().fill_between(range(1, maxYears+1),
+            #                       FWbounds[0]*np.ones_like(range(1, maxYears+1)),
+            #                       FWbounds[1]*np.ones_like(range(1, maxYears+1)),
+            fig.gca().fill_between([xmin, xmax], [FWbounds[0], FWbounds[0]], [FWbounds[1], FWbounds[1]],
                                    color='limegreen', alpha=0.3, label='obs variability')
         if np.max(FWTransports1[:, i])>0.0 and np.min(FWTransports1[:, i])<0:
             ax.axhline(y=0, color='k', linewidth=1)
-        ax.axvline(x=59, color='blueviolet', linewidth=5)
-        ax.axvline(x=118, color='blueviolet', linewidth=5)
+        #ax.axvline(x=59, color='blueviolet', linewidth=5)
+        #ax.axvline(x=118, color='blueviolet', linewidth=5)
         ax.set_xlabel('Time (Years)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_ylabel('Freshwater transport (km$^3$/year)', fontsize=fontsize_labels, fontweight='bold')
         ax.set_title('Freshwater transport for {}'.format(transectNames[i]), fontsize=fontsize_titles, fontweight='bold')
         ax.legend(prop=legend_properties)
-        ax.set_xlim(1, maxYears)
+        #ax.set_xlim(1, maxYears)
+        ax.set_xlim(xmin, xmax)
         fig.savefig(figfile, bbox_inches='tight')
         plt.close(fig)
 f1.close()
