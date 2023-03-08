@@ -23,6 +23,9 @@ import xarray as xr
 from netCDF4 import Dataset
 import platform
 
+from common_functions import add_inset
+from geometric_features import FeatureCollection, read_feature_collection
+
 
 def get_mask_short_names(mask):
     # This is the right way to handle transects defined in the main transect file mask:
@@ -36,23 +39,37 @@ def get_mask_short_names(mask):
 
 # Choose years
 year1 = 1
-year2 = 1
-years = range(year1, year1+1)
+year2 = 16
+years = range(year1, year2+1)
 
+# Settings for anvil/chrysalis:
+#   NOTE: make sure to use the same mesh file that is in streams.ocean!
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
+#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+#casenameFull = 'v2_1.LR.piControl'
+#casename = 'v2_1.LR.piControl'
+#modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
+
+# Settings for cori:
+#   NOTE: make sure to use the same mesh file that is in streams.ocean!
 meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections.nc'
+maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20230307.nc'
+featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
 casename = 'fullyRRM_lat-dep-bd-submeso'
 modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casenameFull}/run'
 #
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/RRS18to6v3_atlantic34S.nc'
+#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/RRS18to6v3_atlanticZonal_sections20230307.nc'
+#featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 #casenameFull = 'theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG'
 #casename = 'E3SM-HR'
 #modeldir = f'/global/cscratch1/sd/milena/E3SM_simulations/{casenameFull}/run'
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_atlantic34S.nc'
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
+#featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 #casenameFull = 'v2.LR.piControl'
 #casename = 'v2.LR.piControl'
 #modeldir = f'/global/cscratch1/sd//dcomeau/e3sm_scratch/cori-knl/{casenameFull}/archive/ocn/hist'
@@ -68,7 +85,8 @@ else:
     outfile = f'volFovFaz_{casename}_years{year1:04d}-{year2:04d}.nc'
 
 transectName = 'all'
-#transectName = 'Atlantic zonal 34S'
+# Last time I tried it, this wasn't working:
+#transectName = 'Atlantic zonal 34S, Atlantic zonal 27.2N, Atlantic zonal OSNAP East'
 figdir = f'./FovFaz/{casename}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
@@ -86,7 +104,7 @@ else:
             transectList[i] = "b'" + transectList[i]
 nTransects = len(transectList)
 maxEdges = mask.dims['maxEdgesInTransect']
-print('Computing/plotting time series for these transects: ', transectList)
+print(f'Computing/plotting time series for these transects: {transectList}\n')
 
 # Create a list of edges and total edges in each transect
 nEdgesInTransect = np.zeros(nTransects)
@@ -114,10 +132,17 @@ mesh = xr.open_dataset(meshfile)
 dvEdge = mesh.dvEdge.sel(nEdges=edgesToRead).values
 cellsOnEdge = mesh.cellsOnEdge.sel(nEdges=edgesToRead).values
 maxLevelCell = mesh.maxLevelCell.values
-kmax = np.min(maxLevelCell[cellsOnEdge-1], axis=1)
+kmaxOnCells1 = maxLevelCell[cellsOnEdge[:, 0]-1]
+kmaxOnCells2 = maxLevelCell[cellsOnEdge[:, 1]-1]
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for j in range(nTransects):
     edgeSigns[j, :] = mask.sel(nEdges=edgesToRead, shortNames=transectList[j]).squeeze().transectEdgeMaskSigns.values
+refBottom = mesh.refBottomDepth.values
+nLevels = mesh.dims['nVertLevels']
+dz = np.zeros(nLevels)
+dz[0] = refBottom[0]
+for k in range(1, nLevels):
+    dz[k] = refBottom[k] - refBottom[k-1]
 
 # Compute transports if outfile does not exist
 if not os.path.exists(outfile):
@@ -129,7 +154,7 @@ if not os.path.exists(outfile):
     t = np.zeros(nTime)
     i = 0
     for year in years:
-        print(f'Year = {year:04d}')
+        print(f'Year = {year:04d} out of {len(years)} years total')
         for month in range(1, 13):
             print(f'  Month= {month:02d}')
             modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
@@ -143,59 +168,69 @@ if not os.path.exists(outfile):
                     vel += ncid.variables['timeMonthly_avg_normalGMBolusVelocity'][0, edgesToRead, :]
             else:
                 raise KeyError('no appropriate normalVelocity variable found')
+            # Note that the following is incorrect when cellsOnEdge is zero (that cell bordering the
+            # transect edge is on land), but that is OK because the value will be masked during
+            # land-sea masking below
             saltOnCells1 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge[:, 0]-1, :]
             saltOnCells2 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge[:, 1]-1, :]
-            dzOnCells1 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 0]-1, :]
-            dzOnCells2 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 1]-1, :]
+            # Forget about these for now, just using the reference thickness (from refBottomDepth):
+            #dzOnCells1 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 0]-1, :]
+            #dzOnCells2 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 1]-1, :]
             t[i] = ncid.variables['timeMonthly_avg_daysSinceStartOfSim'][:]/365.
             ncid.close()
 
             # Mask values that fall on land
-            saltOnCells1[cellsOnEdge[:, 0]==0, :] = np.nan
-            saltOnCells2[cellsOnEdge[:, 1]==0, :] = np.nan
-            dzOnCells1[cellsOnEdge[:, 0]==0, :] = np.nan
-            dzOnCells2[cellsOnEdge[:, 1]==0, :] = np.nan
+            landmask1 = cellsOnEdge[:, 0]==0
+            landmask2 = cellsOnEdge[:, 1]==0
+            saltOnCells1[landmask1, :] = np.nan
+            saltOnCells2[landmask2, :] = np.nan
+            # Mask values that fall onto topography
+            for k in range(len(kmaxOnCells1)):
+                saltOnCells1[k, kmaxOnCells1[k]:] = np.nan
+            for k in range(len(kmaxOnCells2)):
+                saltOnCells2[k, kmaxOnCells2[k]:] = np.nan
+            if np.any(saltOnCells1[np.logical_or(saltOnCells1> 1e15, saltOnCells1<-1e15)]) or \
+               np.any(saltOnCells2[np.logical_or(saltOnCells2> 1e15, saltOnCells2<-1e15)]):
+                print('WARNING: something is wrong with land and/or topography masking!')
+
             # Interpolate values onto edges
             saltOnEdges = np.nanmean(np.array([saltOnCells1, saltOnCells2]), axis=0)
-            dzOnEdges = np.nanmean(np.array([dzOnCells1, dzOnCells2]), axis=0)
 
             # Compute volume transport, Fov, and Faz for each transect
             for j in range(nTransects):
                 start = int(nTransectStartStop[j])
                 stop = int(nTransectStartStop[j+1])
-                kmaxTransect = kmax[start:stop]
                 dx = dvEdge[start:stop]
-                dz = dzOnEdges[start:stop, :]
-                dArea = dx[:, np.newaxis] * dz
-                transectLength = np.nansum(dx)
-                transectArea = np.nansum(np.nansum(dArea)) 
+                dx2d = np.transpose(np.tile(dx, (nLevels, 1)))
+                #dz = dzOnEdges[start:stop, :]
 
                 normalVel = vel[start:stop, :] * edgeSigns[j, start:stop, np.newaxis]
                 salt = saltOnEdges[start:stop, :]
-                # Mask values that fall onto topography
-                for k in range(len(kmaxTransect)):
-                    normalVel[k, kmaxTransect[k]:] = np.nan
-                    salt[k, kmaxTransect[k]:] = np.nan
+                maskOnEdges = np.isnan(salt)
+                normalVel[maskOnEdges] = np.nan
+                dx2d[maskOnEdges] = np.nan
+                dArea = dx2d * dz[np.newaxis, :]
+                transectLength = np.nansum(dx2d, axis=0)
+                transectArea = np.nansum(np.nansum(dArea)) 
 
+                # Each variable is decomposed into a transect averaged part, a zonal averaged
+                # part, and an azonal residual. For example, for velocity:
+                # v = v_transect + v_zonalAvg + v_azonal
                 vTransect[i, j] = np.nansum(np.nansum(normalVel * dArea)) / transectArea
                 sTransect[i, j] = np.nansum(np.nansum(salt * dArea)) / transectArea
                 if use_fixedSref:
                     sRef = sZero
                 else:
                     sRef = sTransect[i, j]
-
-                # Each variable is decomposed into a transect averaged part, a zonal averaged
-                # part and an azonal residual. For example, for velocity:
-                # v = v_transect + v_zonalAvg + v_azonal
-                vres = normalVel - vTransect[i, j]
-                vZonalAvg = np.nansum(normalVel * dx[:, np.newaxis], axis=0) / transectLength
-                sZonalAvg = np.nansum(salt * dx[:, np.newaxis], axis=0) / transectLength
-                vAzonal = vres - vZonalAvg[np.newaxis, :]
+                vZonalAvg = np.nansum(normalVel * dx2d, axis=0) / transectLength
+                sZonalAvg = np.nansum(salt * dx2d, axis=0) / transectLength
+                vAzonal = normalVel - vZonalAvg[np.newaxis, :]
                 sAzonal = salt - sZonalAvg[np.newaxis, :]
 
-                vol[i, j] =   np.nansum(np.nansum(normalVel * dArea))
-                Fov[i, j] = - np.nansum(np.nansum(vres * dArea, axis=0) * (sZonalAvg-sRef)) / sRef
-                Faz[i, j] = - np.nansum(np.nansum(vAzonal * (sAzonal-sRef) * dArea)) / sRef
+                vol[i, j] =   np.nansum(np.nansum( normalVel * dArea ))
+                # From Eq. 2,3 in Mecking et al. 2017 (note that in Eq. 2 sRef is missing):
+                Fov[i, j] = - np.nansum( (vZonalAvg - vTransect[i, j]) * (sZonalAvg-sRef) * transectLength * dz ) / sRef
+                Faz[i, j] = - np.nansum(np.nansum( vAzonal * sAzonal * dArea )) / sRef
 
             i = i+1
 
@@ -251,14 +286,14 @@ Faz = ncid.variables['Faz'][:, :]
 vTransect = ncid.variables['vTransect'][:, :]
 sTransect = ncid.variables['sTransect'][:, :]
 ncid.close()
-vol_runavg = pd.Series.rolling(pd.DataFrame(vol), 12, center=True).mean()
-Fov_runavg = pd.Series.rolling(pd.DataFrame(Fov), 12, center=True).mean()
-Faz_runavg = pd.Series.rolling(pd.DataFrame(Faz), 12, center=True).mean()
-vTransect_runavg = pd.Series.rolling(pd.DataFrame(vTransect), 12, center=True).mean()
-sTransect_runavg = pd.Series.rolling(pd.DataFrame(sTransect), 12, center=True).mean()
 
 # Define some dictionaries for transect plotting
 FovObsDict = {'Atlantic zonal 34S':[-0.2, -0.1]}
+
+if os.path.exists(featurefile):
+    fcAll = read_feature_collection(featurefile)
+else:
+    raise IOError('No feature file found')
 
 figsize = (8, 20)
 figdpi = 300
@@ -269,22 +304,40 @@ for j in range(nTransects):
         searchString = transectList[j]
     transectName_forfigfile = searchString.replace(" ", "")
 
+    fc = FeatureCollection()
+    for feature in fcAll.features:
+        if feature['properties']['name'] == searchString:
+            fc.add_feature(feature)
+            break
+
     if searchString in FovObsDict:
         Fovbounds = FovObsDict[searchString]
     else:
         Fovbounds = None
 
+    vol_runavg = pd.Series.rolling(pd.DataFrame(vol[:, j]), 12, center=True).mean()
+    Fov_runavg = pd.Series.rolling(pd.DataFrame(Fov[:, j]), 12, center=True).mean()
+    Faz_runavg = pd.Series.rolling(pd.DataFrame(Faz[:, j]), 12, center=True).mean()
+    vTransect_runavg = pd.Series.rolling(pd.DataFrame(vTransect[:, j]), 12, center=True).mean()
+    sTransect_runavg = pd.Series.rolling(pd.DataFrame(sTransect[:, j]), 12, center=True).mean()
+
     # Plot volume transport, Fov, and Faz
     if use_fixedSref:
-        figfile = f'{figdir}/volFovFaz_{transectName_forfigfile}_{casename}_sref35.png'
+        figfile = f'{figdir}/volFovFaz_{transectName_forfigfile}_{casename}_sref35_years{year1:04d}-{year2:04d}.png'
     else:
-        figfile = f'{figdir}/volFovFaz_{transectName_forfigfile}_{casename}.png'
+        figfile = f'{figdir}/volFovFaz_{transectName_forfigfile}_{casename}_years{year1:04d}-{year2:04d}.png'
     fig, ax = plt.subplots(5, 1, figsize=figsize)
-    ax[0].plot(t, Fov[:, j], 'k', linewidth=2)
-    ax[1].plot(t, Faz[:, j], 'k', linewidth=2)
-    ax[2].plot(t, vol[:, j], 'k', linewidth=2)
-    ax[3].plot(t, vTransect[:, j], 'k', linewidth=2)
-    ax[4].plot(t, sTransect[:, j], 'k', linewidth=2)
+    ax[0].plot(t, Fov[:, j], 'k', alpha=0.5, linewidth=1.5)
+    ax[1].plot(t, Faz[:, j], 'k', alpha=0.5, linewidth=1.5)
+    ax[2].plot(t, vol[:, j], 'k', alpha=0.5, linewidth=1.5)
+    ax[3].plot(t, vTransect[:, j], 'k', alpha=0.5, linewidth=1.5)
+    ax[4].plot(t, sTransect[:, j], 'k', alpha=0.5, linewidth=1.5)
+
+    ax[0].plot(t, Fov_runavg, 'k', linewidth=3)
+    ax[1].plot(t, Faz_runavg, 'k', linewidth=3)
+    ax[2].plot(t, vol_runavg, 'k', linewidth=3)
+    ax[3].plot(t, vTransect_runavg, 'k', linewidth=3)
+    ax[4].plot(t, sTransect_runavg, 'k', linewidth=3)
 
     ax[0].plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax[1].plot(t, np.zeros_like(t), 'k', linewidth=1)
@@ -324,4 +377,6 @@ for j in range(nTransects):
 
     fig.tight_layout(pad=0.5)
     fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.025)
+    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
+
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
