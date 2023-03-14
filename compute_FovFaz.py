@@ -31,7 +31,6 @@ def get_mask_short_names(mask):
     # This is the right way to handle transects defined in the main transect file mask:
     shortnames = [str(aname.values)[:str(aname.values).find(',')].strip()
                   for aname in mask.transectNames]
-    #shortnames = mask.transectNames.values
     mask['shortNames'] = xr.DataArray(shortnames, dims='nTransects')
     mask = mask.set_index(nTransects=['transectNames', 'shortNames'])
     return mask
@@ -79,6 +78,8 @@ sZero = 35.0
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 
 use_fixedSref = False
+use_fixeddz = False
+
 if use_fixedSref:
     outfile = f'volFovFaz_{casename}_sref35_years{year1:04d}-{year2:04d}.nc'
 else:
@@ -137,12 +138,13 @@ kmaxOnCells2 = maxLevelCell[cellsOnEdge[:, 1]-1]
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for j in range(nTransects):
     edgeSigns[j, :] = mask.sel(nEdges=edgesToRead, shortNames=transectList[j]).squeeze().transectEdgeMaskSigns.values
-refBottom = mesh.refBottomDepth.values
 nLevels = mesh.dims['nVertLevels']
-dz = np.zeros(nLevels)
-dz[0] = refBottom[0]
-for k in range(1, nLevels):
-    dz[k] = refBottom[k] - refBottom[k-1]
+if used_fixeddz:
+    refBottom = mesh.refBottomDepth.values
+    dz = np.zeros(nLevels)
+    dz[0] = refBottom[0]
+    for k in range(1, nLevels):
+        dz[k] = refBottom[k] - refBottom[k-1]
 
 # Compute transports if outfile does not exist
 if not os.path.exists(outfile):
@@ -173,9 +175,9 @@ if not os.path.exists(outfile):
             # land-sea masking below
             saltOnCells1 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge[:, 0]-1, :]
             saltOnCells2 = ncid.variables['timeMonthly_avg_activeTracers_salinity'][0, cellsOnEdge[:, 1]-1, :]
-            # Forget about these for now, just using the reference thickness (from refBottomDepth):
-            #dzOnCells1 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 0]-1, :]
-            #dzOnCells2 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 1]-1, :]
+            if not use_fixeddz:
+                dzOnCells1 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 0]-1, :]
+                dzOnCells2 = ncid.variables['timeMonthly_avg_layerThickness'][0, cellsOnEdge[:, 1]-1, :]
             t[i] = ncid.variables['timeMonthly_avg_daysSinceStartOfSim'][:]/365.
             ncid.close()
 
@@ -192,9 +194,18 @@ if not os.path.exists(outfile):
             if np.any(saltOnCells1[np.logical_or(saltOnCells1> 1e15, saltOnCells1<-1e15)]) or \
                np.any(saltOnCells2[np.logical_or(saltOnCells2> 1e15, saltOnCells2<-1e15)]):
                 print('WARNING: something is wrong with land and/or topography masking!')
+            if not use_fixeddz:
+                dzOnCells1[landmask1, :] = np.nan
+                dzOnCells2[landmask2, :] = np.nan
+                for k in range(len(kmaxOnCells1)):
+                    dzOnCells1[k, kmaxOnCells1[k]:] = np.nan
+                for k in range(len(kmaxOnCells2)):
+                    dzOnCells2[k, kmaxOnCells2[k]:] = np.nan
 
             # Interpolate values onto edges
             saltOnEdges = np.nanmean(np.array([saltOnCells1, saltOnCells2]), axis=0)
+            if not use_fixeddz:
+                dzOnEdges = np.nanmean(np.array([dzOnCells1, dzOnCells2]), axis=0)
 
             # Compute volume transport, Fov, and Faz for each transect
             for j in range(nTransects):
@@ -202,14 +213,18 @@ if not os.path.exists(outfile):
                 stop = int(nTransectStartStop[j+1])
                 dx = dvEdge[start:stop]
                 dx2d = np.transpose(np.tile(dx, (nLevels, 1)))
-                #dz = dzOnEdges[start:stop, :]
+                if not use_fixeddz:
+                    dz = dzOnEdges[start:stop, :]
 
                 normalVel = vel[start:stop, :] * edgeSigns[j, start:stop, np.newaxis]
                 salt = saltOnEdges[start:stop, :]
                 maskOnEdges = np.isnan(salt)
                 normalVel[maskOnEdges] = np.nan
                 dx2d[maskOnEdges] = np.nan
-                dArea = dx2d * dz[np.newaxis, :]
+                if use_fixeddz:
+                    dArea = dx2d * dz[np.newaxis, :]
+                else:
+                    dArea = dx2d * dz
                 transectLength = np.nansum(dx2d, axis=0)
                 transectArea = np.nansum(np.nansum(dArea)) 
 
@@ -229,7 +244,10 @@ if not os.path.exists(outfile):
 
                 vol[i, j] =   np.nansum(np.nansum( normalVel * dArea ))
                 # From Eq. 2,3 in Mecking et al. 2017 (note that in Eq. 2 sRef is missing):
-                Fov[i, j] = - np.nansum( (vZonalAvg - vTransect[i, j]) * (sZonalAvg-sRef) * transectLength * dz ) / sRef
+                if use_fixeddz:
+                    Fov[i, j] = - np.nansum( (vZonalAvg - vTransect[i, j]) * (sZonalAvg-sRef) * transectLength * dz ) / sRef
+                else:
+                    Fov[i, j] = - np.nansum( (vZonalAvg - vTransect[i, j]) * (sZonalAvg-sRef) * transectLength * np.nanmean(dz, axis=0) ) / sRef
                 Faz[i, j] = - np.nansum(np.nansum( vAzonal * sAzonal * dArea )) / sRef
 
             i = i+1
