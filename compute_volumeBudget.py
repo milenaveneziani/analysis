@@ -36,7 +36,7 @@ def get_mask_short_names(mask):
 
 # Choose years
 year1 = 1
-year2 = 16
+year2 = 1
 years = range(year1, year2+1)
 
 # Settings for anvil/chrysalis:
@@ -158,6 +158,7 @@ if not os.path.exists(outfile):
     riverRunoffFlux = np.zeros((nTime, nRegions))
     iceRunoffFlux = np.zeros((nTime, nRegions))
     seaiceFlux = np.zeros((nTime, nRegions))
+    ssh = np.zeros((nTime, nRegions))
     t = np.zeros(nTime)
     i = 0
     for year in years:
