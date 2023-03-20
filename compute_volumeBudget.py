@@ -390,6 +390,8 @@ for j in range(nRegions):
     srunoff_runavg = pd.Series.rolling(pd.DataFrame(srunoff[:, j]), 12, center=True).mean()
     seaiceFW_runavg = pd.Series.rolling(pd.DataFrame(seaiceFW[:, j]), 12, center=True).mean()
     sshTend_runavg = pd.Series.rolling(pd.DataFrame(sshTend[:, j]), 12, center=True).mean()
+    tot_runavg = pd.Series.rolling(pd.DataFrame(tot[:, j]), 12, center=True).mean()
+    res_runavg = pd.Series.rolling(pd.DataFrame(res[:, j]), 12, center=True).mean()
     figfile = f'{figdir}/volBudget_{regionName_forfigfile}_{casename}_years{year1:04d}-{year2:04d}.png'
     fig, ax = plt.subplots(4, 2, figsize=figsize)
     ax[0, 0].plot(t, evap[:, j], 'k', alpha=0.5, linewidth=1.5)
