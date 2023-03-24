@@ -38,26 +38,26 @@ def get_mask_short_names(mask):
 
 # Choose years
 year1 = 1
-year2 = 16
+year2 = 500
 years = range(year1, year2+1)
 
 # Settings for anvil/chrysalis:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
-#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-#casenameFull = 'v2_1.LR.piControl'
-#casename = 'v2_1.LR.piControl'
-#modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
+featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+casenameFull = 'v2_1.LR.piControl'
+casename = 'v2_1.LR.piControl'
+modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
 
 # Settings for cori:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20230307.nc'
-featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
-casename = 'fullyRRM_lat-dep-bd-submeso'
-modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casenameFull}/run'
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20230307.nc'
+#featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+#casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
+#casename = 'fullyRRM_lat-dep-bd-submeso'
+#modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casenameFull}/run'
 #
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/RRS18to6v3_atlanticZonal_sections20230307.nc'
@@ -139,7 +139,7 @@ edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for j in range(nTransects):
     edgeSigns[j, :] = mask.sel(nEdges=edgesToRead, shortNames=transectList[j]).squeeze().transectEdgeMaskSigns.values
 nLevels = mesh.dims['nVertLevels']
-if used_fixeddz:
+if use_fixeddz:
     refBottom = mesh.refBottomDepth.values
     dz = np.zeros(nLevels)
     dz[0] = refBottom[0]
