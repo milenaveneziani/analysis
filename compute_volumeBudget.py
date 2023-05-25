@@ -36,7 +36,8 @@ def get_mask_short_names(mask):
 
 # Choose years
 year1 = 1
-year2 = 500
+year2 = 1
+#year2 = 500
 years = range(year1, year2+1)
 
 # Settings for anvil/chrysalis:
@@ -151,6 +152,7 @@ nLevels = mesh.dims['nVertLevels']
 if not os.path.exists(outfile):
     # Volume transport across the open transects bounding the budget regions
     vol = np.zeros((nTime, nTransects))
+    moc = np.zeros((nTime, nTransects, nLevels))
     # Volume changes integrated over the budget regions due to various processes
     evapFlux = np.zeros((nTime, nRegions))
     rainFlux = np.zeros((nTime, nRegions))
@@ -174,6 +176,8 @@ if not os.path.exists(outfile):
                 vel = ncid.variables['timeMonthly_avg_normalVelocity'][0, edgesToRead, :]
                 if 'timeMonthly_avg_normalGMBolusVelocity' in ncid.variables.keys():
                     vel += ncid.variables['timeMonthly_avg_normalGMBolusVelocity'][0, edgesToRead, :]
+                if 'timeMonthly_avg_normalMLEvelocity' in ncid.variables.keys():
+                    vel += ncid.variables['timeMonthly_avg_normalMLEvelocity'][0, edgesToRead, :]
             else:
                 raise KeyError('no appropriate normalVelocity variable found')
             # Note that the following is incorrect when cellsOnEdge is zero (that cell bordering the
@@ -212,9 +216,13 @@ if not os.path.exists(outfile):
                 dx2d[maskOnEdges] = np.nan
                 dArea = dx2d * dz
                 #transectLength = np.nansum(dx2d, axis=0)
-                #transectArea = np.nansum(np.nansum(dArea)) 
+                transectArea = np.nansum(np.nansum(dArea)) 
 
-                vol[i, j] =   np.nansum(np.nansum( normalVel * dArea ))
+                vol[i, j] = np.nansum(np.nansum(normalVel * dArea))
+                #vTransect = vol[i, j] / transectArea
+                #moctmp = np.nansum((normalVel-vTransect) * dArea, axis=0)
+                moctmp = np.nansum(normalVel * dArea, axis=0)
+                moc[i, j, ::-1] = np.nancumsum(np.flip(moctmp))
 
             # ** Compute net surface fluxes and SSH tendency for each region **
             ds = xr.open_dataset(modelfile)
@@ -238,6 +246,7 @@ if not os.path.exists(outfile):
             i = i+1
 
     vol = m3ps_to_Sv*vol
+    moc = m3ps_to_Sv*moc
     evapFlux = 1/rho0*m3ps_to_Sv*evapFlux
     rainFlux = 1/rho0*m3ps_to_Sv*rainFlux
     snowFlux = 1/rho0*m3ps_to_Sv*snowFlux
@@ -251,12 +260,14 @@ if not os.path.exists(outfile):
     ncid.createDimension('Time', None)
     ncid.createDimension('nTransects', nTransects)
     ncid.createDimension('nRegions', nRegions)
+    ncid.createDimension('nLevels', nLevels)
     ncid.createDimension('StrLen', 64)
 
     transectNames = ncid.createVariable('TransectNames', 'c', ('nTransects', 'StrLen'))
     regionNames = ncid.createVariable('RegionNames', 'c', ('nRegions', 'StrLen'))
     times = ncid.createVariable('Time', 'f8', 'Time')
     volVar = ncid.createVariable('vol', 'f8', ('Time', 'nTransects'))
+    mocVar = ncid.createVariable('moc', 'f8', ('Time', 'nTransects', 'nLevels'))
     evapVar = ncid.createVariable('evapFlux', 'f8', ('Time', 'nRegions'))
     rainVar = ncid.createVariable('rainFlux', 'f8', ('Time', 'nRegions'))
     snowVar = ncid.createVariable('snowFlux', 'f8', ('Time', 'nRegions'))
@@ -266,6 +277,7 @@ if not os.path.exists(outfile):
     sshTendVar = ncid.createVariable('sshTend', 'f8', ('Time', 'nRegions'))
 
     volVar.units = 'Sv'
+    mocVar.units = 'Sv'
     evapVar.units = 'Sv'
     rainVar.units = 'Sv'
     snowVar.units = 'Sv'
@@ -275,6 +287,7 @@ if not os.path.exists(outfile):
     sshTendVar.units = 'Sv'
 
     volVar.description = 'Volume transport across transect'
+    mocVar.description = 'Meridional Overturning Streamfunction across transect'
     evapVar.description = 'Volume change due to region integrated evaporation'
     rainVar.description = 'Volume change due to region integrated rain precipitation'
     snowVar.description = 'Volume change due to region integrated snow precipitation'
@@ -285,6 +298,7 @@ if not os.path.exists(outfile):
 
     times[:] = t
     volVar[:, :] = vol
+    mocVar[:, :, :] = moc
     evapVar[:, :] = evapFlux
     rainVar[:, :] = rainFlux
     snowVar[:, :] = snowFlux

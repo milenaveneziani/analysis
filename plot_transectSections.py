@@ -24,6 +24,8 @@ from netCDF4 import Dataset
 from mpas_analysis.shared.io.utility import decode_strings
 import gsw
 
+from common_functions import add_inset
+
 earthRadius = 6367.44
 
 ####### Settings for cori
@@ -53,15 +55,15 @@ earthRadius = 6367.44
 #modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/clim/mpas/avg/unmasked_oEC60to30v3'
 #
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
 #maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
-maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_southernOceanSections20221202.nc'
+#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_southernOceanSections20221202.nc'
 #casename = 'E3SM-HR' # no spaces (this case gives an error because no climatology of normalVelocity was computed in MPAS-Analysis)
 #climoyearStart = 26
 #climoyearEnd = 55
 #modeldir = '/global/project/projectdirs/e3sm/milena/analysis/mpas/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/clim/mpas/avg/unmasked_oRRS18to6v3'
-casename = 'E3SM-HR-Gcase'
-modeldir = '/global/project/projectdirs/e3sm/milena/postprocessing/GMPAS-JRA-RYF8485_RRS18to6v3_spinup_anvil01/means_years8-12'
+#casename = 'E3SM-HR-Gcase'
+#modeldir = '/global/project/projectdirs/e3sm/milena/postprocessing/GMPAS-JRA-RYF8485_RRS18to6v3_spinup_anvil01/means_years8-12'
 
 ####### Settings for compy
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
@@ -79,22 +81,14 @@ modeldir = '/global/project/projectdirs/e3sm/milena/postprocessing/GMPAS-JRA-RYF
 #modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 ####### Settings for blues
-#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticBeringToNorwaySection20230523.nc'
+#transectfeaturefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
 #maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
-#casename = 'noiceIC_SSSrest'
-#climoyearStart = 111
-#climoyearEnd = 130
-#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210222_JRA_noiceIC_SSSrest_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
-#casename = 'v2rc1b'
-#casename = 'v2rc1a'
-#climoyearStart = 1
-#climoyearEnd = 5
-#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
-#modeldir = '/lcrc/group/e3sm/ac.milena/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2/clim/mpas/avg/unmasked_EC30to60E2r2'
-#climoyearStart = 151
-#climoyearEnd = 200
-#modeldir = '/lcrc/group/e3sm/ac.maltrud/E3SM_simulations/20210424.v2rc1b.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
-#modeldir = '/lcrc/group/e3sm/ac.golaz/E3SM_simulations/20210422.v2rc1a.piControl.ne30pg2_EC30to60E2r2.chrysalis/post/analysis/mpas_analysis/ts_0001-0200_climo_0151-0200/clim/mpas/avg/unmasked_EC30to60E2r2'
+casename = 'v2_1.LR.piControl'
+climoyearStart = 451
+climoyearEnd = 500
+modeldir = '/lcrc/group/e3sm/ac.golaz/E3SMv2_1/v2_1.LR.piControl/post/analysis/mpas_analysis/ts_0001-0500_climo_0451-0500/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 #seasons = ['JFM', 'JAS', 'ANN']
 seasons = ['ANN']
@@ -113,20 +107,28 @@ transectNames = ['all']
 #                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
 #transectNames = ['OSNAP section East', 'OSNAP section West']
 
-# Figure details
 figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
-figsize = (10, 6)
+outdir = './verticalSections_data/{}'.format(casename)
+if not os.path.isdir(outdir):
+    os.makedirs(outdir)
+
+# Figure details
+#figsize = (10, 6)
+figsize = (12, 4)
 figdpi = 300
 colorIndices0 = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 #clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10., 12.]
 #clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 34.85, 34.9, 34.95, 35.0, 35.5]
+clevelsT = [-1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 8.0, 10.]
+clevelsS = [32.0, 33.0, 33.5, 34.0, 34.5, 34.7, 34.8, 34.82, 34.85, 34.87, 34.9, 34.95, 35.0]
 # Better for OSNAP:
-clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
-clevelsS = [31.0, 33.0, 33.5, 33.8, 34.2, 34.6, 34.8, 34.85, 34.9, 34.95, 35.0, 35.2, 35.5]
+#clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
+#clevelsS = [31.0, 33.0, 33.5, 33.8, 34.2, 34.6, 34.8, 34.85, 34.9, 34.95, 35.0, 35.2, 35.5]
 clevelsV = [-0.25, -0.2, -0.15, -0.1, -0.02, 0.0, 0.02, 0.1, 0.2, 0.3, 0.5]
-colormapT = plt.get_cmap('RdBu_r')
+#colormapT = plt.get_cmap('RdBu_r')
+colormapT = cmocean.cm.thermal
 colormapS = cmocean.cm.haline
 colormapV = plt.get_cmap('RdBu_r')
 #colormapV = cmocean.cm.balance
@@ -168,7 +170,8 @@ cnormV = mpl.colors.BoundaryNorm(clevelsV, colormapV.N)
 #sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
 sigma2contours = None
 #sigma0contours = np.arange(26.0, 28.0, 0.2) # Good for OSNAP, but not for all arcticSections
-sigma0contours = [24.0, 25.0, 26.0, 27.0, 27.2, 27.4, 27.6, 27.8, 28.0]
+#sigma0contours = [24.0, 25.0, 26.0, 27.0, 27.2, 27.4, 27.6, 27.8, 28.0]
+sigma0contours = [24.0, 27.0, 27.8, 28.0]
 #sigma0contours = None
 
 # Load in MPAS mesh and transect mask file
@@ -267,6 +270,8 @@ for n in range(nTransects):
     # Load in T, S, and normalVelocity for each season, and plot them
     for s in seasons:
         print('   season: ', s)
+        outfile = '{}/{}_{}_{}_years{:04d}-{:04d}.nc'.format(outdir, 
+                  transectName.replace(' ', ''), casename, s, climoyearStart, climoyearEnd)
         modelfile = glob.glob('{}/mpaso_{}_{:04d}??_{:04d}??_climo.nc'.format(
                     modeldir, s, climoyearStart, climoyearEnd))[0]
         ncid = Dataset(modelfile, 'r')
@@ -293,6 +298,30 @@ for n in range(nTransects):
         # Interpolate T,S values onto edges
         temp = np.nanmean(np.array([tempOnCell1, tempOnCell2]), axis=0)
         salt = np.nanmean(np.array([saltOnCell1, saltOnCell2]), axis=0)
+        # Save T,S to file
+        dsOut = xr.Dataset(
+                {
+                       'Temp': (['nx', 'nz'], np.nan*np.ones([len(dist), len(z)])),
+                       'Salt': (['nx', 'nz'], np.nan*np.ones([len(dist), len(z)])),
+                },
+                coords={
+                       'dist': (['nx'], dist),
+                       'depth': (['nz'], z),
+                },
+        )
+        dsOut['Temp'][:, :] = temp
+        dsOut['Temp'].attrs['units'] = 'degC'
+        dsOut['Temp'].attrs['long_name'] = 'potential temperature'
+        dsOut['Salt'][:, :] = salt
+        dsOut['Salt'].attrs['units'] = 'psu'
+        dsOut['Salt'].attrs['long_name'] = 'salinity'
+        dsOut['dist'][:] = dist
+        dsOut['dist'].attrs['units'] = 'km'
+        dsOut['dist'].attrs['long_name'] = 'spherical distance from beginning of transect'
+        dsOut['depth'][:] = z
+        dsOut['depth'].attrs['units'] = 'm'
+        dsOut['depth'].attrs['long_name'] = 'depth levels'
+        dsOut.to_netcdf(outfile)
 
         # Compute sigma's
         SA = gsw.SA_from_SP(salt, pressure[np.newaxis, :], lonmean, latmean)
@@ -332,6 +361,7 @@ for n in range(nTransects):
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
         ax.invert_yaxis()
+        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
         plt.savefig(figfile, bbox_inches='tight')
         plt.close()
 
@@ -363,6 +393,7 @@ for n in range(nTransects):
         ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
         ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
         ax.invert_yaxis()
+        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
         plt.savefig(figfile, bbox_inches='tight')
         plt.close()
 
@@ -394,5 +425,6 @@ for n in range(nTransects):
             ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
             ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
             ax.invert_yaxis()
+            #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
             plt.savefig(figfile, bbox_inches='tight')
             plt.close()
