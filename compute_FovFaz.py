@@ -38,17 +38,26 @@ def get_mask_short_names(mask):
 
 # Choose years
 year1 = 1
-year2 = 500
+year2 = 200
 years = range(year1, year2+1)
+
+# Settings for onyx:
+#   NOTE: make sure to use the same mesh file that is in streams.ocean!
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/p/work/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20230307.nc'
+featurefile = '/p/work/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+modeldir = f'/p/work/osinski/archive/{casenameFull}/ocn/hist'
 
 # Settings for anvil/chrysalis:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
-featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-casenameFull = 'v2_1.LR.piControl'
-casename = 'v2_1.LR.piControl'
-modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
+#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+#casenameFull = 'v2_1.LR.piControl'
+#casename = 'v2_1.LR.piControl'
+#modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
 
 # Settings for cori:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
