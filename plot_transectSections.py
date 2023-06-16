@@ -28,6 +28,15 @@ from common_functions import add_inset
 
 earthRadius = 6367.44
 
+####### Settings for onyx
+#   NOTE: make sure to use the same mesh file that is in streams.ocean!
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/p/work/milena/mpas-region_masks/ARRM10to60E2r1_arcticBeringToNorwaySection20230523.nc'
+casename = 'E3SMv2.1B60to10rA02'
+climoyearStart = 151
+climoyearEnd = 160
+modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
+
 ####### Settings for cori
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
 ##maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
@@ -81,14 +90,14 @@ earthRadius = 6367.44
 #modeldir = '/compyfs/vene705/E3SM_simulations/20201124.alpha5_59_fallback.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy/mpas-analysis/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 ####### Settings for blues
-meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticBeringToNorwaySection20230523.nc'
-#transectfeaturefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
-#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
-casename = 'v2_1.LR.piControl'
-climoyearStart = 451
-climoyearEnd = 500
-modeldir = '/lcrc/group/e3sm/ac.golaz/E3SMv2_1/v2_1.LR.piControl/post/analysis/mpas_analysis/ts_0001-0500_climo_0451-0500/clim/mpas/avg/unmasked_EC30to60E2r2'
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticBeringToNorwaySection20230523.nc'
+##transectfeaturefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
+##maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arcticSections20210323.nc'
+#casename = 'v2_1.LR.piControl'
+#climoyearStart = 451
+#climoyearEnd = 500
+#modeldir = '/lcrc/group/e3sm/ac.golaz/E3SMv2_1/v2_1.LR.piControl/post/analysis/mpas_analysis/ts_0001-0500_climo_0451-0500/clim/mpas/avg/unmasked_EC30to60E2r2'
 
 #seasons = ['JFM', 'JAS', 'ANN']
 seasons = ['ANN']
