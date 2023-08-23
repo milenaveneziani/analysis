@@ -102,3 +102,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# netcdf files
+*.nc
+
+# Plot directories
+FovFaz/
+timeseries/
+transects/
+verticalSections/
+volBudget/
