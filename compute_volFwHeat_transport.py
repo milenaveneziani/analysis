@@ -348,16 +348,16 @@ def compute_transport(historyFileList, casename, meshfile, maskfile, figdir,\
 #years = '010[1-2]'
 years = ''
 
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+maskfile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 casename = 'ne30pg2_ARRM10to60E2r1.baseline_bdvslat'
 historyFileList = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/20220810.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl/run/20220810.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #casename = 'arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat'
 #historyFileList = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/20220810.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl/run/20220810.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-##maskfile = '/global/project/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
-#maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_standardTransportSections20210323.nc'
+#meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+##maskfile = '/global/cfs/projectdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
+#maskfile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_standardTransportSections20210323.nc'
 #casename = 'E3SM-Arctic-OSI_60to10' # no spaces
 #casename = 'E3SM-Arctic-OSIv2'
 #casename = 'E3SM-Arctic-v2beta1'
@@ -365,33 +365,13 @@ historyFileList = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/20220810.WC
 #historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/run/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #historyFileList = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oEC60to30v3_transportTransects_masks.nc'
-#casename = 'E3SM-LRdeck-historical1'
-#casename = 'E3SM-LRtunedHR'
-#casename = 'E3SM-LR-OSI'
-#historyFileList = '/global/cscratch1/sd/milena/E3SM_simulations/20180215.DECKv1b_H1.ne30_oEC.edison/archive/ocn/hist/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
-#historyFileList = '/global/cscratch1/sd/milena/E3SM_simulations/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/archive/ocn/hist/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
-#historyFileList = '/global/cscratch1/sd/milena/E3SM_simulations/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil/archive/ocn/hist/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
+#meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/oRRS18to6v3_transportTransects_masks.nc'
-#casename = 'E3SM-HR'
-#historyFileList = '/global/cscratch1/sd/milena/E3SM_simulations/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/run/mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
-#
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
-##maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC_arcticTransects.nc'
-#casename = 'v2.LR.piControl'
-#historyFileList = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/v2.LR.piControl/archive/ocn/hist/{}.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(casename, years)
-#
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/WC14to60E2r3/ocean.WC14to60E2r3.200714.nc'
-#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/WC14to60E2r3_arcticSections20220914.nc'
-##maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/WC14_arcticTransects.nc'
+#meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/WC14to60E2r3/ocean.WC14to60E2r3.200714.nc'
+#maskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/WC14to60E2r3_arcticSections20220914.nc'
+##maskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/WC14_arcticTransects.nc'
 #casename = 'northamericax4v1pg2_WC14.piControl'
-#historyFileList = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210603.v2rc3c.piControl.northamericax4v1pg2_WC14to60E2r3.chrysalis/archive/ocn/hist/20210603.v2rc3c.piControl.northamericax4v1pg2_WC14to60E2r3.chrysalis.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
-#casename = 'Interface.piControl'
-#historyFileList = '/global/cscratch1/sd/ethomas/E3SMv2/case_dirs/InterFACE.v2.ne30pg2_WC14.PIControl/archive/ocn/hist/InterFACE.v2.ne30pg2_WC14.PIControl.mpaso.hist.am.timeSeriesStatsMonthly.{}*nc'.format(years)
 
 print(historyFileList)
 

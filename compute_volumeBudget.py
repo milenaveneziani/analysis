@@ -53,8 +53,7 @@ modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
 
 # Settings for cori:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#projectdir = '/global/project/projectdirs/e3sm'
-##projectdir = '/global/cfs/projectdirs/e3sm'
+#projectdir = '/global/cfs/projectdirs/e3sm'
 #meshfile = f'{projectdir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #regionmaskfile = f'{projectdir}/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
 #transectmaskfile = f'{projectdir}/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'

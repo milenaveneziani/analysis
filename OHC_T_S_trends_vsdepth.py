@@ -27,9 +27,9 @@ calendar = 'gregorian'
 
 # Settings for cori
 meshName = 'ARRM60to10'
-restartFile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-regionMaskFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
-featureFile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
+restartFile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+regionMaskFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+featureFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
 #runName = 'ARRM60to10_JRA_GM_ramp'
 #runNameShort = 'E3SM-Arctic-OSI'
 #modeldir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'

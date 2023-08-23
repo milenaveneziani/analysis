@@ -81,21 +81,7 @@ casenameFull = '20221116.CRYO1950.ne30pg2_SOwISC12to60E2r4.N2Dependent.submeso'
 casename = 'SORRMv2.1.1950control'
 modeldir = f'/pscratch/sd/a/abarthel/data/E3SMv2.1/{casenameFull}/archive/ocn/hist'
 casenameFull = f'{casenameFull}.chrysalis'
-featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-#
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
-#maskfile = '/global/project/projectdirs/e3sm/diagnostics/mpas_analysis/region_masks/RRS18to6v3_atlanticZonal_sections20230307.nc'
-#casenameFull = 'theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG'
-#casename = 'E3SM-HR'
-#modeldir = f'/global/cscratch1/sd/milena/E3SM_simulations/{casenameFull}/run'
-#featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-#
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
-#casenameFull = 'v2.LR.piControl'
-#casename = 'v2.LR.piControl'
-#modeldir = f'/global/cscratch1/sd//dcomeau/e3sm_scratch/cori-knl/{casenameFull}/archive/ocn/hist'
-#featurefile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 #
 
 sZero = 35.0

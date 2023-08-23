@@ -65,9 +65,9 @@ from common_functions import hovmoeller_plot, add_inset, compute_regional_maskfi
 #runNameShort = 'alpha5_59_fallback'
 
 # Settings for cori
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
-regionMaskFile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_arcticRegions20211105.nc'
-featureFile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/arcticRegions.geojson'
+meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oRRS18to6v3/oRRS18to6v3.171116.nc'
+regionMaskFile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/oRRS18to6v3_arcticRegions20211105.nc'
+featureFile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/arcticRegions.geojson'
 #
 modeldir = '/global/cscratch1/sd/milena/E3SM_simulations/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG/run'
 runName = 'theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG'

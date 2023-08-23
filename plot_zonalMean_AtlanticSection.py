@@ -39,23 +39,19 @@ from common_functions import timeseries_analysis_plot, add_inset
 #climoYear2 = 200
 
 # Settings for cori
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-maskfile = '/global/project/projectdirs/m1199/milena/mpas-region_masks/ARRM60to10_oceanSubBasins20210315.nc'
-casename = 'E3SM-Arctic-OSI'
-modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
-#casename = 'E3SM-Arctic-OSIv2'
-#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
-#casename = 'E3SM-Arctic-coupledv2beta1'
-#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
-climoYear1 = 148
-climoYear2 = 177
+climoYear1 = 51
+climoYear2 = 60
+meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.210210.nc'
+maskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_oceanSubBasins20210315.nc'
+#casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+#modeldir = f'/global/cfs/projectdirs/m4259/milena/analysis/mpas/GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter/Years{climoYear1}-{climoYear2}/clim/mpas/avg/unmasked_EC30to60E2r2'
+casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_restore3D_anvil05'
+modeldir = f'/global/cfs/projectdirs/m4259/milena/analysis/mpas/GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_restore3D_anvil05/Years{climoYear1}-{climoYear2}/clim/mpas/avg/unmasked_EC30to60E2r2'
 #
-#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
-#maskfile = '/global/project/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_oceanSubBasins20210315.nc'
+#meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oEC60to30v3/oEC60to30v3_60layer.170506.nc'
+#maskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/oEC60to30v3_oceanSubBasins20210315.nc'
 #casename = 'E3SM-LR-OSI' # no spaces
-#modeldir = '/global/project/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
-#climoYear1 = 148
-#climoYear2 = 177
+#modeldir = '/global/cfs/projectdirs/m1199/milena/analysis/mpas/E3SM60to30/clim/mpas/avg/unmasked_oEC60to30v3'
 
 #seasons = ['ANN', 'JFM', 'JAS']
 seasons = ['ANN']
@@ -196,9 +192,9 @@ for season in seasons:
                 },
                 coords={
                        'latbins': (['nLatbins'],
-                           latbincenters),
+                           latbincenters.data),
                        'depth': (['nVertLevels'],
-                           -refBottomDepth),
+                           -refBottomDepth.data),
                 },
         )
         # Compute averages for each latitude bin
