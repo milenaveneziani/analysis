@@ -43,19 +43,22 @@ years = range(year1, year2+1)
 
 # Settings for anvil/chrysalis:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #regionmaskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
-regionmaskfile = './test.nc'
 #regionfeaturefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
-regionfeaturefile = './test.geojson'
-casenameFull = 'v2_1.LR.historical_0101'
-casename = 'v2_1.LR.historical_0101'
-modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'v2_1.LR.historical_0101'
+#casename = 'v2_1.LR.historical_0101'
+#modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
 
 # Settings for cori:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#projectdir = '/global/project/projectdirs/e3sm'
-##projectdir = '/global/cfs/projectdirs/e3sm'
+projectdir = '/global/cfs/projectdirs/e3sm'
+meshfile = f'{projectdir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+regionmaskfile = './test.nc'
+regionfeaturefile = './test.geojson'
+casename = 'GM600_Redi600'
+casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+modeldir = f'{projectdir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
 #meshfile = f'{projectdir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #regionmaskfile = f'{projectdir}/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
 #regionfeaturefile = f'{projectdir}/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
