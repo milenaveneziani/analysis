@@ -40,24 +40,34 @@ earthRadius = 6367.44
 #modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
 
 ####### Settings for cori
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticTransectsFramToBeaufortEast20230901.nc'
 featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
-casename = 'E3SMv2.1B60to10rA02'
-climoyearStart = 191
-climoyearEnd = 200
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticTransectsFramToBeaufortEast20230901.nc'
+#casename = 'E3SMv2.1B60to10rA02'
+#climoyearStart = 191
+#climoyearEnd = 200
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
+casename = '20220715.submeso.piControl.ne30pg2_EC30to60E2r2.chrysalis'
+climoyearStart = 50
+climoyearEnd = 59
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
 
-months = [3, 6, 9, 12]
-#months = [6]
+months = [3, 6, 7, 8, 9, 10, 11, 12]
+months = [3, 8, 9, 12]
 
 transectNames = ['all']
-transectNames = ['Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East']
-#transectNames = ['Fram Strait']
-#transectNames = ['Barents Sea Opening', 'Fram Strait']
-#transectNames = ['Barents Sea Opening', 'Bering Strait', 'Davis Strait',
-#                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
-#transectNames = ['OSNAP section East', 'OSNAP section West']
+#transectNames = ['Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East']
+# For Baremts, Kara, and Laptev Seas:
+#transectNames = ['Fram Strait', 'Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
+# For East Siberian, Chukchi, and Canada Basin:
+#transectNames = ['Wrangel Island to Chukchi Plateau', 'Bering Sea North', 'Enurmino to Point Hope - Chukchi South', 'Chukchi Central', 'Herald Canyon to Icy Cape - Chukchi North', 'Wrangel Island to Russian coast', 'Barrow Canyon', 'Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East', 'Bering Strait']
+##transectNames = ['Barents Sea Opening', 'Fram Strait']
+##transectNames = ['Barents Sea Opening', 'Bering Strait', 'Davis Strait',
+##                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
+##transectNames = ['OSNAP section East', 'OSNAP section West']
+zmaxUpperPanel = 100.0
 
 figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
@@ -72,8 +82,6 @@ else:
     raise IOError('No feature file found for this region group')
 
 # Figure details
-#figsize = (10, 6)
-figsize = (12, 4)
 figdpi = 300
 colorIndices0 = [0, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 250, 255]
 #clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10., 12.]
@@ -303,64 +311,135 @@ for n in range(nTransects):
         #  T first
         figtitle = f'Temperature ({transectName}), {casename} (month={m}, years={climoyearStart}-{climoyearEnd})'
         figfile = f'{figdir}/Temp_{tname}_{casename}_{m:02d}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
-        fig = plt.figure(figsize=figsize, dpi=figdpi)
-        ax = fig.add_subplot()
-        ax.set_facecolor('darkgrey')
-        cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
-        #cf = ax.pcolormesh(x, y, temp, cmap=colormapT, norm=cnormT)
-        cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, **kw)
-        cbar.ax.tick_params(labelsize=12, labelcolor='black')
-        cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
-        if sigma2contours is not None:
-            cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-            cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-        if sigma0contours is not None:
-            cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
-            cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-        #ax.set_ylim(0, zmax)
-        ax.set_ylim(0, 100)
-        ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-        ax.set_title(figtitle, fontsize=12, fontweight='bold')
-        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-        ax.invert_yaxis()
-        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.8, ybuffer=0)
-        plt.savefig(figfile, bbox_inches='tight')
+        if zmax > zmaxUpperPanel:
+            figsize = (10, 8)
+            [fig, ax] = plt.subplots(2, 1, figsize=figsize, height_ratios=[1, 3])
+            cf = ax[0].contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
+            ax[0].set_ylim(0, zmaxUpperPanel)
+            cf = ax[1].contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
+            ax[1].set_ylim(zmaxUpperPanel, zmax)
+            ax[0].set_facecolor('darkgrey')
+            ax[1].set_facecolor('darkgrey')
+            ax[0].invert_yaxis()
+            ax[1].invert_yaxis()
+            ax[0].set_xticklabels([])
+            ax[1].set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+            ax[1].set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+            ax[0].set_title(figtitle, fontsize=12, fontweight='bold')
+            ax[1].annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.12), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.17), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.12), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.17), xycoords='axes fraction', ha='center', va='bottom')
+            fig.tight_layout(pad=0.5)
+            cax, kw = mpl.colorbar.make_axes(ax[1], location='bottom', pad=0.12, shrink=0.9)
+            cbar = fig.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
+            cbar.ax.tick_params(labelsize=12, labelcolor='black')
+            cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
+            if sigma2contours is not None:
+                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma0contours is not None:
+                cs = ax[0].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            add_inset(fig, fc, width=1.2, height=1.2, xbuffer=-0.8, ybuffer=0.4)
+        else:
+            figsize = (12, 6)
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot()
+            cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
+            ax.set_ylim(0, zmax)
+            ax.set_facecolor('darkgrey')
+            ax.invert_yaxis()
+            ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+            ax.set_title(figtitle, fontsize=12, fontweight='bold')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+            cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
+            cbar.ax.tick_params(labelsize=12, labelcolor='black')
+            cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
+            if sigma2contours is not None:
+                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma0contours is not None:
+                cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.7, ybuffer=0.4)
+        plt.savefig(figfile, dpi=figdpi, bbox_inches='tight')
         plt.close()
 
         #  then S
         figtitle = f'Salinity ({transectName}), {casename} (month={m}, years={climoyearStart}-{climoyearEnd})'
         figfile = f'{figdir}/Salt_{tname}_{casename}_{m:02d}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
-        fig = plt.figure(figsize=figsize, dpi=figdpi)
-        ax = fig.add_subplot()
-        ax.set_facecolor('darkgrey')
-        cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
-        cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
-        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, **kw)
-        cbar.ax.tick_params(labelsize=12, labelcolor='black')
-        cbar.set_label('psu', fontsize=12, fontweight='bold')
-        if sigma2contours is not None:
-            cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-            cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-        if sigma0contours is not None:
-            cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
-            cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-        #ax.set_ylim(0, zmax)
-        ax.set_ylim(0, 100)
-        ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
-        ax.set_title(figtitle, fontsize=12, fontweight='bold')
-        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
-        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
-        ax.invert_yaxis()
-        add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
-        plt.savefig(figfile, bbox_inches='tight')
+        if zmax > zmaxUpperPanel:
+            figsize = (10, 8)
+            [fig, ax] = plt.subplots(2, 1, figsize=figsize, height_ratios=[1, 3])
+            cf = ax[0].contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
+            ax[0].set_ylim(0, zmaxUpperPanel)
+            cf = ax[1].contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
+            ax[1].set_ylim(zmaxUpperPanel, zmax)
+            ax[0].set_facecolor('darkgrey')
+            ax[1].set_facecolor('darkgrey')
+            ax[0].invert_yaxis()
+            ax[1].invert_yaxis()
+            ax[0].set_xticklabels([])
+            ax[1].set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+            ax[1].set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+            ax[0].set_title(figtitle, fontsize=12, fontweight='bold')
+            ax[1].annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.12), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.17), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.12), xycoords='axes fraction', ha='center', va='bottom')
+            ax[1].annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.17), xycoords='axes fraction', ha='center', va='bottom')
+            fig.tight_layout(pad=0.5)
+            cax, kw = mpl.colorbar.make_axes(ax[1], location='bottom', pad=0.12, shrink=0.9)
+            cbar = fig.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
+            cbar.ax.tick_params(labelsize=12, labelcolor='black')
+            cbar.set_label('psu', fontsize=12, fontweight='bold')
+            if sigma2contours is not None:
+                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma0contours is not None:
+                cs = ax[0].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            add_inset(fig, fc, width=1.2, height=1.2, xbuffer=-0.8, ybuffer=0.4)
+        else:
+            figsize = (12, 6)
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot()
+            cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
+            ax.set_ylim(0, zmax)
+            ax.set_facecolor('darkgrey')
+            ax.invert_yaxis()
+            ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+            ax.set_title(figtitle, fontsize=12, fontweight='bold')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+            ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+            cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+            cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
+            cbar.ax.tick_params(labelsize=12, labelcolor='black')
+            cbar.set_label('psu$', fontsize=12, fontweight='bold')
+            if sigma2contours is not None:
+                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma0contours is not None:
+                cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.7, ybuffer=0.4)
+        plt.savefig(figfile, dpi=figdpi, bbox_inches='tight')
         plt.close()
 
         #  and finally normalVelocity (if vel is not None)
