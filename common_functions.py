@@ -73,6 +73,7 @@ def compute_regional_maskfile(meshFile, featureFile, outFile):
         raise subprocess.CalledProcessError(process.returncode,
                                             ' '.join(args))
 
+
 def days_to_datetime(days, calendar='gregorian', referenceDate='0001-01-01'):
     """
     Convert days to ``datetime.datetime`` objects given a reference date and an
@@ -749,6 +750,7 @@ def hovmoeller_plot(Time, z, field, colormap, cnorm, clevels,
 
     return fig
 
+
 def add_inset(fig, fc, latlonbuffer=45., polarbuffer=5., width=1.0,
               height=1.0, lowerleft=None, xbuffer=None, ybuffer=None,
               maxlength=1.):
@@ -910,3 +912,18 @@ def add_inset(fig, fc, latlonbuffer=45., polarbuffer=5., width=1.0,
                        markersize=3., transform=ccrs.PlateCarree())
 
     return inset
+
+
+def add_land_lakes_coastline(ax):
+    land_50m = cfeature.NaturalEarthFeature(
+            'physical', 'land', '50m', edgecolor='black',
+            facecolor='#cdc0b0', linewidth=0.5)
+    lakes_50m = cfeature.NaturalEarthFeature(
+            'physical', 'lakes', '50m', edgecolor='black',
+            facecolor='aliceblue', linewidth=0.5)
+    coast_50m = cfeature.NaturalEarthFeature(
+            'physical', 'coastline', '50m', edgecolor='face',
+            facecolor='None', linewidth=0.5)
+    ax.add_feature(land_50m, zorder=3)
+    ax.add_feature(lakes_50m, zorder=4)
+    ax.add_feature(coast_50m, zorder=5)

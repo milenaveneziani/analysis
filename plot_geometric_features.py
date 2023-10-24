@@ -18,20 +18,8 @@ import cmocean
 import shapely.geometry
 
 from geometric_features.feature_collection import read_feature_collection
+from common_functions import add_land_lakes_coastline
 
-def _add_land_lakes_coastline(ax):
-    land_50m = cfeature.NaturalEarthFeature(
-            'physical', 'land', '50m', edgecolor='black',
-            facecolor='#cdc0b0', linewidth=0.5)
-    lakes_50m = cfeature.NaturalEarthFeature(
-            'physical', 'lakes', '50m', edgecolor='black',
-            facecolor='aliceblue', linewidth=0.5)
-    coast_50m = cfeature.NaturalEarthFeature(
-            'physical', 'coastline', '50m', edgecolor='face',
-            facecolor='None', linewidth=0.5)
-    ax.add_feature(land_50m, zorder=3)
-    ax.add_feature(lakes_50m, zorder=4)
-    ax.add_feature(coast_50m, zorder=5)
 
 def _add_bbox(ax, bbox):
     # This plots parallel and meridian arcs using the 'bbox' information 
@@ -113,7 +101,7 @@ figdpi = 200
 extent = [-180, 180, 63, 90]
 plt.figure(figsize=figsize, dpi=figdpi)
 ax = plt.axes(projection=mapProj)
-_add_land_lakes_coastline(ax)
+add_land_lakes_coastline(ax)
 ax.set_extent(extent, crs=noProj)
 ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
 fcIndex = 0
@@ -180,7 +168,7 @@ if transectfile is not None:
 
 _add_bbox(ax, extent)
 ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
-_add_land_lakes_coastline(ax)
+add_land_lakes_coastline(ax)
 ax.set_title('Barents, Kara, and Laptev Sea regions', y=1.04, fontsize=22)
 plt.savefig(f'{figdir}/barentsKaraLaptevRegions.png', bbox_inches='tight')
 plt.close()
@@ -226,7 +214,7 @@ for fcname in featuresToPlot:
 
 _add_bbox(ax, extent)
 ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
-_add_land_lakes_coastline(ax)
+add_land_lakes_coastline(ax)
 ax.set_title('East Siberian Sea, Chukchi Sea, and Canada Basin regions', y=1.04, fontsize=22)
 plt.savefig(f'{figdir}/eastSiberianChukchiCanadaBasinRegions.png', bbox_inches='tight')
 plt.close()
@@ -270,7 +258,7 @@ plt.close()
 #
 #_add_bbox(ax, extent)
 #ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
-#_add_land_lakes_coastline(ax)
+#add_land_lakes_coastline(ax)
 #ax.set_title('Chukchi Sea and Canada Basin regions', y=1.04, fontsize=22)
 #plt.savefig(f'{figdir}/chukchiCanadaBasinRegions.png', bbox_inches='tight')
 #plt.close()

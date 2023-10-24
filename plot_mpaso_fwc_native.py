@@ -17,20 +17,8 @@ import cartopy.feature as cfeature
 import matplotlib.ticker as mticker
 import cmocean
 
-def _add_land_lakes_coastline(ax):
-    land_50m = cfeature.NaturalEarthFeature(
-            'physical', 'land', '50m', edgecolor='face',
-            facecolor='lightgray', linewidth=0.5)
-    lakes_50m = cfeature.NaturalEarthFeature(
-            'physical', 'lakes', '50m', edgecolor='k',
-            facecolor='aliceblue',
-            linewidth=0.5)
-    coast_50m = cfeature.NaturalEarthFeature(
-            'physical', 'coastline', '50m', edgecolor='k',
-            facecolor='None', linewidth=0.5)
-    ax.add_feature(land_50m, zorder=2)
-    ax.add_feature(lakes_50m, zorder=3)
-    ax.add_feature(coast_50m, zorder=4)
+from common_functions import add_land_lakes_coastline
+
 
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
 #runname = 'E3SM-Arctic60to10'
@@ -130,10 +118,10 @@ for icell in range(nCells):
 
 plt.figure(figsize=figsize, dpi=figdpi)
 ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-_add_land_lakes_coastline(ax)
+add_land_lakes_coastline(ax)
 data_crs = ccrs.PlateCarree()
 ax.set_extent([-180, 180, 70, 90], crs=data_crs)
-gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=5)
+gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
 # This will work with cartopy 0.18:
 #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 20.))
 #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 10.))
@@ -152,10 +140,10 @@ plt.close()
 
 plt.figure(figsize=figsize, dpi=figdpi)
 ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-_add_land_lakes_coastline(ax)
+add_land_lakes_coastline(ax)
 data_crs = ccrs.PlateCarree()
 ax.set_extent([-180, 180, 70, 90], crs=data_crs)
-gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=5)
+gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
 # for E3SM-Arctic mesh
 #sc = ax.scatter(lon, lat, s=50.0, c=fwc, cmap=colormap_fwc, norm=cnorm_fwc,
 # for EC60to30 mesh
