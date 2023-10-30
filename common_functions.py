@@ -26,6 +26,52 @@ import subprocess
 from distutils.spawn import find_executable
 
 
+def compute_transect_maskfile(meshFile, featureFile, outFile):
+    """
+    Compute MPAS transect mask file using MPAS-Tool
+    ``MpasMaskCreator``.
+
+    Parameters
+    ----------
+    meshFile : str
+        Name of the mesh file.
+
+    featureFile : str
+        Name of the geojson feature file.
+
+    outFile: str
+        Name of output mask file.
+
+    Raises
+    ------
+    OSError
+        If inexistent ``meshFile`` or ``featureFile`` is supplied,
+        or if ``compute_mpas_transect_masks`` is not in the system path.
+    """
+    # Authors
+    # -------
+    # Milena Veneziani
+
+    if not (os.path.isfile(meshFile)):
+        raise OSError('Mesh file {} not found'.format(meshFile))
+    if not (os.path.isfile(featureFile)):
+        raise OSError('Feature file {} not found'.format(featureFile))
+
+    if find_executable('MpasMaskCreator.x') is None:
+        raise OSError('MpasMaskCreator not found. Make sure the latest '
+                      'e3sm-unified environment or other python environment with '
+                      'MPAS-Tools packages is installed.')
+
+    args = ['MpasMaskCreator.x',
+            meshFile,
+            outFile,
+            '-f', featureFile]
+    process = subprocess.run(args)
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode,
+                                            ' '.join(args))
+
+
 def compute_regional_maskfile(meshFile, featureFile, outFile):
     """
     Compute MPAS regional mask file using MPAS-Tool
@@ -902,7 +948,7 @@ def add_inset(fig, fc, latlonbuffer=45., polarbuffer=5., width=1.0,
             inset.add_geometries((shape,), crs=ccrs.PlateCarree(),
                                  edgecolor='k', facecolor='none', alpha=1.,
                                  linewidth=1.)
-            # put a red point at the beginning and a blue point at the end
+            # put a red point at the beginning and a green point at the end
             # of the transect to help show the orientation
             begin = shape.coords[0]
             end = shape.coords[-1]
