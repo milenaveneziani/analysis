@@ -119,18 +119,18 @@ earthRadius = 6367.44
 #casename = 'E3SMv2.1B60to10rA02'
 
 ####### Settings for nersc
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
+featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
 #featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
 #featurefile = '/global/homes/m/milena/proj_e3sm/milena/mpas-region_masks/standardTransportSections.geojson'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_standardTransportSections20210323.nc'
-#casename = 'E3SMv2.1B60to10rA02'
-#cname = 'E3SM-Arctic'
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/singleVarFiles'
-#singleVarFiles = True
+casename = 'E3SMv2.1B60to10rA02'
+cname = 'E3SM-Arctic'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/singleVarFiles'
+singleVarFiles = True
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regionsTransects20230313.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
@@ -144,29 +144,23 @@ earthRadius = 6367.44
 ####### Settings for lcrc
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticSections20210323.geojson'
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
-featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/standardTransportSections.geojson'
+#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/standardTransportSections.geojson'
 #maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2smoothTopo_arcticSections.nc'
 #maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2smoothTopo_arctic_atlantic_budget_regionsTransects.nc'
-maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2smoothTopo_standardTransportSections.nc'
-casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_smoothTopo_anvil01'
-cname = 'GM600_Redi600_smoothTopo'
-meshfile = f'/lcrc/group/e3sm/ac.maltrud/archive/{casename}/rest/0001-01-06-00000/{casename}.mpaso.rst.0001-01-06_00000.nc'
-modeldir = f'/lcrc/group/e3sm/ac.maltrud/archive/{casename}/ocn/hist'
-singleVarFiles = False
+#maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2smoothTopo_standardTransportSections.nc'
+#casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_smoothTopo_anvil01'
+#cname = 'GM600_Redi600_smoothTopo'
+#meshfile = f'/lcrc/group/e3sm/ac.maltrud/archive/{casename}/rest/0001-01-06-00000/{casename}.mpaso.rst.0001-01-06_00000.nc'
+#modeldir = f'/lcrc/group/e3sm/ac.maltrud/archive/{casename}/ocn/hist'
+#singleVarFiles = False
 
 yearStart = 1
 yearEnd = 30
 
 #transectNames = ['all']
-#transectNames = ['Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East']
-# For Baremts, Kara, and Laptev Seas:
-#transectNames = ['Fram Strait', 'Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
-# For East Siberian, Chukchi, and Canada Basin:
-#transectNames = ['Wrangel Island to Chukchi Plateau', 'Bering Sea North', 'Enurmino to Point Hope - Chukchi South', 'Chukchi Central', 'Herald Canyon to Icy Cape - Chukchi North', 'Wrangel Island to Russian coast', 'Barrow Canyon', 'Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East', 'Bering Strait']
-#
-#transectNames = ['Fram Strait', 'Denmark Strait', 'Iceland-Faroe-Scotland', 'OSNAP section East', 'OSNAP section West']
+transectNames = ['Fram Strait', 'Denmark Strait', 'Iceland-Faroe-Scotland', 'OSNAP section East', 'OSNAP section West']
 #transectNames = ['Atlantic zonal 50N', 'Atlantic zonal 27.2N', 'South Atlantic Ocean 34S']
-transectNames = ['Drake Passage']
+#transectNames = ['Drake Passage']
 
 zmaxUpperPanel = 100.0
 
@@ -342,11 +336,14 @@ for n in range(nTransects):
                     tempOnCell2 = ds.timeMonthly_avg_activeTracers_temperature.isel(nCells=cellsOnEdge2-1, Time=0)
                     saltOnCell1 = ds.timeMonthly_avg_activeTracers_salinity.isel(nCells=cellsOnEdge1-1, Time=0)
                     saltOnCell2 = ds.timeMonthly_avg_activeTracers_salinity.isel(nCells=cellsOnEdge2-1, Time=0)
-                    zMidOnCell1 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge1-1, Time=0)
-                    zMidOnCell2 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge2-1, Time=0)
-                    # This is needed only if zMid is not available
-                    #layerThicknessOnCell1 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge1-1, Time=0)
-                    #layerThicknessOnCell2 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge2-1, Time=0)
+                    if 'timeMonthly_avg_zMid' in list(ds.keys()):
+                        zMidOnCell1 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge1-1, Time=0)
+                        zMidOnCell2 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge2-1, Time=0)
+                        layerThicknessOnCell1 = None
+                        layerThicknessOnCell2 = None
+                    else:
+                        layerThicknessOnCell1 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge1-1, Time=0)
+                        layerThicknessOnCell2 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge2-1, Time=0)
                     vel = ds.timeMonthly_avg_normalVelocity.isel(nEdges=transectEdges-1, Time=0)
                     if 'timeMonthly_avg_normalGMBolusVelocity' in list(ds.keys()):
                         vel += ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=transectEdges-1, Time=0)
@@ -365,20 +362,27 @@ for n in range(nTransects):
                     saltOnCell2 = ds.timeMonthly_avg_activeTracers_salinity.isel(nCells=cellsOnEdge2-1, Time=0)
                     modelfile = f'{modeldir}/zMid.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
-                        raise IOError('No model file with zMid found')
-                    ds = xr.open_dataset(modelfile)
-                    zMidOnCell1 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge1-1, Time=0)
-                    zMidOnCell2 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge2-1, Time=0)
-                    # This is needed only if zMid is not available
-                    #layerThicknessOnCell1 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge1-1, Time=0)
-                    #layerThicknessOnCell2 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge2-1, Time=0)
+                        # Try layerThickness if zMid is not available
+                        print('Zmid file unavailable, trying with layerthickness')
+                        modelfile = f'{modeldir}/layerThickness.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                        if not os.path.exists(modelfile):
+                            raise IOError('No model file with layerThickness found')
+                        ds = xr.open_dataset(modelfile)
+                        layerThicknessOnCell1 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge1-1, Time=0)
+                        layerThicknessOnCell2 = ds.timeMonthly_avg_layerThickness.isel(nCells=cellsOnEdge2-1, Time=0)
+                    else:
+                        ds = xr.open_dataset(modelfile)
+                        zMidOnCell1 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge1-1, Time=0)
+                        zMidOnCell2 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge2-1, Time=0)
+                        layerThicknessOnCell1 = None
+                        layerThicknessOnCell2 = None
                     modelfile = f'{modeldir}/normalVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
                         raise IOError('No model file with velocity found')
                     ds = xr.open_dataset(modelfile)
                     vel = ds.timeMonthly_avg_normalVelocity.isel(nEdges=transectEdges-1, Time=0)
                     modelfile = f'{modeldir}/normalGMBolusVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
-                    if not os.path.exists(modelfile):
+                    if os.path.exists(modelfile):
                         ds = xr.open_dataset(modelfile)
                         vel += ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=transectEdges-1, Time=0)
 
@@ -386,10 +390,12 @@ for n in range(nTransects):
                 tempOnCell2 = tempOnCell2.values
                 saltOnCell1 = saltOnCell1.values
                 saltOnCell2 = saltOnCell2.values
-                zMidOnCell1 = zMidOnCell1.values
-                zMidOnCell2 = zMidOnCell2.values
-                #layerThicknessOnCell1 = layerThicknessOnCell1.values
-                #layerThicknessOnCell2 = layerThicknessOnCell2.values
+                if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
+                    zMidOnCell1 = zMidOnCell1.values
+                    zMidOnCell2 = zMidOnCell2.values
+                else:
+                    layerThicknessOnCell1 = layerThicknessOnCell1.values
+                    layerThicknessOnCell2 = layerThicknessOnCell2.values
                 vel = vel.values
 
                 # Mask T,S, layerThickness values that fall on land and topography
@@ -397,15 +403,19 @@ for n in range(nTransects):
                 tempOnCell2 = np.ma.masked_array(tempOnCell2, ~cellMask2)
                 saltOnCell1 = np.ma.masked_array(saltOnCell1, ~cellMask1)
                 saltOnCell2 = np.ma.masked_array(saltOnCell2, ~cellMask2)
-                zMidOnCell1 = np.ma.masked_array(zMidOnCell1, ~cellMask1)
-                zMidOnCell2 = np.ma.masked_array(zMidOnCell2, ~cellMask2)
-                #layerThicknessOnCell1 = np.ma.masked_array(layerThicknessOnCell1, ~cellMask1)
-                #layerThicknessOnCell2 = np.ma.masked_array(layerThicknessOnCell2, ~cellMask2)
+                if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
+                    zMidOnCell1 = np.ma.masked_array(zMidOnCell1, ~cellMask1)
+                    zMidOnCell2 = np.ma.masked_array(zMidOnCell2, ~cellMask2)
+                else:
+                    layerThicknessOnCell1 = np.ma.masked_array(layerThicknessOnCell1, ~cellMask1)
+                    layerThicknessOnCell2 = np.ma.masked_array(layerThicknessOnCell2, ~cellMask2)
                 # Interpolate T,S, layerThickness values onto edges
                 temp = 0.5 * (tempOnCell1 + tempOnCell2)
                 salt = 0.5 * (saltOnCell1 + saltOnCell2)
-                zMid = 0.5 * (zMidOnCell1 + zMidOnCell2)
-                #layerThickness = 0.5 * (layerThicknessOnCell1 + layerThicknessOnCell2)
+                if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
+                    zMid = 0.5 * (zMidOnCell1 + zMidOnCell2)
+                else:
+                    layerThickness = 0.5 * (layerThicknessOnCell1 + layerThicknessOnCell2)
 
                 # Mask velocity values that fall on land and topography
                 vel = np.ma.masked_array(vel, ~edgeMask)
@@ -416,10 +426,14 @@ for n in range(nTransects):
                     temp = np.flip(temp, axis=0)
                     salt = np.flip(salt, axis=0)
                     normalVel = np.flip(normalVel, axis=0)
-                    zMid = np.flip(zMid, axis=0)
-                    #layerThickness = np.flip(layerThickness, axis=0)
-                depth = -zMid
-                #depth = np.cumsum(layerThickness, axis=1)
+                    if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
+                        zMid = np.flip(zMid, axis=0)
+                    else:
+                        layerThickness = np.flip(layerThickness, axis=0)
+                if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
+                    depth = -zMid
+                else:
+                    depth = np.cumsum(layerThickness, axis=1)
 
 
                 # Compute sigma's
