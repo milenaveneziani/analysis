@@ -22,7 +22,7 @@ import time
 
 from mpas_analysis.shared.io.utility import decode_strings
 
-from common_functions import add_inset
+from common_functions import extract_openBoundaries, add_inset
 from geometric_features import FeatureCollection, read_feature_collection
 
 
@@ -41,7 +41,7 @@ year2 = 1
 #year2 = 500
 years = range(year1, year2+1)
 
-# Settings for anvil/chrysalis:
+# Settings for lcrc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 #meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #regionmaskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
@@ -50,7 +50,7 @@ years = range(year1, year2+1)
 #casename = 'v2_1.LR.historical_0101'
 #modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
 
-# Settings for cori:
+# Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 projectdir = '/global/cfs/projectdirs/e3sm'
 meshfile = f'{projectdir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
@@ -89,10 +89,19 @@ regionVariables = [{'name': 'evap',
                    {'name': 'seaIceFreshwater',
                     'title': 'Volume change due to sea ice melting/forming',
                     'mpasName': 'timeMonthly_avg_seaIceFreshWaterFlux'},
-                   {'name': 'ssh',
-                    'title': 'Volume change due to ssh tendency',
-                    'mpasName': 'timeMonthly_avg_ssh'}]
-varlist_sfcFluxes = [var['mpasName'] for var in regionVariables]
+                   {'name': 'layerThicknessTend',
+                    'title': 'Volume change due to layer thickness tendency',
+                    'mpasName': 'timeMonthly_avg_layerThicknessTend'},
+                   {'name': 'frazilTend',
+                    'title': 'Volume change due to frazil formation tendency',
+                    'mpasName': 'timeMonthly_avg_frazilTend'},
+                   {'name': 'icebergFlux',
+                    'title': 'Volume change due to iceberg flux',
+                    'mpasName': 'timeMonthly_avg_icebergFlux'},
+                   {'name': 'landIceFlux',
+                    'title': 'Volume change due to land ice flux',
+                    'mpasName': 'timeMonthly_avg_landIceFlux'}]
+varlist = [var['mpasName'] for var in regionVariables]
 
 outfile = f'volBudget_{casename}_years{year1:04d}-{year2:04d}.nc'
 
@@ -110,15 +119,15 @@ regions = decode_strings(dsRegionMask.regionNames)
 nRegions = np.size(regions)
 
 # Read in relevant global mesh information
-mesh = xr.open_dataset(meshfile)
-indexToCellID = mesh.indexToCellID
-edgesOnCell = mesh.edgesOnCell # edgeID of all edges bordering each cell. If 0, edge is on land.
-cellsOnEdge = mesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
-areaCell = mesh.areaCell
-nLevels = mesh.dims['nVertLevels']
-nCells = mesh.dims['nCells']
-maxEdges = mesh.dims['maxEdges']
-maxLevelCell = mesh.maxLevelCell.values
+dsMesh = xr.open_dataset(meshfile)
+indexToCellID = dsMesh.indexToCellID
+edgesOnCell = dsMesh.edgesOnCell # edgeID of all edges bordering each cell. If 0, edge is on land.
+cellsOnEdge = dsMesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
+areaCell = dsMesh.areaCell
+nLevels = dsMesh.dims['nVertLevels']
+nCells = dsMesh.dims['nCells']
+maxEdges = dsMesh.dims['maxEdges']
+maxLevelCell = dsMesh.maxLevelCell.values
 # Compute edgeSignOnCell from edgesOnCell and add it to mesh dataset
 edgeSignOnCell = np.zeros(np.shape(edgesOnCell.values)) # edgeSign will be 0 for edges on land
 for i in range(maxEdges):
@@ -133,7 +142,7 @@ for i in range(maxEdges):
     edgeSignOnCell[mask, i] =  1.0
 # This is the first, more naive method I used, almost 300 times slower
 # than the method above, which was suggested by Xylar:
-#nEdgesOnCell = mesh.nEdgesOnCell.values
+#nEdgesOnCell = dsMesh.nEdgesOnCell.values
 #for iCell in range(nCells):
 #    for i in range(nEdgesOnCell[iCell]):
 #        iEdge = edgesOnCell.values[iCell, i] - 1
@@ -163,17 +172,17 @@ for k in range(len(kmaxOnCells1)):
 print(np.shape(topomask0), np.shape(topomask1))
 
 # Save to mesh dataset
-mesh['cellsOnEdge0'] = (('nEdges'), coe0)
-mesh['cellsOnEdge1'] = (('nEdges'), coe1)
-mesh['landmask0'] = (('nEdges'), landmask0)
-mesh['landmask1'] = (('nEdges'), landmask1)
-mesh['edgeSignOnCell'] = (('nCells', 'maxEdges'), edgeSignOnCell)
+dsMesh['cellsOnEdge0'] = (('nEdges'), coe0)
+dsMesh['cellsOnEdge1'] = (('nEdges'), coe1)
+dsMesh['landmask0'] = (('nEdges'), landmask0)
+dsMesh['landmask1'] = (('nEdges'), landmask1)
+dsMesh['edgeSignOnCell'] = (('nCells', 'maxEdges'), edgeSignOnCell)
 t1 = time.time()
 print('Mesh reading/preprocessing, #seconds = ', t1-t0)
 
 # Compute budget if outfile does not exist
 if not os.path.exists(outfile):
-    # Volume changes integrated over the budget regions due to various processes
+    # Initialize volume budget terms
     volNetLateralFlux = np.zeros((nTime, nRegions))
     evapFlux = np.zeros((nTime, nRegions))
     rainFlux = np.zeros((nTime, nRegions))
@@ -183,73 +192,82 @@ if not os.path.exists(outfile):
     seaiceFlux = np.zeros((nTime, nRegions))
     ssh = np.zeros((nTime, nRegions))
     t = np.zeros(nTime)
-    ktime = 0
-    for year in years:
-        print(f'Year = {year:04d} out of {len(years)} years total')
-        for month in range(1, 13):
-            print(f'  Month= {month:02d}')
-            modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
 
-            # ** Compute net surface fluxes and SSH tendency for each region **
-            ds = xr.open_dataset(modelfile)
-            t[ktime] = ds['timeMonthly_avg_daysSinceStartOfSim'].values/365.
-            if 'timeMonthly_avg_normalTransportVelocity' in ds.keys():
-                vel = ds['timeMonthly_avg_normalTransportVelocity']
-            elif 'timeMonthly_avg_normalVelocity' in ds.keys():
-                vel = ds['timeMonthly_avg_normalVelocity']
-                if 'timeMonthly_avg_normalGMBolusVelocity' in ds.keys():
-                    vel = vel + ds['timeMonthly_avg_normalGMBolusVelocity']
-                if 'timeMonthly_avg_normalMLEvelocity' in ds.keys():
-                    vel = vel + ds['timeMonthly_avg_normalMLEvelocity']
-            else:
-                raise KeyError('no appropriate normalVelocity variable found')
-            dzOnCells = ds['timeMonthly_avg_layerThickness']
-            ds = ds[varlist_sfcFluxes]
-            for j in range(nRegions):
-                t0 = time.time()
-                print('regionName=', regions[j])
-                # Get regional mesh quantities
-                dsMask = dsRegionMask.isel(nRegions=j)
-                cellMask = dsMask.regionCellMasks == 1
-                regionArea = areaCell.where(cellMask, drop=True)
-                #  Cell id's for all cells in the region:
-                iCell = indexToCellID.where(cellMask, drop=True).values.astype(int) - 1
-                #  Edge id's and signs of the edges surrounding each cell in the region:
-                edgesToRead = edgesOnCell.sel(nCells=iCell).values - 1
-                edgesToRead_flatten = edgesToRead.flatten()
-                edgeSigns = mesh['edgeSignOnCell'].sel(nCells=iCell).values
-                edgeSigns_flatten = edgeSigns.flatten()
+    # Loop over regions
+    for j in range(nRegions):
+        t0 = time.time()
+        print('regionName=', regions[j])
+        # Get regional mesh quantities
+        dsMask = dsRegionMask.isel(nRegions=j)
+        [openBryEdges, openBrySigns] = extract_openBoundaries(dsMask.regionCellMasks.values, dsMesh)
+        cellMask = dsMask.regionCellMasks == 1
+        regionArea = areaCell.where(cellMask, drop=True)
+        #  Cell id's for all cells in the region:
+        #iCell = indexToCellID.where(cellMask, drop=True).values.astype(int) - 1
+        #  Edge id's and signs of the edges surrounding each cell in the region:
+        #edgesToRead = edgesOnCell.sel(nCells=iCell).values - 1
+        #edgesToRead_flatten = edgesToRead.flatten()
+        #edgeSigns = dsMesh['edgeSignOnCell'].sel(nCells=iCell).values
+        #edgeSigns_flatten = edgeSigns.flatten()
+        #dvEdge = dsMesh.dvEdge.sel(nEdges=edgesToRead_flatten).values
+        ##  Two neighboring cells for each edge in the region:
+        #coe0 = dsMesh['cellsOnEdge0'].sel(nEdges=edgesToRead_flatten)
+        #coe1 = dsMesh['cellsOnEdge1'].sel(nEdges=edgesToRead_flatten)
+        dvEdge = dsMesh.dvEdge.sel(nEdges=openBryEdges).values
+        coe0 = dsMesh['cellsOnEdge0'].sel(nEdges=openBryEdges)
+        coe1 = dsMesh['cellsOnEdge1'].sel(nEdges=openBryEdges)
+        landmask0 = coe0==0
+        landmask1 = coe1==0
+        t1 = time.time()
+        print('Initial mesh-related processing, #seconds = ', t1-t0)
 
-                #  Two neighboring cells for each edge in the region:
+        ktime = 0
+        for year in years:
+            print(f'Year = {year:04d} out of {len(years)} years total')
+            for month in range(1, 13):
+                print(f'  Month= {month:02d}')
+                modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
 
-                # Compute dz for each edge in the region:
+                ds = xr.open_dataset(modelfile)
+                # ** Get time, velocities and layer thickness **
+                t[ktime] = ds['timeMonthly_avg_daysSinceStartOfSim'].values/365.
+                if 'timeMonthly_avg_normalTransportVelocity' in ds.keys():
+                    vel = ds['timeMonthly_avg_normalTransportVelocity']
+                elif 'timeMonthly_avg_normalVelocity' in ds.keys():
+                    vel = ds['timeMonthly_avg_normalVelocity']
+                    if 'timeMonthly_avg_normalGMBolusVelocity' in ds.keys():
+                        vel = vel + ds['timeMonthly_avg_normalGMBolusVelocity']
+                    if 'timeMonthly_avg_normalMLEvelocity' in ds.keys():
+                        vel = vel + ds['timeMonthly_avg_normalMLEvelocity']
+                else:
+                    raise KeyError('no appropriate normalVelocity variable found')
+                dzOnCells = ds['timeMonthly_avg_layerThickness']
+                # Compute dz for each edge in the region
                 #  First, get dz's from two neighboring cells for each edge
-                coe0 = mesh['cellsOnEdge0'].sel(nEdges=edgesToRead_flatten)
-                coe1 = mesh['cellsOnEdge1'].sel(nEdges=edgesToRead_flatten)
                 dzOnCells0 = np.squeeze(dzOnCells.sel(nCells=coe0))
                 dzOnCells1 = np.squeeze(dzOnCells.sel(nCells=coe1))
                 #  Second, mask dz's that fall on land
-                landmask0 = coe0==0
-                landmask1 = coe1==0
-                dzOnCells0[mesh['landmask0'].sel(nEdges=edgesToRead_flatten), :] = np.nan
-                dzOnCells1[mesh['landmask1'].sel(nEdges=edgesToRead_flatten), :] = np.nan
+                #dzOnCells0[dsMesh['landmask0'].sel(nEdges=edgesToRead_flatten), :] = np.nan
+                #dzOnCells1[dsMesh['landmask1'].sel(nEdges=edgesToRead_flatten), :] = np.nan
+                dzOnCells0[dsMesh['landmask0'].sel(nEdges=openBryEdges), :] = np.nan
+                dzOnCells1[dsMesh['landmask1'].sel(nEdges=openBryEdges), :] = np.nan
                 #  Finally, interpolate dz's onto edges, also considering the topomask
                 dzOnEdges = np.nanmean(np.array([dzOnCells0*topomask0, dzOnCells1*topomask1]), axis=0)
-
-                # Compute dArea for each edge in the region:
-                dvEdge = mesh.dvEdge.sel(nEdges=edgesToRead_flatten).values
+                # Compute dArea for each edge in the region
                 dArea = dvEdge[:, np.newaxis] * dzOnEdges
-                t1 = time.time()
-                print('Initial mesh-related processing, #seconds = ', t1-t0)
+                # Reduce data set
+                ds = ds[varlist_sfcFluxes]
 
                 # Compute net lateral fluxes:
-                edgeSigns = xr.DataArray(edgeSigns_flatten, dims='nEdges')
-                dArea = xr.DataArray(dArea, dims=('nEdges', 'nVertLevels'))
-                normalVel = vel.sel(nEdges=edgesToRead_flatten) * edgeSigns
+                #edgeSigns = xr.DataArray(edgeSigns_flatten, dims='nEdges')
+                #dArea = xr.DataArray(dArea, dims=('nEdges', 'nVertLevels'))
+                #normalVel = vel.sel(nEdges=edgesToRead_flatten) * edgeSigns
+                normalVel = vel.sel(nEdges=openBryEdges) * openBryEdgeSigns
                 lateralFlux = (normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
                 print(lateralFlux)
                 t2 = time.time()
                 print('Lateral flux calculation, #seconds = ', t2-t1)
+                boh
 
                 # Compute net surface fluxes:
                 sfcFluxes = (ds.where(cellMask, drop=True) * regionArea).sum(dim='nCells')
@@ -262,8 +280,8 @@ if not os.path.exists(outfile):
                 iceRunoffFlux[ktime, j] = sfcFluxes[[var['mpasName'] for var in regionVariables if var['name']=='iceRunoff'][0]].values
                 seaiceFlux[ktime, j] = sfcFluxes[[var['mpasName'] for var in regionVariables if var['name']=='seaIceFreshwater'][0]].values
                 ssh[ktime, j] = sfcFluxes[[var['mpasName'] for var in regionVariables if var['name']=='ssh'][0]].values
-                t3 = time.time()
-                print('Other fluxes calculation, #seconds = ', t3-t2)
+                #t3 = time.time()
+                #print('Other fluxes calculation, #seconds = ', t3-t2)
 
             ktime = ktime + 1
 
