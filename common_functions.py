@@ -327,6 +327,23 @@ def date_to_days(year=1, month=1, day=1, hour=0, minute=0, second=0,
                             calendar=calendar)
 
 
+def _round_datetime(date):
+    """Round a datetime object to nearest second
+    date : datetime.datetime or similar objet object.
+    """
+    (year, month, day, hour, minute, second, microsecond) = \
+        (date.year, date.month, date.day, date.hour, date.minute, date.second,
+         date.microsecond)
+
+    date = datetime.datetime(year=year, month=month, day=day,
+                             hour=hour, minute=minute,
+                             second=second)
+
+    add_seconds = int(1e-6 * microsecond + 0.5)
+
+    return date + datetime.timedelta(0, add_seconds)
+
+
 def plot_xtick_format(calendar, minDays, maxDays, maxXTicks, yearStride=None):
     '''
     Formats tick labels and positions along the x-axis for time series plots
@@ -442,7 +459,7 @@ def subdivide_geom(geometry, geomtype, maxLength):
         newGeometry = shapely.geometry.Polygon(exterior, interiors)
     elif geomtype == 'MultiPolygon':
         polygons = []
-        for polygon in geometry:
+        for polygon in geometry.geoms:
             exterior = subdivide_line_string(polygon.exterior, periodic=True)
             interiors = [subdivide_line_string(inLineString, periodic=True)
                          for inLineString in polygon.interiors]

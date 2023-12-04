@@ -18,51 +18,34 @@ startYear = 1
 endYear = 54
 calendar = 'gregorian'
 
-# Settings for cori
-regionMaskDir = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks'
-
-meshName = 'ARRM60to10'
-restartFile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-regionMaskFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
-featureFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
+# Settings for nersc
+#regionMaskDir = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM60to10'
+#restartFile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
+#regionMaskFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/{}_oceanOHCRegions.nc'.format(meshName)
+#featureFile = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
 #runName = 'ARRM60to10_JRA_GM_ramp'
 #runNameShort = 'E3SM-Arctic-OSI'
 #rundir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
-runName = '20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl'
-runNameShort = 'E3SM-Arctic-coupled-beta1'
-rundir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run'
-#
-#meshName = 'oEC60to30v3wLI'
-#restartFile = '/global/cscratch1/sd/hoffman2/acme_scratch/edison/20190306.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.edison/run/mpaso.rst.0002-01-01_00000.nc'
-#runName = '20190306.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.edison'
-#runNameShort = 'B-DIB-ISMF'
-#rundir = '/global/cscratch1/sd/hoffman2/acme_scratch/edison/archive/20190306.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.edison/ocn/hist'
-#
-#restartFile = '/global/cscratch1/sd/sprice/acme_scratch/cori-knl/20191018.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.cori-knl.testNewGM/run/mpaso.rst.0109-01-01_00000.nc'
-#runName = '20191018.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.cori-knl.testNewGM'
-#runNameShort = 'B-3DGM'
-#rundir = '/global/cscratch1/sd/sprice/acme_scratch/cori-knl/20191018.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_oECv3wLI.cori-knl.testNewGM/archive/ocn/hist'
-#
-#meshName = 'ECwISC30to60E1r02'
-#restartFile = '/global/cscratch1/sd/sprice/e3sm_scratch/cori-knl/20200610.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_ECwISC30to60E1r2.cori-knl.maint1p2-3DGM/run/mpaso.rst.0101-04-01_00000.nc'
-#runName = '20200610.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_ECwISC30to60E1r2.cori-knl.maint1p2-3DGM'
-#runNameShort = 'B-MGM'
-#rundir = '/global/cscratch1/sd/sprice/e3sm_scratch/cori-knl/20200610.A_WCYCL1850-DIB-ISMF_CMIP6.ne30_ECwISC30to60E1r2.cori-knl.maint1p2-3DGM/archive/ocn/hist'
-#
-#meshName = 'ARRM60to10'
-#restartFile = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run/mpaso.rst.0004-01-01_00000.nc'
-#runName = 'ARRM60to10_JRA_GM_ramp'
-#runNameShort = 'E3SM-Arctic-OSI60to10'
-#rundir = '/global/cscratch1/sd/milena/E3SM_simulations/ARRM60to10_JRA_GM_ramp/run'
-#
+#runName = '20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl'
+#runNameShort = 'E3SM-Arctic-coupled-beta1'
+#rundir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/run'
+ 
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
-#
 #meshName = 'EC30to60E2r2'
 #restartFile = '/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{}/ocean.EC30to60E2r2.200908.nc'.format(meshName)
 #runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
 #runNameShort = 'JRA_POPvertMix_noSSSrestoring'
 #rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+ 
+# Settings for onyx
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+restartFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
+rundir = f'/p/work/osinski/archive/{runName}/ocn/hist'
 
 outdir = './timeseries_data/{}'.format(runNameShort)
 if not os.path.isdir(outdir):
@@ -86,7 +69,8 @@ globalArea = areaCell.sum()
 refBottomDepth = dsRestart.refBottomDepth
 maxLevelCell = dsRestart.maxLevelCell
 
-regionGroups = ['Arctic Regions', 'OceanOHC Regions']
+regionGroups = ['Arctic Regions']
+#regionGroups = ['OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
 # Choose 3d variables for z range greater than upper ocean
 #variables = [{'name': 'salinity',
