@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4
 
+#from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
 from mpas_analysis.ocean.utility import compute_zmid
@@ -15,21 +16,22 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset, days_to_datetime
 
-startYear = 1
+startYear = 1950
+endYear = 2014
+#startYear = 1
 #endYear = 60
 #startYear = 65
-endYear = 325
+#endYear = 325
 calendar = 'gregorian'
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/projectdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM60to10'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-#featureFile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/oceanOHCRegions.geojson'
-#runName =
-#runNameShort =
-#rundir =
-#isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -41,13 +43,13 @@ calendar = 'gregorian'
 #isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for onyx
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1B60to10rA02'
-runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/work/osinski/archive/{runName}'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1B60to10rA02'
+#runNameShort = 'E3SMv2.1B60to10rA02'
+#rundir = f'/p/work/osinski/archive/{runName}'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 
 outdir = f'./timeseries_data/{runNameShort}'
 if not os.path.isdir(outdir):
@@ -305,6 +307,7 @@ for regionGroup in regionGroups:
                 # combine data sets into a single data set
                 dsOut = xarray.concat(datasets, 'nRegions')
 
+                #write_netcdf_with_fill(dsOut, timeSeriesFile)
                 write_netcdf(dsOut, timeSeriesFile)
             else:
                 print(f'Time series file already exists for {varname} and year {year}. Skipping it...')
@@ -340,7 +343,7 @@ for regionGroup in regionGroups:
                 mask = np.logical_and(timemonths>=np.min(monthsToPlot), timemonths<=np.max(monthsToPlot))
                 #mask = xarray.Dataset(data_vars=dict(mask=(['Time'], mask)))
                 dsIn['timeMonthlyMask'] = ('Time', mask)
-                dsIn = dsIn.where(dsIn.timeMonthlyMask)
+                dsIn = dsIn.where(dsIn.timeMonthlyMask, drop=True)
 
             field = [dsIn[varname]]
             xLabel = 'Time (yr)'
