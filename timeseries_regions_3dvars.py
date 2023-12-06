@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import os
-import xarray
+import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -56,7 +56,7 @@ if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
 if os.path.exists(meshFile):
-    dsMesh = xarray.open_dataset(meshFile)
+    dsMesh = xr.open_dataset(meshFile)
     dsMesh = dsMesh.isel(Time=0)
 else:
     raise IOError('No MPAS restart/mesh file found')
@@ -148,7 +148,7 @@ for regionGroup in regionGroups:
 
     regionMaskFile = f'{regionMaskDir}/{meshName}_{groupName}.nc'
     if os.path.exists(regionMaskFile):
-        dsRegionMask = xarray.open_dataset(regionMaskFile)
+        dsRegionMask = xr.open_dataset(regionMaskFile)
         regionNames = decode_strings(dsRegionMask.regionNames)
         if regionGroup==regionGroups[0]:
             regionNames.append('Global')
@@ -181,7 +181,7 @@ for regionGroup in regionGroups:
                                             endDate=endDate)
             datasets.append(dsTimeSlice)
         # combine data sets into a single data set
-        dsIn = xarray.concat(datasets, 'Time')
+        dsIn = xr.concat(datasets, 'Time')
 
         if mpasFile=='timeSeriesStatsMonthly': # monthly averages 
             layerThickness = dsIn.timeMonthly_avg_layerThickness
@@ -224,7 +224,7 @@ for regionGroup in regionGroups:
                             localLayerVol = layerVol.where(cellMask, drop=True)
                             regionalLayerVol = localLayerVol.sum(dim='nVertLevels').sum(dim='nCells')
 
-                        dsOut = xarray.Dataset()
+                        dsOut = xr.Dataset()
                         for var in variables:
                             outName = var['name']
                             mpasVarName = var['mpas']
@@ -266,7 +266,7 @@ for regionGroup in regionGroups:
                         datasets.append(dsOut)
 
                     # combine data sets into a single data set
-                    dsOut = xarray.concat(datasets, 'nRegions')
+                    dsOut = xr.concat(datasets, 'nRegions')
 
                     # a few variables have become time or region dependent and shouldn't be
                     dsOut['totalVol'] = dsOut['totalVol'].isel(Time=0, drop=True)
@@ -301,7 +301,7 @@ for regionGroup in regionGroups:
                         localArea = areaCell.where(cellMask, drop=True)
                         regionalArea = localArea.sum()
 
-                    dsOut = xarray.Dataset()
+                    dsOut = xr.Dataset()
                     for var in variables:
                         outName = var['name']
                         mpasVarName = var['mpas']
@@ -329,7 +329,7 @@ for regionGroup in regionGroups:
                     datasets.append(dsOut)
 
                 # combine data sets into a single data set
-                dsOut = xarray.concat(datasets, 'nRegions')
+                dsOut = xr.concat(datasets, 'nRegions')
 
                 write_netcdf(dsOut, timeSeriesFile)
             else:
@@ -354,8 +354,8 @@ for regionGroup in regionGroups:
                         fc.add_feature(feature)
                         break
 
-                dsIn = xarray.open_mfdataset(timeSeriesFiles, combine='nested',
-                                             concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
+                dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                                         concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
                 zbounds = dsIn.zbounds.values[0]
 
@@ -408,8 +408,8 @@ for regionGroup in regionGroups:
                     fc.add_feature(feature)
                     break
 
-            dsIn = xarray.open_mfdataset(timeSeriesFiles, combine='nested',
-                                         concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
+            dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                                     concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
             #movingAverageMonths = 1
             movingAverageMonths = 12

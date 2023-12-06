@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import os
-import xarray
+import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4
@@ -59,7 +59,7 @@ if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
 if os.path.exists(meshFile):
-    dsMesh = xarray.open_dataset(meshFile)
+    dsMesh = xr.open_dataset(meshFile)
     dsMesh = dsMesh.isel(Time=0)
 else:
     raise IOError('No MPAS restart/mesh file found')
@@ -176,7 +176,7 @@ for regionGroup in regionGroups:
 
     regionMaskFile = f'{regionMaskDir}/{meshName}_{groupName}.nc'
     if os.path.exists(regionMaskFile):
-        dsRegionMask = xarray.open_dataset(regionMaskFile)
+        dsRegionMask = xr.open_dataset(regionMaskFile)
         regionNames = decode_strings(dsRegionMask.regionNames)
         if regionGroup==regionGroups[0]:
             regionNames.append('Global')
@@ -231,7 +231,7 @@ for regionGroup in regionGroups:
                                                     endDate=endDate)
                     datasets.append(dsTimeSlice)
                 # combine data sets into a single data set
-                dsIn = xarray.concat(datasets, 'Time')
+                dsIn = xr.concat(datasets, 'Time')
 
                 datasets = []
                 regionIndices = []
@@ -305,7 +305,7 @@ for regionGroup in regionGroups:
                     datasets.append(dsOut)
 
                 # combine data sets into a single data set
-                dsOut = xarray.concat(datasets, 'nRegions')
+                dsOut = xr.concat(datasets, 'nRegions')
 
                 #write_netcdf_with_fill(dsOut, timeSeriesFile)
                 write_netcdf(dsOut, timeSeriesFile)
@@ -328,20 +328,20 @@ for regionGroup in regionGroups:
                     fc.add_feature(feature)
                     break
 
-            dsIn = xarray.open_mfdataset(timeSeriesFiles, combine='nested',
-                                         concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
+            dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                                     concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
             if len(monthsToPlot)!=12:
                 # Subset time series (making sure that movingAverageMonths is set to 1
                 # (no running average))
                 movingAverageMonths = 1
                 referenceDate = '0001-01-01'
-                datetimes = netCDF4.num2date(dsIn.Time, 'days since {}'.format(referenceDate), calendar=calendar)
+                datetimes = netCDF4.num2date(dsIn.Time, f'days since {referenceDate}', calendar=calendar)
                 timemonths = []
                 for date in datetimes.flat:
                     timemonths.append(date.month)
                 mask = np.logical_and(timemonths>=np.min(monthsToPlot), timemonths<=np.max(monthsToPlot))
-                #mask = xarray.Dataset(data_vars=dict(mask=(['Time'], mask)))
+                #mask = xr.Dataset(data_vars=dict(mask=(['Time'], mask)))
                 dsIn['timeMonthlyMask'] = ('Time', mask)
                 dsIn = dsIn.where(dsIn.timeMonthlyMask, drop=True)
 
