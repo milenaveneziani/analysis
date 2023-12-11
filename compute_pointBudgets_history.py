@@ -22,29 +22,32 @@ import netCDF4
 from common_functions import plot_xtick_format, days_to_datetime
 
 # Choose years
-year1 = 1
-year2 = 65
+year1 = 69
+year2 = 69
 years = range(year1, year2+1)
 
 referenceDate = '0001-01-01'
 
-#movingAverageMonths = 1
-movingAverageMonths = 12
+movingAverageMonths = 1
+#movingAverageMonths = 12
 
 # Settings for lcrc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #casenameFull = 'v2_1.LR.historical_0101'
 #casename = 'v2_1.LR.historical_0101'
 #modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
+casenameFull = '20230927b.branchfrom69.v3alpha04_bigrid.piControl.chrysalis'
+casename = 'v3alpha04_bigrid.piControl'
+modeldir = f'/lcrc/group/e3sm/ac.abarthel/E3SMv3_dev/{casenameFull}/run/debug_output/'
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-maindir = '/global/cfs/projectdirs/e3sm'
-meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-casename = 'GM600_Redi600'
-casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
+#maindir = '/global/cfs/projectdirs/e3sm'
+#meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#casename = 'GM600_Redi600'
+#casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+#modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
 #meshfile = f'{maindir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
 #casename = 'fullyRRM_lat-dep-bd-submeso'
@@ -114,27 +117,28 @@ t = np.zeros(nTime)
 ktime = 0
 for year in years:
     print(f'Year = {year:04d} out of {len(years)} years total')
-    for month in range(1, 13):
+    #for month in range(1, 13):
+    for month in range(1, 2):
         print(f'  Month= {month:02d}')
-        modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
+        modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.highFrequencyOutput.{year:04d}-{month:02d}-21_00.00.00.nc'
 
         ds = xr.open_dataset(modelfile, decode_times=False)
 
         t[ktime] = ds.Time.isel(Time=0).values
 
         # Compute net lateral fluxes:
-        if 'timeMonthly_avg_normalTransportVelocity' in ds.keys():
-            vel = ds.timeMonthly_avg_normalTransportVelocity.isel(Time=0, nEdges=edgesOnCell-1)
-        elif 'timeMonthly_avg_normalVelocity' in ds.keys():
-            vel = ds.timeMonthly_avg_normalVelocity.isel(Time=0, nEdges=edgesOnCell-1)
-            if 'timeMonthly_avg_normalGMBolusVelocity' in ds.keys():
-                vel = vel + ds.timeMonthly_avg_normalGMBolusVelocity.isel(Time=0, nEdges=edgesOnCell-1)
-            if 'timeMonthly_avg_normalMLEvelocity' in ds.keys():
-                vel = vel + ds.timeMonthly_avg_normalMLEvelocity.isel(Time=0, nEdges=edgesOnCell-1)
+        if 'normalTransportVelocity' in ds.keys():
+            vel = ds.normalTransportVelocity.isel(Time=0, nEdges=edgesOnCell-1)
+        elif 'normalVelocity' in ds.keys():
+            vel = ds.normalVelocity.isel(Time=0, nEdges=edgesOnCell-1)
+            if 'normalGMBolusVelocity' in ds.keys():
+                vel = vel + ds.normalGMBolusVelocity.isel(Time=0, nEdges=edgesOnCell-1)
+            if 'normalMLEvelocity' in ds.keys():
+                vel = vel + ds.normalMLEvelocity.isel(Time=0, nEdges=edgesOnCell-1)
         else:
             raise KeyError('no appropriate normalVelocity variable found')
-        dzOnCells0 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
-        dzOnCells1 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
+        dzOnCells0 = ds.layerThickness.isel(Time=0, nCells=coe0)
+        dzOnCells1 = ds.layerThickness.isel(Time=0, nCells=coe1)
         #  Then, interpolate dz's onto edges, also considering the topomask
         dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
         dzOnEdges = dzOnEdges.rename({'nCells': 'nEdges'})
@@ -143,65 +147,60 @@ for year in years:
         volNetLateralFlux[ktime] = lateralFlux.values
 
         # Compute net surface fluxes:
-        if 'timeMonthly_avg_evaporationFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_evaporationFlux.isel(Time=0, nCells=iCell)
+        if 'evaporationFlux' in ds.keys():
+            flux = ds.evaporationFlux.isel(Time=0, nCells=iCell)
             evapFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no evaporation flux variable found')
-        if 'timeMonthly_avg_rainFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_rainFlux.isel(Time=0, nCells=iCell)
+        if 'rainFlux' in ds.keys():
+            flux = ds.rainFlux.isel(Time=0, nCells=iCell)
             rainFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no rain flux variable found')
-        if 'timeMonthly_avg_snowFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_snowFlux.isel(Time=0, nCells=iCell)
+        if 'snowFlux' in ds.keys():
+            flux = ds.snowFlux.isel(Time=0, nCells=iCell)
             snowFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no snow flux variable found')
-        if 'timeMonthly_avg_riverRunoffFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_riverRunoffFlux.isel(Time=0, nCells=iCell)
+        if 'riverRunoffFlux' in ds.keys():
+            flux = ds.riverRunoffFlux.isel(Time=0, nCells=iCell)
             riverRunoffFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no river runoff flux variable found')
-        if 'timeMonthly_avg_iceRunoffFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_iceRunoffFlux.isel(Time=0, nCells=iCell)
+        if 'iceRunoffFlux' in ds.keys():
+            flux = ds.iceRunoffFlux.isel(Time=0, nCells=iCell)
             iceRunoffFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no ice runoff flux variable found')
-        if 'timeMonthly_avg_seaIceFreshWaterFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_seaIceFreshWaterFlux.isel(Time=0, nCells=iCell)
+        if 'seaIceFreshWaterFlux' in ds.keys():
+            flux = ds.seaIceFreshWaterFlux.isel(Time=0, nCells=iCell)
             seaIceFreshWaterFlux[ktime] = (flux * areaCell).values
         else:
             raise KeyError('no sea ice freshwater flux variable found')
-        if 'timeMonthly_avg_icebergFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_icebergFlux.isel(Time=0, nCells=iCell)
-            icebergFlux[ktime] = (flux * areaCell).values
-        if 'timeMonthly_avg_landIceFlux' in ds.keys():
-            flux = ds.timeMonthly_avg_landIceFlux.isel(Time=0, nCells=iCell)
-            landIceFlux[ktime] = (flux * areaCell).values
 
         # Compute layer thickness tendencies:
-        if 'timeMonthly_avg_tendLayerThickness' in ds.keys():
-            layerThickTend = ds.timeMonthly_avg_tendLayerThickness.isel(Time=0, nCells=iCell)
+        if 'tendLayerThickness' in ds.keys():
+            layerThickTend = ds.tendLayerThickness.isel(Time=0, nCells=iCell)
             layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * areaCell).values
         else:
             raise KeyError('no layer thickness tendency variable found')
-        if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
-            frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0, nCells=iCell)
+        if 'frazilLayerThicknessTendency' in ds.keys():
+            frazilThickTend = ds.frazilLayerThicknessTendency.isel(Time=0, nCells=iCell)
             frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * areaCell).values
         else:
             raise KeyError('no frazil layer thickness tendency variable found')
 
         ktime = ktime + 1
 
-#print('\nresidual')
-#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0])-m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-#print('\nnetlateral + evap + rain + snow + riverrunoff + icerunoff + seaiceflux, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-##print('\nnetlateral, evap + rain + snow, riverrunoff + icerunoff, seaiceflux, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]), 1/rho0*m3ps_to_Sv*(riverRunoffFlux[0]+iceRunoffFlux[0]), 1/rho0*m3ps_to_Sv*seaIceFreshWaterFlux[0], m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-#print('\nnetlateral, allSurfFluxes, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+print('\nresidual')
+print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0])-m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+print('\nnetlateral + evap + rain + snow + riverrunoff + icerunoff + seaiceflux, layerThickTend + frazilThickTend')
+print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+#print('\nnetlateral, evap + rain + snow, riverrunoff + icerunoff, seaiceflux, layerThickTend + frazilThickTend')
+print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]), 1/rho0*m3ps_to_Sv*(riverRunoffFlux[0]+iceRunoffFlux[0]), 1/rho0*m3ps_to_Sv*seaIceFreshWaterFlux[0], m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+print('\nnetlateral, allSurfFluxes, layerThickTend + frazilThickTend')
+print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+boh
 volNetLateralFlux = m3ps_to_Sv * volNetLateralFlux
 evapFlux = 1/rho0 * m3ps_to_Sv * evapFlux
 rainFlux = 1/rho0 * m3ps_to_Sv * rainFlux
