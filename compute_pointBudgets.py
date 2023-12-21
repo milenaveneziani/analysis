@@ -16,14 +16,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
-import datetime
-import netCDF4
 
-from common_functions import plot_xtick_format, days_to_datetime
+from common_functions import plot_xtick_format
+
 
 # Choose years
-year1 = 1
-year2 = 65
+year1 = 1950
+year2 = 1960
+#year1 = 1
+#year2 = 65
 years = range(year1, year2+1)
 
 referenceDate = '0001-01-01'
@@ -41,18 +42,28 @@ movingAverageMonths = 12
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 maindir = '/global/cfs/projectdirs/e3sm'
-meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-casename = 'GM600_Redi600'
-casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
-#meshfile = f'{maindir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-#casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
-#casename = 'fullyRRM_lat-dep-bd-submeso'
-#modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casenameFull}/run'
+#meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#casename = 'GM600_Redi600'
+#casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+#modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
+meshfile = f'{maindir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+casenameFull = 'E3SM-Arcticv2.1_historical0101'
+casename = 'E3SM-Arcticv2.1_historical0101'
+modeldir = f'/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/{casenameFull}/ocn/hist'
 
 # Coordinates of point where to compute budgets
-lonPoint = -10
-latPoint = 67
+# Iceland Sea:
+#lonPoint = -10
+#latPoint = 67
+# Equatorial North Atlantic (deep ocean)
+#lonPoint = -30
+#latPoint = 5
+# Equatorial Atlantic (Amazon)
+#lonPoint = -48
+#latPoint = 1
+# Arctic
+lonPoint = -48
+latPoint = 85
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
@@ -91,11 +102,18 @@ edgesOnCell = edgesOnCell[np.where(edgesOnCell>0)]
 cellsOnEdge = dsMesh.cellsOnEdge.isel(nEdges=edgesOnCell-1).values
 coe0 = cellsOnEdge[:, 0] - 1
 coe1 = cellsOnEdge[:, 1] - 1
-dvEdge = dsMesh.dvEdge.isel(nEdges=edgesOnCell-1)
-
+# compute edgeSigns
+edgeSigns = np.ones(len(coe0))
+for i in range(len(coe0)):
+    if coe0[i]==iCell:
+        edgeSigns[i] = -1
 print(iCell)
 print(coe0)
 print(coe1)
+print(edgeSigns)
+#
+dvEdge = dsMesh.dvEdge.isel(nEdges=edgesOnCell-1)
+
 
 # Compute volume budget
 
@@ -139,7 +157,8 @@ for year in years:
         dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
         dzOnEdges = dzOnEdges.rename({'nCells': 'nEdges'})
         dArea = dvEdge * dzOnEdges
-        lateralFlux = (vel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
+        normalVel = vel * xr.DataArray(edgeSigns, dims='nEdges')
+        lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
         volNetLateralFlux[ktime] = lateralFlux.values
 
         # Compute net surface fluxes:
@@ -257,6 +276,7 @@ else:
     ax[4, 1].plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label='seaiceFW')
     ax[4, 1].plot(t, -thickTend_runavg, 'm', linewidth=2, label='thickTend')
     ax[4, 1].plot(t, res_runavg, 'k', linewidth=2, label='res')
+    #ax[4, 1].plot(t, res_runavg, 'k', linewidth=2, label=f'res ({np.mean(res):.2e} $\pm$ {np.std(res):.2e}')
     ax[4, 1].set_title(f'{movingAverageMonths}-month running averages', fontsize=16, fontweight='bold')
 ax[4, 1].legend(loc='lower left')
 
@@ -294,23 +314,23 @@ ax[3, 1].grid(color='k', linestyle=':', linewidth = 0.5)
 ax[4, 0].grid(color='k', linestyle=':', linewidth = 0.5)
 ax[4, 1].grid(color='k', linestyle=':', linewidth = 0.5)
 
-ax[0, 0].set_title(f'mean={np.nanmean(volNetLateralFlux):.2e} $\pm$ {np.nanstd(volNetLateralFlux):.2e}', \
+ax[0, 0].set_title(f'mean={np.mean(volNetLateralFlux):.2e} $\pm$ {np.std(volNetLateralFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[0, 1].set_title(f'mean={np.nanmean(evapFlux):.2e} $\pm$ {np.nanstd(evapFlux):.2e}', \
+ax[0, 1].set_title(f'mean={np.mean(evapFlux):.2e} $\pm$ {np.std(evapFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[1, 0].set_title(f'mean={np.nanmean(rainFlux):.2e} $\pm$ {np.nanstd(rainFlux):.2e}', \
+ax[1, 0].set_title(f'mean={np.mean(rainFlux):.2e} $\pm$ {np.std(rainFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[1, 1].set_title(f'mean={np.nanmean(snowFlux):.2e} $\pm$ {np.nanstd(snowFlux):.2e}', \
+ax[1, 1].set_title(f'mean={np.mean(snowFlux):.2e} $\pm$ {np.std(snowFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[2, 0].set_title(f'mean={np.nanmean(riverRunoffFlux):.2e} $\pm$ {np.nanstd(riverRunoffFlux):.2e}', \
+ax[2, 0].set_title(f'mean={np.mean(riverRunoffFlux):.2e} $\pm$ {np.std(riverRunoffFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[2, 1].set_title(f'mean={np.nanmean(iceRunoffFlux):.2e} $\pm$ {np.nanstd(iceRunoffFlux):.2e}', \
+ax[2, 1].set_title(f'mean={np.mean(iceRunoffFlux):.2e} $\pm$ {np.std(iceRunoffFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[3, 0].set_title(f'mean={np.nanmean(seaIceFreshWaterFlux):.2e} $\pm$ {np.nanstd(seaIceFreshWaterFlux):.2e}', \
+ax[3, 0].set_title(f'mean={np.mean(seaIceFreshWaterFlux):.2e} $\pm$ {np.std(seaIceFreshWaterFlux):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[3, 1].set_title(f'mean={np.nanmean(thickTend):.2e} $\pm$ {np.nanstd(thickTend):.2e}', \
+ax[3, 1].set_title(f'mean={np.mean(thickTend):.2e} $\pm$ {np.std(thickTend):.2e}', \
                    fontsize=16, fontweight='bold')
-ax[4, 0].set_title(f'mean={np.nanmean(res):.2e} $\pm$ {np.nanstd(res):.2e}', \
+ax[4, 0].set_title(f'mean={np.mean(res):.2e} $\pm$ {np.std(res):.2e}', \
                    fontsize=16, fontweight='bold')
 
 ax[4, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
@@ -324,7 +344,7 @@ ax[2, 0].set_ylabel('River runoff flux (Sv)', fontsize=12, fontweight='bold')
 ax[2, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
 ax[3, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
 ax[3, 1].set_ylabel('Layer+frazil thickness tend (Sv)', fontsize=12, fontweight='bold')
-ax[4, 0].set_ylabel('Sum of all terms (Sv)', fontsize=12, fontweight='bold')
+ax[4, 0].set_ylabel('Residual (Sv)', fontsize=12, fontweight='bold')
 ax[4, 1].set_ylabel('Sv', fontsize=12, fontweight='bold')
 
 fig.tight_layout(pad=0.5)

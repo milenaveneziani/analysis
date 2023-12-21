@@ -104,8 +104,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# netcdf files
+# netcdf/geojson files
 *.nc
+*.geojson
 
 # Plot directories
 FovFaz/
@@ -114,3 +115,4 @@ transects/
 verticalSections/
 volBudget/
 general/
+animations_verticalSections/
