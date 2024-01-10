@@ -20,17 +20,9 @@ import xarray as xr
 from common_functions import plot_xtick_format
 
 
-# Choose years
-year1 = 1950
-year2 = 1960
-#year1 = 1
-#year2 = 65
-years = range(year1, year2+1)
-
-referenceDate = '0001-01-01'
-
-#movingAverageMonths = 1
-movingAverageMonths = 12
+# Note: frazilLayerThicknessTendency is added to layerThicknessTend in
+#       shared/mpas_ocn_frazil_forcing.F, therefore no need to take into
+#       account for volume budget purposes.
 
 # Settings for lcrc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
@@ -42,28 +34,50 @@ movingAverageMonths = 12
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 maindir = '/global/cfs/projectdirs/e3sm'
-#meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-#casename = 'GM600_Redi600'
-#casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-#modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
-meshfile = f'{maindir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-casenameFull = 'E3SM-Arcticv2.1_historical0101'
-casename = 'E3SM-Arcticv2.1_historical0101'
-modeldir = f'/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/{casenameFull}/ocn/hist'
+meshfile = f'{maindir}/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+casename = 'GM600_Redi600'
+casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+modeldir = f'{maindir}/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
+#meshfile = f'{maindir}/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#casenameFull = 'E3SM-Arcticv2.1_historical0101'
+#casename = 'E3SM-Arcticv2.1_historical0101'
+#modeldir = f'/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/{casenameFull}/ocn/hist'
+
+# Choose years
+#year1 = 1950
+#year2 = 1960
+year1 = 1
+year2 = 65
+years = range(year1, year2+1)
+
+referenceDate = '0001-01-01'
+
+#movingAverageMonths = 1
+movingAverageMonths = 12
 
 # Coordinates of point where to compute budgets
 # Iceland Sea:
 #lonPoint = -10
 #latPoint = 67
+#pointTitle = 'Iceland Sea (67N,10W)'
 # Equatorial North Atlantic (deep ocean)
 #lonPoint = -30
 #latPoint = 5
+#pointTitle = 'Eq N Atl (5N,30W)'
 # Equatorial Atlantic (Amazon)
 #lonPoint = -48
 #latPoint = 1
+#pointTitle = 'Eq Atl (1N,48W)'
+lonPoint = -49.2
+latPoint = 0.6
+pointTitle = 'Eq Atl (0.6N,49.2W)'
+#lonPoint = -49.5
+#latPoint = 0.5
+#pointTitle = 'Eq Atl (0.5N,49.5W)'
 # Arctic
-lonPoint = -48
-latPoint = 85
+#lonPoint = -48
+#latPoint = 85
+#pointTitle = 'Arctic (85N,48W)'
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
@@ -95,22 +109,32 @@ iCell = indices.where(spherDist==np.min(spherDist), drop=True).values.astype(int
 print(lonCell.values[iCell]*180/np.pi, latCell.values[iCell]*180/np.pi)
 areaCell = dsMesh.areaCell.isel(nCells=iCell)
 #
-# edgeID of all edges bordering the chosen cell. If 0, edge is on land, so remove it.
+# edgeID of all edges bordering the chosen cell. If 0, edge is on land, so remove it
 edgesOnCell = dsMesh.edgesOnCell.isel(nCells=iCell).values
 edgesOnCell = edgesOnCell[np.where(edgesOnCell>0)]
 # for each ocean edge bordering the chosen cell, select IDs of straddling cells
 cellsOnEdge = dsMesh.cellsOnEdge.isel(nEdges=edgesOnCell-1).values
+# remove edges that have one straddling cell on land
+#coe0 = []
+#coe1 = []
+#for i in range(len(edgesOnCell)):
+#    if cellsOnEdge[i, 0]!=0 and cellsOnEdge[i, 1]!=0:
+#        coe0.append(cellsOnEdge[i, 0] - 1)
+#        coe1.append(cellsOnEdge[i, 1] - 1)
 coe0 = cellsOnEdge[:, 0] - 1
 coe1 = cellsOnEdge[:, 1] - 1
+# identify land cellsOnEdge
+coe0[np.where(coe0==-1)] = 0
+coe1[np.where(coe1==-1)] = 0
 # compute edgeSigns
 edgeSigns = np.ones(len(coe0))
 for i in range(len(coe0)):
     if coe0[i]==iCell:
         edgeSigns[i] = -1
-print(iCell)
-print(coe0)
-print(coe1)
-print(edgeSigns)
+print('iCell = ', iCell)
+print('cellsOnEdge0 = ', coe0)
+print('cellsOnEdge1 = ', coe1)
+print('edgeSign = ', edgeSigns)
 #
 dvEdge = dsMesh.dvEdge.isel(nEdges=edgesOnCell-1)
 
@@ -126,7 +150,6 @@ riverRunoffFlux = np.zeros(nTime)
 iceRunoffFlux = np.zeros(nTime)
 seaIceFreshWaterFlux = np.zeros(nTime)
 layerThick = np.zeros(nTime)
-frazilThick = np.zeros(nTime)
 t = np.zeros(nTime)
 
 ktime = 0
@@ -151,11 +174,23 @@ for year in years:
                 vel = vel + ds.timeMonthly_avg_normalMLEvelocity.isel(Time=0, nEdges=edgesOnCell-1)
         else:
             raise KeyError('no appropriate normalVelocity variable found')
-        dzOnCells0 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
-        dzOnCells1 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
+        #dzOnCells0 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
+        #dzOnCells1 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
+        ##  Then, interpolate dz's onto edges, also considering the topomask
+        #dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
+        #dzOnEdges = dzOnEdges.rename({'nCells': 'nEdges'})
+        dzOnCells0 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0).values
+        dzOnCells1 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1).values
         #  Then, interpolate dz's onto edges, also considering the topomask
-        dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
-        dzOnEdges = dzOnEdges.rename({'nCells': 'nEdges'})
+        dzOnEdges = np.nan*np.ones(np.shape(dzOnCells0))
+        for i in range(len(coe0)):
+            if coe0[i]==0:
+                dzOnEdges[i, :] = dzOnCells1[i, :]
+            elif coe1[i]==0:
+                dzOnEdges[i, :] = dzOnCells0[i, :]
+            else:
+                dzOnEdges[i, :] = 0.5 * (dzOnCells0[i, :] + dzOnCells1[i, :])
+        dzOnEdges = xr.DataArray(dzOnEdges, dims=('nEdges', 'nVertLevels'))
         dArea = dvEdge * dzOnEdges
         normalVel = vel * xr.DataArray(edgeSigns, dims='nEdges')
         lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
@@ -205,22 +240,17 @@ for year in years:
             layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * areaCell).values
         else:
             raise KeyError('no layer thickness tendency variable found')
-        if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
-            frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0, nCells=iCell)
-            frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * areaCell).values
-        else:
-            raise KeyError('no frazil layer thickness tendency variable found')
 
         ktime = ktime + 1
 
 #print('\nresidual')
-#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0])-m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-#print('\nnetlateral + evap + rain + snow + riverrunoff + icerunoff + seaiceflux, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-##print('\nnetlateral, evap + rain + snow, riverrunoff + icerunoff, seaiceflux, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]), 1/rho0*m3ps_to_Sv*(riverRunoffFlux[0]+iceRunoffFlux[0]), 1/rho0*m3ps_to_Sv*seaIceFreshWaterFlux[0], m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
-#print('\nnetlateral, allSurfFluxes, layerThickTend + frazilThickTend')
-#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*(layerThick[0]+frazilThick[0]))
+#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0])-m3ps_to_Sv*layerThick[0])
+#print('\nnetlateral + evap + rain + snow + riverrunoff + icerunoff + seaiceflux, layerThickTend')
+#print(m3ps_to_Sv*volNetLateralFlux[0]+1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*layerThick[0])
+##print('\nnetlateral, evap + rain + snow, riverrunoff + icerunoff, seaiceflux, layerThickTend')
+#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]), 1/rho0*m3ps_to_Sv*(riverRunoffFlux[0]+iceRunoffFlux[0]), 1/rho0*m3ps_to_Sv*seaIceFreshWaterFlux[0], m3ps_to_Sv*layerThick[0])
+#print('\nnetlateral, allSurfFluxes, layerThickTend')
+#print(m3ps_to_Sv*volNetLateralFlux[0], 1/rho0*m3ps_to_Sv*(evapFlux[0]+rainFlux[0]+snowFlux[0]+riverRunoffFlux[0]+iceRunoffFlux[0]+seaIceFreshWaterFlux[0]), m3ps_to_Sv*layerThick[0])
 volNetLateralFlux = m3ps_to_Sv * volNetLateralFlux
 evapFlux = 1/rho0 * m3ps_to_Sv * evapFlux
 rainFlux = 1/rho0 * m3ps_to_Sv * rainFlux
@@ -228,7 +258,7 @@ snowFlux = 1/rho0 * m3ps_to_Sv * snowFlux
 riverRunoffFlux = 1/rho0 * m3ps_to_Sv * riverRunoffFlux
 iceRunoffFlux = 1/rho0 * m3ps_to_Sv * iceRunoffFlux
 seaIceFreshWaterFlux = 1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux
-thickTend = m3ps_to_Sv * (layerThick + frazilThick)
+thickTend = m3ps_to_Sv * layerThick
 res = thickTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
 
 figdpi = 300
@@ -343,9 +373,10 @@ ax[1, 1].set_ylabel('Snow flux (Sv)', fontsize=12, fontweight='bold')
 ax[2, 0].set_ylabel('River runoff flux (Sv)', fontsize=12, fontweight='bold')
 ax[2, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
 ax[3, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
-ax[3, 1].set_ylabel('Layer+frazil thickness tend (Sv)', fontsize=12, fontweight='bold')
+ax[3, 1].set_ylabel('Layer thickness tend (Sv)', fontsize=12, fontweight='bold')
 ax[4, 0].set_ylabel('Residual (Sv)', fontsize=12, fontweight='bold')
 ax[4, 1].set_ylabel('Sv', fontsize=12, fontweight='bold')
 
+fig.suptitle(f'iCell={iCell}, {pointTitle})', fontsize=24, fontweight='bold', y=1.1)
 fig.tight_layout(pad=0.5)
 fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')

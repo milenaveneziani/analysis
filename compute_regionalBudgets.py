@@ -25,17 +25,6 @@ from common_functions import extract_openBoundaries, add_inset, plot_xtick_forma
 from geometric_features import FeatureCollection, read_feature_collection
 
 
-# Choose years
-year1 = 1
-year2 = 65
-#year2 = 500
-years = range(year1, year2+1)
-
-referenceDate = '0001-01-01'
-
-#movingAverageMonths = 1
-movingAverageMonths = 12
-
 # Settings for lcrc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
@@ -61,7 +50,18 @@ modeldir = f'/global/cfs/projectdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/
 
 #regionNames = ['all']
 #regionNames = ['Greater Arctic']
-regionNames = ['Greater Arctic', 'North Atlantic subpolar gyre']
+regionNames = ['North Atlantic subpolar gyre']
+
+# Choose years
+year1 = 1
+year2 = 65
+#year2 = 500
+years = range(year1, year2+1)
+
+referenceDate = '0001-01-01'
+
+#movingAverageMonths = 1
+movingAverageMonths = 12
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
@@ -156,7 +156,7 @@ for n in range(nRegions):
         iceRunoffFlux = np.zeros(nTime)
         seaIceFreshWaterFlux = np.zeros(nTime)
         layerThick = np.zeros(nTime)
-        frazilThick = np.zeros(nTime)
+        #frazilThick = np.zeros(nTime)
 
         # Get regional mask quantities
         dsMask = dsRegionMask.isel(nRegions=n)
@@ -249,11 +249,11 @@ for n in range(nRegions):
                    layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no layer thickness tendency variable found')
-                if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
-                   frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
-                   frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
-                else:
-                   raise KeyError('no frazil layer thickness tendency variable found')
+                #if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
+                #   frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
+                #   frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
+                #else:
+                #   raise KeyError('no frazil layer thickness tendency variable found')
                 t3 = time.time()
                 print('   Layer thickness tendencies calculation, #seconds = ', t3-t2)
 
@@ -267,7 +267,7 @@ for n in range(nRegions):
         iceRunoffFlux = 1/rho0 * m3ps_to_Sv * iceRunoffFlux
         seaIceFreshWaterFlux = 1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux
         thickTend = m3ps_to_Sv * layerThick
-        frazilTend = m3ps_to_Sv * frazilThick
+        #frazilTend = m3ps_to_Sv * frazilThick
 
         # Save to file
         ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
@@ -282,7 +282,7 @@ for n in range(nRegions):
         srunoffVar = ncid.createVariable('iceRunoffFlux', 'f8', ('Time'))
         icefreshVar = ncid.createVariable('seaIceFreshWaterFlux', 'f8', ('Time'))
         thickTendVar = ncid.createVariable('thicknessTendency', 'f8', ('Time'))
-        frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
+        #frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
 
         volNetLateralFluxVar.units = 'Sv'
         evapVar.units = 'Sv'
@@ -292,7 +292,7 @@ for n in range(nRegions):
         srunoffVar.units = 'Sv'
         icefreshVar.units = 'Sv'
         thickTendVar.units = 'Sv'
-        frazilTendVar.units = 'Sv'
+        #frazilTendVar.units = 'Sv'
 
         volNetLateralFluxVar.description = 'Net lateral volume transport across all open boundaries'
         evapVar.description = 'Volume change due to region integrated evaporation'
@@ -302,7 +302,7 @@ for n in range(nRegions):
         srunoffVar.description = 'Volume change due to region integrated solid runoff'
         icefreshVar.description = 'Volume change due to region integrated sea-ice freshwater flux'
         thickTendVar.description = 'Volume change due to total water column tendency (SSH changes)'
-        frazilTendVar.description = 'Volume change due to frazil ice formation'
+        #frazilTendVar.description = 'Volume change due to frazil ice formation'
 
         times[:] = t
         volNetLateralFluxVar[:] = volNetLateralFlux
@@ -313,7 +313,7 @@ for n in range(nRegions):
         srunoffVar[:] = iceRunoffFlux
         icefreshVar[:] = seaIceFreshWaterFlux
         thickTendVar[:] = thickTend
-        frazilTendVar[:] = frazilTend
+        #frazilTendVar[:] = frazilTend
         ncid.close()
     else:
         print(f'\nFile {outfile} already exists. Plotting only...\n')
@@ -332,9 +332,10 @@ for n in range(nRegions):
     iceRunoffFlux = ncid.variables['iceRunoffFlux'][:]
     seaIceFreshWaterFlux = ncid.variables['seaIceFreshWaterFlux'][:]
     thickTend = ncid.variables['thicknessTendency'][:]
-    frazilTend = ncid.variables['frazilTendency'][:]
+    #frazilTend = ncid.variables['frazilTendency'][:]
     ncid.close()
-    res = thickTend + frazilTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
+    res = thickTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
+    #res = thickTend + frazilTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
 
     # Compute running averages
     volNetLateralFlux_runavg = pd.Series.rolling(pd.DataFrame(volNetLateralFlux), movingAverageMonths, center=True).mean()
@@ -345,7 +346,7 @@ for n in range(nRegions):
     iceRunoffFlux_runavg = pd.Series.rolling(pd.DataFrame(iceRunoffFlux), movingAverageMonths, center=True).mean()
     seaIceFreshWaterFlux_runavg = pd.Series.rolling(pd.DataFrame(seaIceFreshWaterFlux), movingAverageMonths, center=True).mean()
     thickTend_runavg = pd.Series.rolling(pd.DataFrame(thickTend), movingAverageMonths, center=True).mean()
-    frazilTend_runavg = pd.Series.rolling(pd.DataFrame(frazilTend), movingAverageMonths, center=True).mean()
+    #frazilTend_runavg = pd.Series.rolling(pd.DataFrame(frazilTend), movingAverageMonths, center=True).mean()
     res_runavg = pd.Series.rolling(pd.DataFrame(res), movingAverageMonths, center=True).mean()
     volNetLateralFluxMean = np.mean(volNetLateralFlux_runavg)
 
@@ -355,7 +356,7 @@ for n in range(nRegions):
     riverRunoffFluxMean = np.mean(riverRunoffFlux_runavg)
     iceRunoffFluxMean = np.mean(iceRunoffFlux_runavg)
     seaIceFreshWaterFluxMean = np.mean(seaIceFreshWaterFlux_runavg)
-    frazilTendMean = np.mean(frazilTend_runavg)
+    #frazilTendMean = np.mean(frazilTend_runavg)
     thickTendMean = np.mean(thickTend_runavg)
     resMean = np.mean(res_runavg)
 
@@ -371,7 +372,7 @@ for n in range(nRegions):
     ax[2, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
     ax[2, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
     ax[3, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
-    ax[3, 1].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
+    #ax[3, 1].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
     ax[4, 0].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
     ax[4, 1].plot(t, res, 'k', alpha=0.5, linewidth=1.5)
     if movingAverageMonths!=1:
@@ -382,7 +383,7 @@ for n in range(nRegions):
         ax[2, 0].plot(t, riverRunoffFlux_runavg, 'k', linewidth=3)
         ax[2, 1].plot(t, iceRunoffFlux_runavg, 'k', linewidth=3)
         ax[3, 0].plot(t, seaIceFreshWaterFlux_runavg, 'k', linewidth=3)
-        ax[3, 1].plot(t, frazilTend_runavg, 'k', linewidth=3)
+        #ax[3, 1].plot(t, frazilTend_runavg, 'k', linewidth=3)
         ax[4, 0].plot(t, thickTend_runavg, 'k', linewidth=3)
         ax[4, 1].plot(t, res_runavg, 'k', linewidth=3)
      
@@ -426,7 +427,7 @@ for n in range(nRegions):
     ax[2, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[2, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[3, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
-    ax[3, 1].set_title(f'mean={frazilTendMean:.2e}', fontsize=16, fontweight='bold')
+    #ax[3, 1].set_title(f'mean={frazilTendMean:.2e}', fontsize=16, fontweight='bold')
     ax[4, 0].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
     ax[4, 1].set_title(f'mean={resMean:.2e}', fontsize=16, fontweight='bold')
 
@@ -459,14 +460,16 @@ for n in range(nRegions):
         ax.plot(t, evapFlux+rainFlux+snowFlux, 'c', linewidth=2, label='E-P')
         ax.plot(t, riverRunoffFlux+iceRunoffFlux, 'g', linewidth=2, label='runoff')
         ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label='seaiceFW')
-        ax.plot(t, thickTend+frazilTend, 'm', linewidth=2, label='thick+frazil')
+        ax.plot(t, thickTend, 'm', linewidth=2, label='thickTend')
+        #ax.plot(t, thickTend+frazilTend, 'm', linewidth=2, label='thick+frazil')
         ax.plot(t, res, 'k', linewidth=2, label='res')
     else:
         ax.plot(t, volNetLateralFlux_runavg, 'r', linewidth=2, label='netLateral')
         ax.plot(t, evapFlux_runavg+rainFlux_runavg+snowFlux_runavg, 'c', linewidth=2, label='E-P')
         ax.plot(t, riverRunoffFlux_runavg+iceRunoffFlux_runavg, 'g', linewidth=2, label='runoff')
         ax.plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label='seaiceFW')
-        ax.plot(t, thickTend_runavg+frazilTend_runavg, 'm', linewidth=2, label='thick+frazil')
+        ax.plot(t, thickTend_runavg, 'm', linewidth=2, label='thickTend')
+        #ax.plot(t, thickTend_runavg+frazilTend_runavg, 'm', linewidth=2, label='thick+frazil')
         ax.plot(t, res_runavg, 'k', linewidth=2, label='res')
         ax.set_title(f'{movingAverageMonths}-month running averages', fontsize=16, fontweight='bold')
     ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
