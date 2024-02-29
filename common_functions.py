@@ -13,6 +13,7 @@ import matplotlib.ticker as mticker
 from matplotlib.ticker import FuncFormatter, FixedLocator
 import matplotlib.path
 import cartopy
+import cartopy.feature as cfeature
 import cartopy.crs as ccrs
 import shapely.geometry
 from functools import partial

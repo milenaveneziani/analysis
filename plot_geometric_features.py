@@ -12,7 +12,6 @@ from matplotlib.colors import from_levels_and_colors
 from matplotlib.colors import BoundaryNorm
 import matplotlib.path as mpath
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import matplotlib.ticker as mticker
 import cmocean
 import shapely.geometry
