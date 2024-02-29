@@ -46,7 +46,8 @@ def _add_bbox(ax, bbox):
 
 # Settings for lcrc:
 bathyfile = '/lcrc/group/e3sm/public_html/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
-featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
+#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
+featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_regions_detailed.geojson'
 #transectfile = None
 transectfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
 
@@ -86,10 +87,13 @@ if transectfile is not None:
 #print(dir(features))
 #featureNames = [fc['properties']['name'] for fc in features.features]
 #print(featureNames)
-featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'East Siberian Sea', 'Chukchi Sea', 'Canada Basin', 'Canadian Archipelago']
-#featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'East Siberian Sea', 'Chukchi Sea', 'Beaufort Gyre', 'Beaufort Gyre Shelf', 'Canadian Archipelago']
-colors = ['#2166ac', '#d6604d', '#01665e', '#92c5de', '#b2182b', '#80cdc1', '#a6dba0', '#9970ab', '#ffffbf']
-color_names = ['dark blue', 'light red', 'dark green', 'light blue', 'dark red', 'aqua', 'light green', 'purple', 'lemon']
+featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'East Siberian Sea', 'Chukchi Sea', 'Canada Basin', 'Canadian Archipelago', 'Eurasian Basin', 'Makarov Basin']
+colors = ['#2166ac', '#d6604d', '#01665e', '#92c5de', '#b2182b', '#80cdc1', '#a6dba0', '#9970ab', '#ffffbf', '#d6604d', '#2166ac']
+color_names = ['dark blue', 'light red', 'dark green', 'light blue', 'dark red', 'aqua', 'light green', 'purple', 'lemon', 'light red', 'dark blue']
+#featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'East Siberian Sea', 'Chukchi Sea', 'Canada Basin', 'Canadian Archipelago']
+##featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'East Siberian Sea', 'Chukchi Sea', 'Beaufort Gyre', 'Beaufort Gyre Shelf', 'Canadian Archipelago']
+#colors = ['#2166ac', '#d6604d', '#01665e', '#92c5de', '#b2182b', '#80cdc1', '#a6dba0', '#9970ab', '#ffffbf']
+#color_names = ['dark blue', 'light red', 'dark green', 'light blue', 'dark red', 'aqua', 'light green', 'purple', 'lemon']
 
 # The lat-lon proj
 noProj = ccrs.PlateCarree()
@@ -115,15 +119,18 @@ for fcname in featuresToPlot:
             props = {'linewidth': 2.0, 'edgecolor': color, 'alpha': 0.5, 'facecolor': color}
             ax.add_geometries((shape,), crs=noProj, **props)
             fcIndex = fcIndex+1
-plt.savefig(f'{figdir}/arcticRegions.png', bbox_inches='tight')
+#plt.savefig(f'{figdir}/arcticRegions', bbox_inches='tight')
+plt.savefig(f'{figdir}/arcticRegions_detailed.png', bbox_inches='tight')
 plt.close()
 
 figsize = [20, 20]
 figdpi = 200
-featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea']
-transectsToPlot = ['Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
-colors = ['#2166ac', '#d6604d', '#01665e']
-extent = [10, 145, 63, 85]
+featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'Eurasian Basin']
+#transectsToPlot = ['Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
+transectsToPlot = ['Fram Strait', 'Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
+colors = ['#2166ac', '#d6604d', '#01665e', '#92c5de']
+#extent = [10, 145, 63, 85]
+extent = [-20, 145, 63, 85]
 dlon = extent[1]-extent[0]
 dlat = extent[3]-extent[2]
 # lon, lat of moorings m1.1-m1.6, m3, and m6
@@ -189,15 +196,16 @@ ax.plot(coord_m6[0], coord_m6[1],
 _add_bbox(ax, extent)
 ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
 add_land_lakes_coastline(ax)
-ax.set_title('Barents, Kara, and Laptev Sea regions', y=1.04, fontsize=22)
-plt.savefig(f'{figdir}/barentsKaraLaptevRegions.png', bbox_inches='tight')
+ax.set_title('Barents, Kara, Laptev Seas, and Eurasian basin', y=1.04, fontsize=20)
+#plt.savefig(f'{figdir}/barentsKaraLaptevRegions.png', bbox_inches='tight')
+plt.savefig(f'{figdir}/nordicBarentsKaraLaptevRegions.png', bbox_inches='tight')
 plt.close()
 
 figsize = [20, 20]
 figdpi = 200
-featuresToPlot = ['East Siberian Sea', 'Chukchi Sea', 'Canada Basin']
+featuresToPlot = ['East Siberian Sea', 'Chukchi Sea', 'Canada Basin', 'Makarov Basin']
 transectsToPlot = ['Bering Strait', 'Bering Sea North', 'Herald Canyon to Icy Cape - Chukchi North', 'Barrow Canyon', 'Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East']
-colors = ['#92c5de', '#b2182b', '#80cdc1']
+colors = ['#b2182b', '#80cdc1', '#a6dba0', '#9970ab']
 extent = [140, 260, 63, 82]
 dlon = extent[1]-extent[0]
 dlat = extent[3]-extent[2]
@@ -244,7 +252,7 @@ if transectfile is not None:
 _add_bbox(ax, extent)
 ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
 add_land_lakes_coastline(ax)
-ax.set_title('East Siberian Sea, Chukchi Sea, and Canada Basin regions', y=1.04, fontsize=22)
+ax.set_title('East Siberian, Chukchi Seas, Canada and Makarov basins', y=1.04, fontsize=20)
 plt.savefig(f'{figdir}/eastSiberianChukchiCanadaBasinRegions.png', bbox_inches='tight')
 plt.close()
 
