@@ -18,21 +18,30 @@ plotClimos = True
 plotMonthly = False
 if plotClimos==plotMonthly:
     raise ValueError('Variables plotClimos and plotMonthly cannot be identical')
-plotPHCWOA = True # only works for monthly seasons for now
+plotPHCWOA = True # only works for monthly seasons for now (one season at a  time)
 
 ensembleName = 'E3SM-Arcticv2.1_historical'
 ensembleMemberNames = ['0101', '0151', '0201', '0251', '0301']
 colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'teal'] # same length as ensembleMemberNames
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
-regionNames = ['Canada Basin']
+#regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
+regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_regions_detailed.nc'
+#regionNames = ['all']
+#regionNames = ['Canada Basin'] # only works for one region at a time for now
+#regionNames = ['Eurasian Basin']
+#regionNames = ['Barents Sea']
+#regionNames = ['Kara Sea']
+#regionNames = ['Greenland Sea']
+regionNames = ['Norwegian Sea']
 
 # relevant if plotClimos=True
 climoyearStart = 2000
 climoyearEnd = 2014
+#climoyearStart = 1950
+#climoyearEnd = 1970
 # seasons options: '01'-'12', 'ANN', 'JFM', 'JAS', 'MAJ', 'OND'
 # (depending on what was set in mpas-analysis)
-seasons = ['09']
+seasons = ['03']
 #seasons = ['ANN']
 #seasons = ['JFM', 'JAS']
 modelClimodir1 = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{ensembleName}'
@@ -47,10 +56,6 @@ modeldir2 = f'archive/ocn/hist'
 # relevant if plotPHCWOA=True
 PHCfilename = '/global/cfs/cdirs/e3sm/observations_with_original_data/Ocean/PHC3.0/phc3.0_monthly_accessed08-08-2019.nc'
 WOAfilename = '/global/cfs/cdirs/e3sm/observations_with_original_data/Ocean/WOA18/decadeAll/0.25degGrid/woa18_decav_04_TS_mon.nc'
-
-#regionNames = ['all']
-#regionNames = ['Canada Basin']
-regionNames = ['Barents Sea']
 
 figdir = f'./TSprofiles/{ensembleName}'
 if not os.path.isdir(figdir):
@@ -67,40 +72,53 @@ nEnsembles = len(ensembleMemberNames)
 ################
 
 if plotPHCWOA is True:
-    # Canada Basin approximate definition
-    #latCanadaBasin = [68, 80]
-    #lonCanadaBasin = [-160, -125]
-    # Barents Sea approximate definition
-    latCanadaBasin = [68, 80]
-    lonCanadaBasin = [20, 60]
-    latCB = np.mean(latCanadaBasin)
-    lonCB = np.mean(lonCanadaBasin)
+    if regionNames[0]=='Canada Basin':
+        latClimo = [68, 82]
+        lonClimo = [-160, -125]
+    elif regionNames[0]=='Barents Sea':
+        latClimo = [68, 82]
+        lonClimo = [20, 65]
+    elif regionNames[0]=='Kara Sea':
+        latClimo = [70, 82]
+        lonClimo = [65, 100]
+    elif regionNames[0]=='Eurasian Basin':
+        latClimo = [82, 89]
+        lonClimo = [0, 140]
+    else:
+        latClimo = None
+        lonClimo = None
+        plotPHCWOA = False
 
-    # Read in PHC climo
-    dsPHC = xr.open_dataset(PHCfilename, decode_times=False)
-    dsPHC_monthlyClimo = dsPHC.isel(time=int(seasons[0])-1)
-    depthPHC = dsPHC.depth
-    presPHC = gsw.conversions.p_from_z(-depthPHC, latCB)
-    # compute regional quanties
-    #  Canada Basin
-    #dsPHC_monthlyClimoCB = dsPHC_monthlyClimo.sel(lat=slice(latCanadaBasin[0], latCanadaBasin[1]),
-    #                                              lon=slice(lonCanadaBasin[0]+360, lonCanadaBasin[1]+360))
-    dsPHC_monthlyClimoCB = dsPHC_monthlyClimo.sel(lat=slice(latCanadaBasin[0], latCanadaBasin[1]),
-                                                  lon=slice(lonCanadaBasin[0], lonCanadaBasin[1]))
-    dsPHC_monthlyClimoCB = dsPHC_monthlyClimoCB.mean(dim='lon').mean(dim='lat')
+    if lonClimo is not None:
+        latClimoMean = np.mean(latClimo)
+        lonClimoMean = np.mean(lonClimo)
 
-    # Read in WOA climo
-    dsWOA = xr.open_dataset(WOAfilename)
-    #dsWOA_seasonalClimo = dsWOA.groupby_bins('month', month_bins, labels=['JFM', 'AMJ', 'JAS', 'OND']).mean()
-    #dsWOA_seasonalClimo = dsWOA_seasonalClimo.rename({'month_bins':'season'})
-    dsWOA_monthlyClimo = dsWOA.isel(month=int(seasons[0])-1)
-    depthWOA = dsWOA.depth
-    presWOA = gsw.conversions.p_from_z(-depthWOA, latCB)
-    # compute regional quanties
-    #  Canada Basin
-    dsWOA_monthlyClimoCB = dsWOA_monthlyClimo.sel(lat=slice(latCanadaBasin[0], latCanadaBasin[1]),
-                                                  lon=slice(lonCanadaBasin[0], lonCanadaBasin[1]))
-    dsWOA_monthlyClimoCB = dsWOA_monthlyClimoCB.mean(dim='lon').mean(dim='lat')
+        # Read in PHC climo
+        dsPHC = xr.open_dataset(PHCfilename, decode_times=False)
+        dsPHC_monthlyClimo = dsPHC.isel(time=int(seasons[0])-1)
+        depthPHC = dsPHC.depth
+        presPHC = gsw.conversions.p_from_z(-depthPHC, latClimoMean)
+        lonClimoPHC = lonClimo.copy()
+        if lonClimoPHC[0]<0:
+            lonClimoPHC[0] = lonClimoPHC[0]+360
+        if lonClimoPHC[1]<0:
+            lonClimoPHC[1] = lonClimoPHC[1]+360
+        # compute regional quanties
+        dsPHC_monthlyClimo = dsPHC_monthlyClimo.sel(lat=slice(latClimo[0], latClimo[1]),
+                                                    lon=slice(lonClimoPHC[0], lonClimoPHC[1]))
+        dsPHC_monthlyClimo = dsPHC_monthlyClimo.mean(dim='lon').mean(dim='lat')
+
+        # Read in WOA climo
+        dsWOA = xr.open_dataset(WOAfilename)
+        #dsWOA_seasonalClimo = dsWOA.groupby_bins('month', month_bins, labels=['JFM', 'AMJ', 'JAS', 'OND']).mean()
+        #dsWOA_seasonalClimo = dsWOA_seasonalClimo.rename({'month_bins':'season'})
+        dsWOA_monthlyClimo = dsWOA.isel(month=int(seasons[0])-1)
+        depthWOA = dsWOA.depth
+        presWOA = gsw.conversions.p_from_z(-depthWOA, latClimoMean)
+        # compute regional quanties
+        dsWOA_monthlyClimo = dsWOA_monthlyClimo.sel(lat=slice(latClimo[0], latClimo[1]),
+                                                    lon=slice(lonClimo[0], lonClimo[1]))
+        dsWOA_monthlyClimo = dsWOA_monthlyClimo.mean(dim='lon').mean(dim='lat')
 
 # Read in regions information
 if os.path.exists(regionmaskfile):
@@ -242,9 +260,9 @@ for i in range(nEnsembles):
             #ax_Tprofile.plot(dsObs_seasonalClimo['SCB_temperature'].sel(season=season)[::-1], -depth[::-1], '-', color='mediumspringgreen',
             #                 linewidth=3, label='obs (Southern Canada Basin)')
             if plotPHCWOA is True and i==nEnsembles-1:
-                ax_Tprofile.plot(dsPHC_monthlyClimoCB['temp'][::-1], -depthPHC[::-1], '-', color='mediumvioletred',
+                ax_Tprofile.plot(dsPHC_monthlyClimo['temp'][::-1], -depthPHC[::-1], '-', color='mediumvioletred',
                                  linewidth=3, label='PHC climatology')
-                ax_Tprofile.plot(dsWOA_monthlyClimoCB['t_an'][::-1], -depthWOA[::-1], '-', color='salmon',
+                ax_Tprofile.plot(dsWOA_monthlyClimo['t_an'][::-1], -depthWOA[::-1], '-', color='salmon',
                                  linewidth=3, label='WOA climatology')
             ax_Tprofile.legend(prop=legend_properties)
             ax_Tprofile.grid(visible=True, which='both')
@@ -257,9 +275,9 @@ for i in range(nEnsembles):
             #ax_Sprofile.plot(dsObs_seasonalClimo['SCB_salinity'].sel(season=season)[::-1], -depth[::-1], '-', color='mediumspringgreen',
             #                 linewidth=3, label='obs (Southern Canada Basin)')
             if plotPHCWOA is True and i==nEnsembles-1:
-                ax_Sprofile.plot(dsPHC_monthlyClimoCB['salt'][::-1], -depthPHC[::-1], '-', color='mediumvioletred',
+                ax_Sprofile.plot(dsPHC_monthlyClimo['salt'][::-1], -depthPHC[::-1], '-', color='mediumvioletred',
                                  linewidth=3, label='PHC climatology')
-                ax_Sprofile.plot(dsWOA_monthlyClimoCB['s_an'][::-1], -depthWOA[::-1], '-', color='salmon',
+                ax_Sprofile.plot(dsWOA_monthlyClimo['s_an'][::-1], -depthWOA[::-1], '-', color='salmon',
                                  linewidth=3, label='WOA climatology')
             ax_Sprofile.legend(prop=legend_properties)
             ax_Sprofile.grid(visible=True, which='both')
