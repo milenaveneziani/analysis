@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4
 
-#from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
+from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
 from mpas_analysis.ocean.utility import compute_zmid
@@ -28,9 +28,11 @@ calendar = 'gregorian'
 regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+runName = 'E3SM-Arcticv2.1_historical0201'
+runNameShort = runName
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
+rundir = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{runName}/archive'
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
@@ -51,10 +53,10 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 #rundir = f'/p/work/osinski/archive/{runName}'
 #isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 
-outdir = f'./timeseries_data/{runNameShort}'
+outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-figdir = f'./timeseries/{runNameShort}'
+figdir = f'./timeseries/{runName}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
@@ -90,16 +92,16 @@ regionGroups = ['Arctic Regions']
 # ice variables (2d only)
 #
 #   Ocean variables
-#mpasComp = 'mpaso'
-#modelComp = 'ocn'
-#mpasFile = 'timeSeriesStatsMonthlyMax'
-#variables = [
-#             {'name': 'maxMLD',
-#              'title': 'Maximum MLD',
-#              'units': 'm',
-#              'factor': 1,
-#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-#            ]
+mpasComp = 'mpaso'
+modelComp = 'ocn'
+mpasFile = 'timeSeriesStatsMonthlyMax'
+variables = [
+             {'name': 'maxMLD',
+              'title': 'Maximum MLD',
+              'units': 'm',
+              'factor': 1,
+              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+            ]
 #
 #mpasFile = 'timeSeriesStatsMonthly'
 #variables = [
@@ -142,21 +144,21 @@ regionGroups = ['Arctic Regions']
              # 'factor': 1,
              # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
 #   Sea ice variables
-mpasComp = 'mpassi'
-modelComp = 'ice'
-mpasFile = 'timeSeriesStatsMonthly'
-variables = [
-             {'name': 'iceArea',
-              'title': 'Integrated Ice Area',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'timeMonthly_avg_iceAreaCell'},
-             {'name': 'iceVolume',
-              'title': 'Integrated Ice Volume',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'timeMonthly_avg_iceVolumeCell'}
-            ]
+#mpasComp = 'mpassi'
+#modelComp = 'ice'
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
+#             {'name': 'iceArea',
+#              'title': 'Integrated Ice Area',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'timeMonthly_avg_iceAreaCell'},
+#             {'name': 'iceVolume',
+#              'title': 'Integrated Ice Volume',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'timeMonthly_avg_iceVolumeCell'}
+#            ]
 
 if isShortTermArchive:
     rundir = f'{rundir}/{modelComp}/hist'
@@ -307,8 +309,8 @@ for regionGroup in regionGroups:
                 # combine data sets into a single data set
                 dsOut = xr.concat(datasets, 'nRegions')
 
-                #write_netcdf_with_fill(dsOut, timeSeriesFile)
-                write_netcdf(dsOut, timeSeriesFile)
+                write_netcdf_with_fill(dsOut, timeSeriesFile)
+                #write_netcdf(dsOut, timeSeriesFile)
             else:
                 print(f'Time series file already exists for {varname} and year {year}. Skipping it...')
 

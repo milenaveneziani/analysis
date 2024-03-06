@@ -48,10 +48,10 @@ runNameShort = 'E3SMv2.1B60to10rA02'
 rundir = f'/p/work/osinski/archive/{runName}'
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 
-outdir = f'./timeseries_data/{runNameShort}'
+outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-figdir = f'./timeseries/{runNameShort}'
+figdir = f'./timeseries/{runName}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
