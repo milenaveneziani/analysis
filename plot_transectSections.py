@@ -30,14 +30,14 @@ earthRadius = 6367.44
 
 ####### Settings for onyx
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/p/work/milena/mpas-region_masks/ARRM10to60E2r1_arcticBeringToNorwaySection20230523.nc'
-casename = 'E3SMv2.1B60to10rA02'
-climoyearStart = 151
-climoyearEnd = 160
-modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#maskfile = '/p/work/milena/mpas-region_masks/ARRM10to60E2r1_arcticBeringToNorwaySection20230523.nc'
+#casename = 'E3SMv2.1B60to10rA02'
+#climoyearStart = 151
+#climoyearEnd = 160
+#modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
 
-####### Settings for cori
+####### Settings for nersc
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
 ##maskfile = '/global/cfs/cdirs/m1199/diagnostics/mpas_analysis/region_masks/ARRM60to10_transportTransects_masks.nc'
 ##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM60to10_arcticSections20210323.nc'
@@ -46,18 +46,13 @@ modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{
 #climoyearStart = 40
 #climoyearEnd = 59
 #modeldir = '/global/cfs/cdirs/m1199/milena/analysis/mpas/ARRM60to10_new/clim/mpas/avg/unmasked_ARRM60to10'
-#casename = 'E3SM-Arctic-OSIv2' # no spaces
-#casename = 'E3SM-Arctic-coupledv2beta1' # no spaces
-#climoyearStart = 21
-#climoyearEnd = 30
-#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
-#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/mpas-analysis-output/20210204.A_WCYCL1850S_CMIP6.ne30pg2_oARRM60to10_ICG.beta1.cori-knl/yrs21-30/clim/mpas/avg/unmasked_oARRM60to10'
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticTransectsFramToBeaufortEast20230901.nc'
-#casename = 'E3SMv2.1B60to10rA02'
-#climoyearStart = 1
-#climoyearEnd = 5
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
+#
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticTransectsFramToBeaufortEast20230901.nc'
+casename = 'E3SMv2.1B60to10rA02'
+climoyearStart = 1
+climoyearEnd = 5
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
 #
 
 ####### Settings for compy
