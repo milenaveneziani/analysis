@@ -11,28 +11,48 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import os
 import glob
-from mpas_analysis.shared.io.utility import decode_strings
 import gsw
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    # lon, lat should be in radians
+    earthRadius = 6367.44 # km
+    #earthRadius = 6371
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    return 2 * earthRadius * np.arcsin(np.sqrt(a))
+
 
 plotClimos = True
 plotMonthly = False
 if plotClimos==plotMonthly:
     raise ValueError('Variables plotClimos and plotMonthly cannot be identical')
-plotPHCWOA = True # only works for monthly seasons for now (one season at a  time)
+plotPHCWOA = True # only works for monthly seasons for now
 plotHighresMIP = True
 
 ensembleName = 'E3SM-Arcticv2.1_historical'
 ensembleMemberNames = ['0101', '0151', '0201', '0251', '0301']
 colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'teal'] # same length as ensembleMemberNames
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-#regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
-regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_regions_detailed.nc'
-regionName = 'Barents Sea'
-#regionName = 'Eurasian Basin'
-#regionName = 'Canada Basin'
-#regionName = 'Kara Sea'
-#regionName = 'Greenland Sea'
-#regionName = 'Norwegian Sea'
+
+# Coordinates of point where to plot profiles
+# Barents Sea:
+#lonPoint = 37.5
+#latPoint = 70
+#pointTitle = 'Barents Sea South, 70N,37.5E'
+#latPoint = 75
+#pointTitle = 'Barents Sea Central, 75N,37.5E'
+#latPoint = 80
+#pointTitle = 'Barents Sea North, 80N,37.5E'
+latPoint = 75
+#lonPoint = 27
+#pointTitle = 'Barents Sea West, 75N,27E'
+lonPoint = 48
+pointTitle = 'Barents Sea East, 75N,48E'
+#lonPoint = 35
+#latPoint = 83
+#pointTitle = 'Barents Sea Abyssal, 83N,35E'
 
 # relevant if plotClimos=True
 #climoyearStart = 2000
@@ -85,80 +105,59 @@ if os.path.exists(meshfile):
 else:
     raise IOError(f'MPAS restart/mesh file {meshfile} not found')
 depth = dsMesh.refBottomDepth
-nLevels = dsMesh.sizes['nVertLevels']
-vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',),
-                                    'data': np.arange(nLevels)})
-vertMask = vertIndex < dsMesh.maxLevelCell
-areaCell = dsMesh.areaCell
+# Identify index of selected ocean cell, by computing the minimum
+# of the spherical distance between all points and lonPoint,latPoint
+nCells = dsMesh.dims['nCells']
 lonCell = dsMesh.lonCell
 latCell = dsMesh.latCell
+spherDist = haversine(lonCell, latCell, lonPoint*np.pi/180, latPoint*np.pi/180)
+indices = xr.DataArray(data=np.arange(nCells).astype(int), dims='nCells')
+iCell = indices.where(spherDist==np.min(spherDist), drop=True).values.astype(int)[0]
 
-# Read in regions information
-rname = regionName.replace(' ', '')
-if os.path.exists(regionmaskfile):
-    dsRegionMask = xr.open_dataset(regionmaskfile)
-else:
-    raise IOError(f'Regional mask file {regionmaskfile} not found')
-regions = decode_strings(dsRegionMask.regionNames)
-regionIndex = regions.index(regionName)
-dsMask = dsRegionMask.isel(nRegions=regionIndex)
-cellMask = dsMask.regionCellMasks == 1
-regionArea3d = (areaCell * vertMask).where(cellMask, drop=True)
-regionArea = regionArea3d.sum('nCells')
-lonMean = lonCell.where(cellMask, drop=True).mean('nCells')
-latMean = latCell.where(cellMask, drop=True).mean('nCells')
-lonMean = lonMean*180/np.pi
-latMean = latMean*180/np.pi
-pres = gsw.conversions.p_from_z(-depth, latMean)
+lon_icell = lonCell.values[iCell]*180/np.pi
+lat_icell = latCell.values[iCell]*180/np.pi
+print(lonPoint, latPoint)
+print(lon_icell, lat_icell)
+pres = gsw.conversions.p_from_z(-depth, lat_icell)
+nLevels = dsMesh.dims['nVertLevels']
+maxLevelCell = dsMesh.maxLevelCell.isel(nCells=iCell)
+vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',),
+                                    'data': np.arange(nLevels)})
+vertMask = vertIndex < maxLevelCell
 
-if regionName=='Canada Basin':
-    latRegion = [68, 82]
-    lonRegion = [200, 235]
-    #lonRegion = [-160, -125]
-elif regionName=='Barents Sea':
-    latRegion = [68, 82]
-    lonRegion = [20, 65]
-elif regionName=='Kara Sea':
-    latRegion = [70, 82]
-    lonRegion = [65, 100]
-elif regionName=='Eurasian Basin':
-    latRegion = [82, 89]
-    lonRegion = [0, 140]
-else:
-    latRegion = None
-    lonRegion = None
-
-if plotPHCWOA is True and lonRegion is not None:
-    latRegionMean = np.mean(latRegion)
-    lonRegionMean = np.mean(lonRegion)
-
+if plotPHCWOA is True:
     # Read in PHC climo
     dsPHC = xr.open_dataset(PHCfilename, decode_times=False)
-    # compute regional quanties
-    lonRegionPHC = lonRegion.copy()
-    if lonRegionPHC[0]<0:
-        lonRegionPHC[0] = lonRegionPHC[0]+360
-    if lonRegionPHC[1]<0:
-        lonRegionPHC[1] = lonRegionPHC[1]+360
-    dsPHC = dsPHC.sel(lat=slice(latRegion[0], latRegion[1]),
-                      lon=slice(lonRegionPHC[0], lonRegionPHC[1]))
-    dsPHC = dsPHC.mean(dim='lon').mean(dim='lat')
+    # Identify index of selected ocean cell, by computing the minimum
+    # of the spherical distance between all points and lonPoint,latPoint
+    latPHC = dsPHC.lat.values
+    lonPHC = dsPHC.lon.values
+    [x, y] = np.meshgrid(lonPHC, latPHC)
+    if lonPoint<0:
+        spherDist = haversine(x*np.pi/180, y*np.pi/180, (lonPoint+360)*np.pi/180, latPoint*np.pi/180)
+    else:
+        spherDist = haversine(x*np.pi/180, y*np.pi/180, lonPoint*np.pi/180, latPoint*np.pi/180)
+    x = x[np.where(spherDist==np.min(spherDist))][0]
+    y = y[np.where(spherDist==np.min(spherDist))][0]
+    dsPHC = dsPHC.sel(lat=y, lon=x)
     depthPHC = dsPHC.depth
-    presPHC = gsw.conversions.p_from_z(-depthPHC, latRegionMean)
+    presPHC = gsw.conversions.p_from_z(-depthPHC, y)
 
     # Read in WOA climo
     dsWOA = xr.open_dataset(WOAfilename)
-    # compute regional quanties
-    dsWOA = dsWOA.sel(lat=slice(latRegion[0], latRegion[1]),
-                      lon=slice(lonRegion[0], lonRegion[1]))
-    dsWOA = dsWOA.mean(dim='lon').mean(dim='lat')
+    # Identify index of selected ocean cell, by computing the minimum
+    # of the spherical distance between all points and lonPoint,latPoint
+    latWOA = dsWOA.lat.values
+    lonWOA = dsWOA.lon.values
+    [x, y] = np.meshgrid(lonWOA, latWOA)
+    spherDist = haversine(x*np.pi/180, y*np.pi/180, lonPoint*np.pi/180, latPoint*np.pi/180)
+    x = x[np.where(spherDist==np.min(spherDist))][0]
+    y = y[np.where(spherDist==np.min(spherDist))][0]
+    dsWOA = dsWOA.sel(lat=y, lon=x)
     depthWOA = dsWOA.depth
-    presWOA = gsw.conversions.p_from_z(-depthWOA, latRegionMean)
+    presWOA = gsw.conversions.p_from_z(-depthWOA, y)
 
-if plotHighresMIP is True and lonRegion is not None:
-    latRegionMean = np.mean(latRegion)
-    lonRegionMean = np.mean(lonRegion)
-
+if plotHighresMIP is True:
     # Read in data
     Tfiles = []
     Sfiles = []
@@ -167,16 +166,19 @@ if plotHighresMIP is True and lonRegion is not None:
         Sfiles.append(f'{HighresMIPdir}/so_Omon_CESM1-CAM5-SE-HR_hist-1950_r1i1p1f1_gn_{im:02d}_{climoyearStart:04d}{im:02d}_{climoyearEnd:04d}{im:02d}_climo.nc')
     dsHighresMIPtemp = xr.open_mfdataset(Tfiles, combine='nested', concat_dim='time', decode_times=False)
     dsHighresMIPsalt = xr.open_mfdataset(Sfiles, combine='nested', concat_dim='time', decode_times=False)
-    # compute regional quanties
-    lat = dsHighresMIPtemp.coords['lat']
-    lon = dsHighresMIPtemp.coords['lon']
-    mask = ((lat<=latRegion[1]) & (lat>=latRegion[0]) & (lon<=lonRegion[1]) & (lon>=lonRegion[0]))
-    dsHighresMIPtemp = dsHighresMIPtemp.where(mask.compute(), drop=True)
-    dsHighresMIPtemp = dsHighresMIPtemp.mean(dim='nlon').mean(dim='nlat')
-    dsHighresMIPsalt = dsHighresMIPsalt.where(mask.compute(), drop=True)
-    dsHighresMIPsalt = dsHighresMIPsalt.mean(dim='nlon').mean(dim='nlat')
+    # Identify index of selected ocean cell, by computing the minimum
+    # of the spherical distance between all points and lonPoint,latPoint
+    lat = dsHighresMIPtemp.coords['lat'].values
+    lon = dsHighresMIPtemp.coords['lon'].values
+    if lonPoint<0:
+        spherDist = haversine(lon*np.pi/180, lat*np.pi/180, (lonPoint+360)*np.pi/180, latPoint*np.pi/180)
+    else:
+        spherDist = haversine(lon*np.pi/180, lat*np.pi/180, lonPoint*np.pi/180, latPoint*np.pi/180)
+    [nlat, nlon] = np.argwhere(spherDist==np.min(spherDist))[0]
+    dsHighresMIPtemp = dsHighresMIPtemp.sel(nlat=nlat, nlon=nlon)
+    dsHighresMIPsalt = dsHighresMIPsalt.sel(nlat=nlat, nlon=nlon)
     HighresMIPdepth = 1e-2 * dsHighresMIPtemp['lev']
-    HighresMIPpres = gsw.conversions.p_from_z(-HighresMIPdepth, latRegionMean)
+    HighresMIPpres = gsw.conversions.p_from_z(-HighresMIPdepth, lat[nlat, nlon])
     #
     Tfiles = []
     Sfiles = []
@@ -185,16 +187,19 @@ if plotHighresMIP is True and lonRegion is not None:
         Sfiles.append(f'{HighresMIP2dir}/so_Omon_CESM1-CAM5-SE-HR_highres-future_r1i1p1f1_gn_{im:02d}_2031{im:02d}_2050{im:02d}_climo.nc')
     dsHighresMIPtemp2 = xr.open_mfdataset(Tfiles, combine='nested', concat_dim='time', decode_times=False)
     dsHighresMIPsalt2 = xr.open_mfdataset(Sfiles, combine='nested', concat_dim='time', decode_times=False)
-    # compute regional quanties
-    lat = dsHighresMIPtemp2.coords['lat']
-    lon = dsHighresMIPtemp2.coords['lon']
-    mask = ((lat<=latRegion[1]) & (lat>=latRegion[0]) & (lon<=lonRegion[1]) & (lon>=lonRegion[0]))
-    dsHighresMIPtemp2 = dsHighresMIPtemp2.where(mask.compute(), drop=True)
-    dsHighresMIPtemp2 = dsHighresMIPtemp2.mean(dim='nlon').mean(dim='nlat')
-    dsHighresMIPsalt2 = dsHighresMIPsalt2.where(mask.compute(), drop=True)
-    dsHighresMIPsalt2 = dsHighresMIPsalt2.mean(dim='nlon').mean(dim='nlat')
+    # Identify index of selected ocean cell, by computing the minimum
+    # of the spherical distance between all points and lonPoint,latPoint
+    lat = dsHighresMIPtemp2.coords['lat'].values
+    lon = dsHighresMIPtemp2.coords['lon'].values
+    if lonPoint<0:
+        spherDist = haversine(lon*np.pi/180, lat*np.pi/180, (lonPoint+360)*np.pi/180, latPoint*np.pi/180)
+    else:
+        spherDist = haversine(lon*np.pi/180, lat*np.pi/180, lonPoint*np.pi/180, latPoint*np.pi/180)
+    [nlat, nlon] = np.argwhere(spherDist==np.min(spherDist))[0]
+    dsHighresMIPtemp2 = dsHighresMIPtemp2.sel(nlat=nlat, nlon=nlon)
+    dsHighresMIPsalt2 = dsHighresMIPsalt2.sel(nlat=nlat, nlon=nlon)
     HighresMIPdepth2 = 1e-2 * dsHighresMIPtemp2['lev']
-    HighresMIPpres2 = gsw.conversions.p_from_z(-HighresMIPdepth2, latRegionMean)
+    HighresMIPpres2 = gsw.conversions.p_from_z(-HighresMIPdepth2, lat[nlat, nlon])
 
 if plotClimos is True:
     for season in seasons:
@@ -232,30 +237,33 @@ if plotClimos is True:
         ax_Cprofile.yaxis.get_offset_text().set_fontsize(fontsize_smallLabels)
         ax_Cprofile.yaxis.get_offset_text().set_weight('bold')
 
-        Tfigtitle = f'Temperature ({regionName})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
-        Tfigfile = f'{figdir}/Tprofile{rname}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
-        Sfigtitle = f'Salinity ({regionName})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
-        Sfigfile = f'{figdir}/Sprofile{rname}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
-        Cfigtitle = f'Sound speed ({regionName})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
-        Cfigfile = f'{figdir}/Cprofile{rname}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
+        Tfigtitle = f'Temperature ({pointTitle})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
+        Tfigfile = f'{figdir}/Tprofile_icell{iCell:d}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
+        Sfigtitle = f'Salinity ({pointTitle})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
+        Sfigfile = f'{figdir}/Sprofile_icell{iCell:d}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
+        Cfigtitle = f'Sound speed ({pointTitle})\n{season} - years {climoyearStart:04d}-{climoyearEnd:04d}'
+        Cfigfile = f'{figdir}/Cprofile_icell{iCell:d}_{ensembleName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
 
         ax_Tprofile.set_xlabel('Temperature ($^\circ$C)', fontsize=fontsize_labels, fontweight='bold')
         ax_Tprofile.set_ylabel('Depth (m)', fontsize=fontsize_labels, fontweight='bold')
         ax_Tprofile.set_title(Tfigtitle, fontsize=fontsize_titles, fontweight='bold')
         #ax_Tprofile.set_xlim(-1.85, 1.8)
-        ax_Tprofile.set_ylim(-800, 0)
+        ax_Tprofile.set_ylim(-depth[maxLevelCell.values], 0)
+        #ax_Tprofile.set_ylim(-800, 0)
         #
         ax_Sprofile.set_xlabel('Salinity (psu)', fontsize=fontsize_labels, fontweight='bold')
         ax_Sprofile.set_ylabel('Depth (m)', fontsize=fontsize_labels, fontweight='bold')
         ax_Sprofile.set_title(Sfigtitle, fontsize=fontsize_titles, fontweight='bold')
         #ax_Sprofile.set_xlim(27.8, 35)
-        ax_Sprofile.set_ylim(-800, 0)
+        ax_Sprofile.set_ylim(-depth[maxLevelCell.values], 0)
+        #ax_Sprofile.set_ylim(-800, 0)
         #
         ax_Cprofile.set_xlabel('C (m/s)', fontsize=fontsize_labels, fontweight='bold')
         ax_Cprofile.set_ylabel('Depth (m)', fontsize=fontsize_labels, fontweight='bold')
         ax_Cprofile.set_title(Cfigtitle, fontsize=fontsize_titles, fontweight='bold')
         #ax_Cprofile.set_xlim(1430., 1470.)
-        ax_Cprofile.set_ylim(-800, 0)
+        ax_Cprofile.set_ylim(-depth[maxLevelCell.values], 0)
+        #ax_Cprofile.set_ylim(-800, 0)
 
         for i in range(nEnsembles):
             ensembleMemberName = ensembleMemberNames[i]
@@ -263,20 +271,17 @@ if plotClimos is True:
 
             modelfile = f'{modelClimodir1}{ensembleMemberName}/{modelClimodir2}/mpaso_{season}_{climoyearStart:04d}{season}_{climoyearEnd:04d}{season}_climo.nc'
 
-            dsIn = xr.open_dataset(modelfile).isel(Time=0)
+            dsIn = xr.open_dataset(modelfile).isel(Time=0, nCells=iCell)
+            dsIn = dsIn.where(vertMask)
             # Drop all variables but T and S, and mask bathymetry
             allvars = dsIn.data_vars.keys()
             dropvars = set(allvars) - set(['timeMonthly_avg_activeTracers_temperature',
                                            'timeMonthly_avg_activeTracers_salinity'])
             dsIn = dsIn.drop(dropvars)
-            dsIn = dsIn.where(vertMask)
 
-            dsInRegion = dsIn.where(cellMask, drop=True)
-            dsInRegionProfile = (dsInRegion * regionArea3d).sum(dim='nCells') / regionArea
-
-            Tprofile = dsInRegionProfile.timeMonthly_avg_activeTracers_temperature.values
-            Sprofile = dsInRegionProfile.timeMonthly_avg_activeTracers_salinity.values
-            SA = gsw.conversions.SA_from_SP(Sprofile, pres, lonMean, latMean)
+            Tprofile = dsIn.timeMonthly_avg_activeTracers_temperature.values
+            Sprofile = dsIn.timeMonthly_avg_activeTracers_salinity.values
+            SA = gsw.conversions.SA_from_SP(Sprofile, pres, lon_icell, lat_icell)
             CT = gsw.conversions.CT_from_pt(SA, Tprofile)
             #sigma0profile = gsw.density.sigma0(SA, CT)
             soundspeed = gsw.sound_speed(SA, CT, pres)
@@ -289,7 +294,7 @@ if plotClimos is True:
             outdir = f'{outdir0}/{ensembleName}/{ensembleMemberName}'
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = f'{outdir}/{rname}_profiles_{ensembleName}{ensembleMemberName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.nc'
+            outfile = f'{outdir}/icell{iCell:d}_profiles_{ensembleName}{ensembleMemberName}_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.nc'
             dsOut = xr.Dataset()
             dsOut['Tprofile'] = Tprofile
             dsOut['Tprofile'].attrs['units'] = 'degC'
@@ -309,16 +314,22 @@ if plotClimos is True:
             dsOut['depth'] = depth
             dsOut['depth'].attrs['units'] = 'm'
             dsOut['depth'].attrs['long_name'] = 'depth levels'
+            dsOut['lon'] = lon_icell
+            dsOut['lon'].attrs['units'] = 'degrees_east'
+            dsOut['lon'].attrs['long_name'] = 'point longitude'
+            dsOut['lat'] = lat_icell
+            dsOut['lat'].attrs['units'] = 'degrees_north'
+            dsOut['lat'].attrs['long_name'] = 'point latitude'
             dsOut.to_netcdf(outfile)
 
         if plotPHCWOA is True:
             dsPHC_monthlyClimo = dsPHC.isel(time=int(season)-1)
-            SA = gsw.conversions.SA_from_SP(dsPHC_monthlyClimo['salt'].values, presPHC, lonRegionMean, latRegionMean)
+            SA = gsw.conversions.SA_from_SP(dsPHC_monthlyClimo['salt'].values, presPHC, x, y)
             CT = gsw.conversions.CT_from_pt(SA, dsPHC_monthlyClimo['temp'].values)
             soundspeedPHC = gsw.sound_speed(SA, CT, presPHC)
 
             dsWOA_monthlyClimo = dsWOA.isel(month=int(season)-1)
-            SA = gsw.conversions.SA_from_SP(dsWOA_monthlyClimo['s_an'].values, presWOA, lonRegionMean, latRegionMean)
+            SA = gsw.conversions.SA_from_SP(dsWOA_monthlyClimo['s_an'].values, presWOA, x, y)
             CT = gsw.conversions.CT_from_pt(SA, dsWOA_monthlyClimo['t_an'].values)
             soundspeedWOA = gsw.sound_speed(SA, CT, presWOA)
 
@@ -339,7 +350,7 @@ if plotClimos is True:
         if plotHighresMIP is True:
             HighresMIPtemp = dsHighresMIPtemp['thetao'].isel(time=int(season)-1)
             HighresMIPsalt = dsHighresMIPsalt['so'].isel(time=int(season)-1)
-            SA = gsw.conversions.SA_from_SP(HighresMIPsalt.values, HighresMIPpres, lonRegionMean, latRegionMean)
+            SA = gsw.conversions.SA_from_SP(HighresMIPsalt.values, HighresMIPpres, x, y)
             CT = gsw.conversions.CT_from_pt(SA, HighresMIPtemp.values)
             soundspeed = gsw.sound_speed(SA, CT, HighresMIPpres)
 
@@ -354,7 +365,7 @@ if plotClimos is True:
             outdir = f'{outdir0}/HighresMIP/hist-1950'
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = f'{outdir}/{rname}_profiles_HighresMIP_hist-1950_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.nc'
+            outfile = f'{outdir}/icell{iCell:d}_profiles_HighresMIP_hist-1950_{season}_years{climoyearStart:04d}-{climoyearEnd:04d}.nc'
             dsOut = xr.Dataset()
             dsOut['Tprofile'] = HighresMIPtemp
             dsOut['Tprofile'].attrs['units'] = 'degC'
@@ -374,11 +385,17 @@ if plotClimos is True:
             dsOut['depth'] = HighresMIPdepth
             dsOut['depth'].attrs['units'] = 'm'
             dsOut['depth'].attrs['long_name'] = 'depth levels'
+            dsOut['lon'] = x
+            dsOut['lon'].attrs['units'] = 'degrees_east'
+            dsOut['lon'].attrs['long_name'] = 'point longitude'
+            dsOut['lat'] = y
+            dsOut['lat'].attrs['units'] = 'degrees_north'
+            dsOut['lat'].attrs['long_name'] = 'point latitude'
             dsOut.to_netcdf(outfile)
             #
             HighresMIPtemp2 = dsHighresMIPtemp2['thetao'].isel(time=int(season)-1)
             HighresMIPsalt2 = dsHighresMIPsalt2['so'].isel(time=int(season)-1)
-            SA = gsw.conversions.SA_from_SP(HighresMIPsalt2.values, HighresMIPpres2, lonRegionMean, latRegionMean)
+            SA = gsw.conversions.SA_from_SP(HighresMIPsalt2.values, HighresMIPpres2, x, y)
             CT = gsw.conversions.CT_from_pt(SA, HighresMIPtemp2.values)
             soundspeed = gsw.sound_speed(SA, CT, HighresMIPpres2)
 
@@ -393,7 +410,7 @@ if plotClimos is True:
             outdir = f'{outdir0}/HighresMIP/highres-future'
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = f'{outdir}/{rname}_profiles_HighresMIP_highres-future_{season}_years2031-2050.nc'
+            outfile = f'{outdir}/icell{iCell:d}_profiles_HighresMIP_highres-future_{season}_years2031-2050.nc'
             dsOut = xr.Dataset()
             dsOut['Tprofile'] = HighresMIPtemp2
             dsOut['Tprofile'].attrs['units'] = 'degC'
@@ -413,6 +430,12 @@ if plotClimos is True:
             dsOut['depth'] = HighresMIPdepth2
             dsOut['depth'].attrs['units'] = 'm'
             dsOut['depth'].attrs['long_name'] = 'depth levels'
+            dsOut['lon'] = x
+            dsOut['lon'].attrs['units'] = 'degrees_east'
+            dsOut['lon'].attrs['long_name'] = 'point longitude'
+            dsOut['lat'] = y
+            dsOut['lat'].attrs['units'] = 'degrees_north'
+            dsOut['lat'].attrs['long_name'] = 'point latitude'
             dsOut.to_netcdf(outfile)
 
         #ax_Tprofile.legend(prop=legend_properties)
@@ -437,8 +460,8 @@ if plotMonthly is True:
     for year in years:
         for month in months:
 
-            Tfigtitle = f'Temperature ({pointTitle})\nyear={year}, month={month}'
-            Sfigtitle = f'Salinity ({pointTitle})\nyear={year}, month={month}'
+            Tfigtitle = f'Temperature ({pointTitle}), year={year}, month={month}'
+            Sfigtitle = f'Salinity ({pointTitle}), year={year}, month={month}'
             Tfigfile = f'{figdir}/Tprofile_icell{iCell:d}_{ensembleName}_{year:04d}-{month:02d}.png'
             Sfigfile = f'{figdir}/Sprofile_icell{iCell:d}_{ensembleName}_{year:04d}-{month:02d}.png'
 
@@ -447,3 +470,4 @@ if plotMonthly is True:
                 print(f'\nProcessing ensemble member {ensembleMemberName}, year={year}, month={month}...')
 
                 modelfile = f'{modeldir1}{ensembleMemberName}/{modeldir2}/{ensembleName}{ensembleMemberName}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
+
