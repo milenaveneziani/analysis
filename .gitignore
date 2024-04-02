@@ -104,17 +104,20 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# netcdf/geojson files
+# netcdf/geojson/png files
 *.nc
 *.geojson
+*.png
 
 # Plot directories
 FovFaz/
 timeseries/
 transects/
+transports/
 verticalSections/
 volBudget/
 general/
 animations_verticalSections/
 TSprofiles/
 composites_maxMLDbased/
+ocean_native/

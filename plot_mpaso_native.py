@@ -1,22 +1,13 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 import os
-import glob
 from netCDF4 import Dataset as netcdf_dataset
 import numpy as np
 import numpy.ma as ma
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.colors as cols
-from matplotlib.pyplot import cm
-from matplotlib.colors import from_levels_and_colors
-from matplotlib.colors import BoundaryNorm
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import matplotlib.ticker as mticker
 import cmocean
 
-from common_functions import add_land_lakes_coastline
+from make_plots import make_scatter_plot
 
 
 # Settings for lcrc
@@ -69,17 +60,21 @@ year = 1972
 #months = [2, 8]
 months = [8]
 
-figsizeGlobal = [10, 20]
-figsizePolar = [20, 20]
-figdpi = 150
-
 # z levels [m] (relevant for 3d variables)
 #dlevels = [100.0, 250.0]
 #dlevels = [50.0, 100.0, 250.0, 500.0, 3000.0]
 #dlevels = [50., 100.0, 300.0, 800.0]
 dlevels = [0.]
 
-colorIndices0 = [0, 10, 28, 57, 85, 113, 142, 170, 198, 227, 242, 255]
+colorIndices = [0, 10, 28, 57, 85, 113, 142, 170, 198, 227, 242, 255]
+lon0NH = -180.0
+lon1NH = 180.0
+lat0NH = 50.0
+lat1NH = 90.0
+lon0SH = -180.0
+lon1SH = 180.0
+lat0SH = -55.0
+lat1SH = -90.0
 
 pi2deg = 180/np.pi
 
@@ -218,59 +213,18 @@ for id in range(len(dlevels)):
 #print(np.min(depth), np.max(depth))
 #print('z levels = ', z)
 
-#figtitle = 'Bottom depth {}'.format(meshName)
-#figfileGlobal = '{}/DepthGlobal_{}.png'.format(figdir, meshName)
-#figfileNH = '{}/DepthNH_{}.png'.format(figdir, meshName)
-#figfileSH = '{}/DepthSH_{}.png'.format(figdir, meshName)
-#clevels = [0., 10., 50., 100., 250., 500.0, 750., 1000., 1500., 2000., 3000.]
-#colormap0 = cmocean.cm.deep_r
-#colormap = cols.ListedColormap(colormap0(colorIndices0))
-#cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
-#
-#plt.figure(figsize=figsizeGlobal, dpi=figdpi)
-#ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-#add_land_lakes_coastline(ax)
-#data_crs = ccrs.PlateCarree()
-#ax.set_extent([-180, 180, -90, 90], crs=data_crs)
-#gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-#sc = ax.scatter(lonCell, latCell, s=0.25, c=depth, cmap=colormap, norm=cnorm,
-#                marker='o', transform=data_crs)
-#cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, shrink=.2)
-#cbar.ax.tick_params(labelsize=16, labelcolor='black')
-#cbar.set_label('[m]', fontsize=14)
-#ax.set_title(figtitle, y=1.04, fontsize=18)
-#plt.savefig(figfileGlobal, bbox_inches='tight')
-#plt.close()
-#
-#plt.figure(figsize=figsizePolar, dpi=figdpi)
-#ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-#add_land_lakes_coastline(ax)
-#data_crs = ccrs.PlateCarree()
-#ax.set_extent([-180, 180, 50, 90], crs=data_crs)
-#gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-#sc = ax.scatter(lonCell, latCell, s=25.0, c=depth, cmap=colormap, norm=cnorm,
-#                marker='o', transform=data_crs)
-#cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, shrink=.3)
-#cbar.ax.tick_params(labelsize=22, labelcolor='black')
-#cbar.set_label('[m]', fontsize=20)
-#ax.set_title(figtitle, y=1.04, fontsize=22)
-#plt.savefig(figfileNH, bbox_inches='tight')
-#plt.close()
-#
-#plt.figure(figsize=figsizePolar, dpi=figdpi)
-#ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
-#add_land_lakes_coastline(ax)
-#data_crs = ccrs.PlateCarree()
-#ax.set_extent([-180, 180, -50, -90], crs=data_crs)
-#gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-#sc = ax.scatter(lonCell, latCell, s=25.0, c=depth, cmap=colormap, norm=cnorm,
-#                marker='o', transform=data_crs)
-#cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, shrink=.3)
-#cbar.ax.tick_params(labelsize=22, labelcolor='black')
-#cbar.set_label('[m]', fontsize=20)
-#ax.set_title(figtitle, y=1.04, fontsize=22)
-#plt.savefig(figfileSH, bbox_inches='tight')
-#plt.close()
+figtitle = 'Bottom depth {}'.format(meshName)
+figfileGlobal = '{}/DepthGlobal_{}.png'.format(figdir, meshName)
+figfileNH = '{}/DepthNH_{}.png'.format(figdir, meshName)
+figfileSH = '{}/DepthSH_{}.png'.format(figdir, meshName)
+clevels = [0., 10., 50., 100., 250., 500.0, 750., 1000., 2000., 3000., 5000.]
+colormap = cmocean.cm.deep_r
+dotSize = 0.25
+make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'Robinson', figtitle, figfileGlobal)
+dotSize = 5.0 # this should go up as resolution decreases
+make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
+dotSize = 25.0 # this should go up as resolution decreases
+make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
 
 for month in months:
     modelfile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
@@ -282,29 +236,10 @@ for month in months:
         varname = var['name']
         mpasvarname = var['mpasvarname']
         factor = var['factor']
-
         clevels = var['clevels']
         clevelsNH = var['clevelsNH']
         clevelsSH = var['clevelsSH']
-        colormap0 = var['colormap']
-        if len(clevels)+1 == len(colorIndices0):
-            # we have 2 extra values for the under/over so make the colormap
-            # without these values
-            underColor = colormap0(colorIndices0[0])
-            overColor = colormap0(colorIndices0[-1])
-            colorIndices = colorIndices0[1:-1]
-        else:
-            colorIndices = colorIndices0
-            underColor = None
-            overColor = None
-        colormap = cols.ListedColormap(colormap0(colorIndices))
-        if underColor is not None:
-            colormap.set_under(underColor)
-        if overColor is not None:
-            colormap.set_over(overColor)
-        cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
-        cnormNH = mpl.colors.BoundaryNorm(clevelsNH, colormap.N)
-        cnormSH = mpl.colors.BoundaryNorm(clevelsSH, colormap.N)
+        colormap = var['colormap']
 
         if varname=='GMkappa' or varname=='Redikappa' or \
            varname=='gmBolusKappa' or varname=='gmKappaScaling' or \
@@ -346,68 +281,14 @@ for month in months:
                 #fld3d = factor*fld3d
                 #print(np.min(fld3d), np.max(fld3d))
 
-                plt.figure(figsize=figsizeGlobal, dpi=figdpi)
-                ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-                add_land_lakes_coastline(ax)
+                dotSize = 0.25
+                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevels, colorIndices, var['units'], 'Robinson', figtitle, figfileGlobal)
 
-                data_crs = ccrs.PlateCarree()
-                ax.set_extent([-180, 180, -90, 90], crs=data_crs)
-                gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-                # This will work with cartopy 0.18:
-                #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 40.))
-                #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 20.))
+                dotSize = 5.0 # this should go up as resolution decreases
+                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsNH, colorIndices, var['units'], 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
 
-                sc = ax.scatter(lon, lat, s=0.25, c=fld, cmap=colormap, norm=cnorm,
-                                marker='o', transform=data_crs)
-                cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, shrink=.2)
-                cbar.ax.tick_params(labelsize=16, labelcolor='black')
-                cbar.set_label(var['units'], fontsize=14)
-
-                ax.set_title(figtitle, y=1.04, fontsize=16)
-                plt.savefig(figfileGlobal, bbox_inches='tight')
-                plt.close()
-
-                plt.figure(figsize=figsizePolar, dpi=figdpi)
-                ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-                add_land_lakes_coastline(ax)
-
-                data_crs = ccrs.PlateCarree()
-                ax.set_extent([-180, 180, 50, 90], crs=data_crs)
-                gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-                # This will work with cartopy 0.18:
-                #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 20.))
-                #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 10.))
-
-                sc = ax.scatter(lon, lat, s=20.0, c=fld, cmap=colormap, norm=cnormNH,
-                                marker='o', transform=data_crs)
-                cbar = plt.colorbar(sc, ticks=clevelsNH, boundaries=clevelsNH, shrink=.7)
-                cbar.ax.tick_params(labelsize=22, labelcolor='black')
-                cbar.set_label(var['units'], fontsize=20)
-
-                ax.set_title(figtitle, y=1.04, fontsize=22)
-                plt.savefig(figfileNH, bbox_inches='tight')
-                plt.close()
-
-                plt.figure(figsize=figsizePolar, dpi=figdpi)
-                ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
-                add_land_lakes_coastline(ax)
-
-                data_crs = ccrs.PlateCarree()
-                ax.set_extent([-180, 180, -50, -90], crs=data_crs)
-                gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-                # This will work with cartopy 0.18:
-                #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 20.))
-                #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 10.))
-
-                sc = ax.scatter(lon, lat, s=15.0, c=fld, cmap=colormap, norm=cnormSH,
-                                marker='o', transform=data_crs)
-                cbar = plt.colorbar(sc, ticks=clevelsSH, boundaries=clevelsSH, shrink=.7)
-                cbar.ax.tick_params(labelsize=22, labelcolor='black')
-                cbar.set_label(var['units'], fontsize=20)
-
-                ax.set_title(figtitle, y=1.04, fontsize=22)
-                plt.savefig(figfileSH, bbox_inches='tight')
-                plt.close()
+                dotSize = 25.0 # this should go up as resolution decreases
+                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsSH, colorIndices, var['units'], 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
 
         else:
             figtitle = '{}, year={}, month={}'.format(
@@ -429,66 +310,13 @@ for month in months:
                 fld = fld * kappa_horScaling
             print('varname=', varname, 'month=', month, 'fldmin=', np.min(fld), 'fldmax=', np.max(fld))
 
-            plt.figure(figsize=figsizeGlobal, dpi=figdpi)
-            ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-            add_land_lakes_coastline(ax)
+            dotSize = 0.25
+            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevels, colorIndices, var['units'], 'Robinson', figtitle, figfileGlobal)
 
-            data_crs = ccrs.PlateCarree()
-            ax.set_extent([-180, 180, -90, 90], crs=data_crs)
-            gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-            # This will work with cartopy 0.18:
-            #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 40.))
-            #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 20.))
+            dotSize = 5.0 # this should go up as resolution decreases
+            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsNH, colorIndices, var['units'], 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
 
-            sc = ax.scatter(lon, lat, s=0.25, c=fld, cmap=colormap, norm=cnorm,
-                            marker='o', transform=data_crs)
-            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, shrink=.2)
-            cbar.ax.tick_params(labelsize=16, labelcolor='black')
-            cbar.set_label(var['units'], fontsize=14)
+            dotSize = 25.0 # this should go up as resolution decreases
+            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsSH, colorIndices, var['units'], 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
 
-            ax.set_title(figtitle, y=1.04, fontsize=16)
-            plt.savefig(figfileGlobal, bbox_inches='tight')
-            plt.close()
-
-            plt.figure(figsize=figsizePolar, dpi=figdpi)
-            ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-            add_land_lakes_coastline(ax)
-
-            data_crs = ccrs.PlateCarree()
-            ax.set_extent([-180, 180, 50, 90], crs=data_crs)
-            gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-            # This will work with cartopy 0.18:
-            #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 20.))
-            #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 10.))
-
-            sc = ax.scatter(lon, lat, s=20.0, c=fld, cmap=colormap, norm=cnormNH,
-                            marker='o', transform=data_crs)
-            cbar = plt.colorbar(sc, ticks=clevelsNH, boundaries=clevelsNH, shrink=.7)
-            cbar.ax.tick_params(labelsize=22, labelcolor='black')
-            cbar.set_label(var['units'], fontsize=20)
-
-            ax.set_title(figtitle, y=1.04, fontsize=22)
-            plt.savefig(figfileNH, bbox_inches='tight')
-            plt.close()
-
-            plt.figure(figsize=figsizePolar, dpi=figdpi)
-            ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
-            add_land_lakes_coastline(ax)
-
-            data_crs = ccrs.PlateCarree()
-            ax.set_extent([-180, 180, -50, -90], crs=data_crs)
-            gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-            # This will work with cartopy 0.18:
-            #gl.xlocator = mticker.FixedLocator(np.arange(-180., 181., 20.))
-            #gl.ylocator = mticker.FixedLocator(np.arange(-80., 81., 10.))
-
-            sc = ax.scatter(lon, lat, s=20.0, c=fld, cmap=colormap, norm=cnormSH,
-                            marker='o', transform=data_crs)
-            cbar = plt.colorbar(sc, ticks=clevelsSH, boundaries=clevelsSH, shrink=.7)
-            cbar.ax.tick_params(labelsize=22, labelcolor='black')
-            cbar.set_label(var['units'], fontsize=20)
-
-            ax.set_title(figtitle, y=1.04, fontsize=22)
-            plt.savefig(figfileSH, bbox_inches='tight')
-            plt.close()
     f.close()
