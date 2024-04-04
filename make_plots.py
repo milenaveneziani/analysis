@@ -9,6 +9,7 @@ import cartopy
 import cartopy.crs as ccrs
 from cartopy.util import add_cyclic_point
 import matplotlib.ticker as mticker
+import cmocean
 
 from common_functions import add_land_lakes_coastline
 
@@ -60,10 +61,7 @@ def make_scatter_plot(lon, lat, fld, dotSize, cmap, clevels, cindices, cbarLabel
 
     add_land_lakes_coastline(ax)
 
-    fldPeriodic, lonPeriodic = add_cyclic_point(fld, lon)
-    lonsPeriodic, latsPeriodic = np.meshgrid(lonPeriodic, lat)
-    sc = ax.scatter(lonsPeriodic, latsPeriodic, s=dotSize, c=fld, cmap=colormap, norm=cnorm,
-                    marker='o', transform=data_crs)
+    sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
     cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
     cbar.set_label(cbarLabel, fontsize=14)
@@ -98,8 +96,6 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
 
     data_crs = ccrs.PlateCarree()
-    # this does not work:
-    #data_crs = ccrs.Geodetic()
 
     plt.figure(figsize=figsize, dpi=figdpi)
 
@@ -121,12 +117,12 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
 
     add_land_lakes_coastline(ax)
 
-    uPeriodic, lonPeriodic = add_cyclic_point(u, lon)
-    vPeriodic, lonPeriodic = add_cyclic_point(v, lon)
-    speedPeriodic, lonPeriodic = add_cyclic_point(speed, lon)
-    lonsPeriodic, latsPeriodic = np.meshgrid(lonPeriodic, lat)
-    sl = ax.streamplot(lonsPeriodic, latsPeriodic, uPeriodic, vPeriodic, density=density, broken_streamlines=False,
-                       color=speedPeriodic, cmap=colormap, linewidth=1.5, transform=data_crs)
+    ucyclic, loncyclic = add_cyclic_point(u, lon)
+    vcyclic, loncyclic = add_cyclic_point(v, lon)
+    speedcyclic, loncyclic = add_cyclic_point(speed, lon)
+    loncyclic = np.where(loncyclic>=180., loncyclic-360., loncyclic)
+    sl = ax.streamplot(loncyclic, lat, ucyclic, vcyclic, density=density, broken_streamlines=False,
+                       color=speedcyclic, cmap=colormap, norm=cnorm, linewidth=1.5, transform=data_crs)
     #sl = ax.streamplot(lon, lat, u, v, density=density, broken_streamlines=False,
     #                   color=speed, cmap=colormap, linewidth=1.5, transform=data_crs)
     cbar = plt.colorbar(sl.lines, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')

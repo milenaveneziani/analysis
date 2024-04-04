@@ -213,18 +213,18 @@ for id in range(len(dlevels)):
 #print(np.min(depth), np.max(depth))
 #print('z levels = ', z)
 
-figtitle = 'Bottom depth {}'.format(meshName)
-figfileGlobal = '{}/DepthGlobal_{}.png'.format(figdir, meshName)
-figfileNH = '{}/DepthNH_{}.png'.format(figdir, meshName)
-figfileSH = '{}/DepthSH_{}.png'.format(figdir, meshName)
-clevels = [0., 10., 50., 100., 250., 500.0, 750., 1000., 2000., 3000., 5000.]
-colormap = cmocean.cm.deep_r
-dotSize = 0.25
-make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'Robinson', figtitle, figfileGlobal)
-dotSize = 5.0 # this should go up as resolution decreases
-make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
-dotSize = 25.0 # this should go up as resolution decreases
-make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
+#figtitle = 'Bottom depth {}'.format(meshName)
+#figfileGlobal = '{}/DepthGlobal_{}.png'.format(figdir, meshName)
+#figfileNH = '{}/DepthNH_{}.png'.format(figdir, meshName)
+#figfileSH = '{}/DepthSH_{}.png'.format(figdir, meshName)
+#clevels = [0., 10., 50., 100., 250., 500.0, 750., 1000., 2000., 3000., 5000.]
+#colormap = cmocean.cm.deep_r
+#dotSize = 0.25
+#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'Robinson', figtitle, figfileGlobal)
+#dotSize = 5.0 # this should go up as resolution decreases
+#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
+#dotSize = 25.0 # this should go up as resolution decreases
+#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
 
 for month in months:
     modelfile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
