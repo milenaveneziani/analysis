@@ -23,6 +23,9 @@ from mpas_analysis.shared.io.utility import decode_strings
 
 from common_functions import extract_openBoundaries, add_inset, plot_xtick_format
 from geometric_features import FeatureCollection, read_feature_collection
+import cartopy
+import cartopy.crs as ccrs
+import matplotlib.ticker as mticker
 
 
 # Settings for lcrc:
@@ -36,25 +39,33 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-featurefile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
-meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-regionmaskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
-casename = 'GM600_Redi600'
-casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-modeldir = f'/global/cfs/projectdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
-#meshfile = '/global/cfs/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-#regionmaskfile = '/global/cfs/projectdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
-#casenameFull = '20221201.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.lat-dep-bd-submeso.cori-knl'
-#casename = 'fullyRRM_lat-dep-bd-submeso'
-#modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casenameFull}/run'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
+featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
+#casename = 'GM600_Redi600'
+#casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+#modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_greaterArctic04082024.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions.nc'
+casenameFull = 'E3SM-Arcticv2.1_historical0151'
+casename = 'E3SM-Arcticv2.1_historical0151'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
-#regionNames = ['all']
+regionNames = ['all']
 #regionNames = ['Greater Arctic']
-regionNames = ['North Atlantic subpolar gyre']
+#regionNames = ['North Atlantic subpolar gyre']
+#regionNames = ['North Atlantic subtropical gyre']
 
 # Choose years
-year1 = 1
-year2 = 65
+year1 = 1950
+year2 = 1955
+#year2 = 2014
+#year1 = 1
+#year2 = 65
 #year2 = 500
 years = range(year1, year2+1)
 
@@ -62,6 +73,7 @@ referenceDate = '0001-01-01'
 
 #movingAverageMonths = 1
 movingAverageMonths = 12
+#movingAverageMonths = 5*12
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
@@ -95,44 +107,104 @@ nRegions = np.size(regionNames)
 dsMesh = xr.open_dataset(meshfile)
 areaCell = dsMesh.areaCell
 
-# The following was originally created to properly mask points on land and 
-# topography when computing the lateral fluxes. But I believe this is no
-# longer necessary because 1) we only consider the open boundary edges
-# (which are open ocean edges by definition) and 2) the layerThickness is
-# already masked (nan) below maxLevelCell.
-#
-# Create land/bathymetry mask separately for the two neighboring cells of each edge
-#  Landmask
-#cellsOnEdge = dsMesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
-#coe0 = cellsOnEdge.isel(TWO=0).values - 1
-#coe1 = cellsOnEdge.isel(TWO=1).values - 1
-#landmask0 = coe0==0
-#landmask1 = coe1==0
-#  Topomask
-#nLevels = dsMesh.dims['nVertLevels']
-#maxLevelCell = dsMesh.maxLevelCell.values
-#kmaxOnCells0 = maxLevelCell[coe0]
-#kmaxOnCells1 = maxLevelCell[coe1]
-#karray = np.array(range(nLevels))
-#topomask0 = np.ones((len(landmask0), nLevels)) * karray[np.newaxis, :]
-#topomask1 = np.ones((len(landmask1), nLevels)) * karray[np.newaxis, :]
-#for k in range(len(kmaxOnCells0)):
-#    topomask0[k, kmaxOnCells0[k]:] = 0
-#for k in range(len(kmaxOnCells1)):
-#    topomask1[k, kmaxOnCells1[k]:] = 0
-# Save to mesh dataset
-#dsMesh['cellsOnEdge0'] = (('nEdges'), coe0)
-#dsMesh['cellsOnEdge1'] = (('nEdges'), coe1)
-#dsMesh['landmask0'] = (('nEdges'), landmask0)
-#dsMesh['landmask1'] = (('nEdges'), landmask1)
-#dsMesh['topomask0'] = (('nEdges', 'nVertLevels'), topomask0)
-#dsMesh['topomask1'] = (('nEdges', 'nVertLevels'), topomask1)
+## The following was originally created to properly mask points on land and 
+## topography when computing the lateral fluxes. But I believe this is no
+## longer necessary because 1) we only consider the open boundary edges
+## (which are open ocean edges by definition) and 2) the layerThickness is
+## already masked (nan) below maxLevelCell.
+##
+## Create land/bathymetry mask separately for the two neighboring cells of each edge
+##  Landmask
+##cellsOnEdge = dsMesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
+##coe0 = cellsOnEdge.isel(TWO=0).values - 1
+##coe1 = cellsOnEdge.isel(TWO=1).values - 1
+##landmask0 = coe0==0
+##landmask1 = coe1==0
+##  Topomask
+##nLevels = dsMesh.dims['nVertLevels']
+##maxLevelCell = dsMesh.maxLevelCell.values
+##kmaxOnCells0 = maxLevelCell[coe0]
+##kmaxOnCells1 = maxLevelCell[coe1]
+##karray = np.array(range(nLevels))
+##topomask0 = np.ones((len(landmask0), nLevels)) * karray[np.newaxis, :]
+##topomask1 = np.ones((len(landmask1), nLevels)) * karray[np.newaxis, :]
+##for k in range(len(kmaxOnCells0)):
+##    topomask0[k, kmaxOnCells0[k]:] = 0
+##for k in range(len(kmaxOnCells1)):
+##    topomask1[k, kmaxOnCells1[k]:] = 0
+## Save to mesh dataset
+##dsMesh['cellsOnEdge0'] = (('nEdges'), coe0)
+##dsMesh['cellsOnEdge1'] = (('nEdges'), coe1)
+##dsMesh['landmask0'] = (('nEdges'), landmask0)
+##dsMesh['landmask1'] = (('nEdges'), landmask1)
+##dsMesh['topomask0'] = (('nEdges', 'nVertLevels'), topomask0)
+##dsMesh['topomask1'] = (('nEdges', 'nVertLevels'), topomask1)
 
+# Commenting this out after regions have been verified
+#print('\nPlotting region masks...')
+#for n in range(nRegions):
+#    regionName = regionNames[n]
+#    rname = regionName.replace(' ', '').replace('(', '').replace(')', '')
+#    regionIndex = regions.index(regionName)
+#    print(f'  Region: {regionName}  (rname={rname})')
+#
+#    #### Plot regional masks
+#    lonCell = 180./np.pi * dsMesh.lonCell
+#    latCell = 180./np.pi * dsMesh.latCell
+#    lonEdge = 180./np.pi * dsMesh.lonEdge
+#    latEdge = 180./np.pi * dsMesh.latEdge
+#    dsMask = dsRegionMask.isel(nRegions=regionIndex)
+#    [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
+#    landEdges = np.where(landEdges)[0]
+#    lonRegion = lonCell.where(dsMask.regionCellMasks==1, drop=True)
+#    latRegion = latCell.where(dsMask.regionCellMasks==1, drop=True)
+#    data_crs = ccrs.PlateCarree()
+#    plt.figure(figsize=[20, 20], dpi=300)
+#    if regionName=='Greater Arctic' or regionName=='Nordic Seas':
+#        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+#        ax.set_extent([-180, 180, 50, 90], crs=data_crs)
+#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 40))
+#        gl.ylocator = mticker.FixedLocator(np.arange(50, 90, 5))
+#    elif regionName=='North Atlantic subpolar gyre' or \
+#         regionName=='North Atlantic subtropical (north of 27.2N)' or \
+#         regionName=='North Atlantic subtropical gyre':
+#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+#        ax.set_extent([-100, 40, 5, 80], crs=data_crs)
+#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 10))
+#        gl.ylocator = mticker.FixedLocator(np.arange(5, 85, 5))
+#    elif regionName=='Atlantic tropical' or regionName=='South Atlantic subtropical gyre':
+#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+#        ax.set_extent([-65, 25, -40, 10], crs=data_crs)
+#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 10))
+#        gl.ylocator = mticker.FixedLocator(np.arange(-40, 15, 5))
+#    else:
+#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+#        ax.set_extent([-180, 180, -90, 90], crs=data_crs)
+#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 40))
+#        gl.ylocator = mticker.FixedLocator(np.arange(-80, 90, 10))
+#    gl.n_steps = 100
+#    gl.right_labels = False
+#    gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
+#    gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+#    gl.rotate_labels = False
+#    ax.scatter(lonEdge.values[landEdges], latEdge.values[landEdges], s=0.3, c='k', marker='*', transform=data_crs)
+#    ax.scatter(lonCell, latCell, s=0.1, c='g', marker='*', transform=data_crs)
+#    ax.scatter(lonRegion, latRegion, s=0.1, c='b', marker='*', transform=data_crs)
+#    ax.scatter(lonEdge.isel(nEdges=openBryEdges), latEdge.isel(nEdges=openBryEdges), s=0.02, c='r', marker='*', transform=data_crs)
+#    ax.set_title(f'{regionName} region mask (blue) and openbry edges (red dots)', y=1.04, fontsize=16)
+#    plt.savefig(f'{figdir}/{rname}_regionMaskOpenbry.png', bbox_inches='tight')
+#    plt.close()
+
+print('\nComputing/plotting regional budgets...')
 for n in range(nRegions):
     regionName = regionNames[n]
-    rname = regionName.replace(' ', '')
+    rname = regionName.replace(' ', '').replace('(', '').replace(')', '')
     regionIndex = regions.index(regionName)
-    print(f'\nRegion: {regionName}')
+    print(f'Region: {regionName}')
 
     fc = FeatureCollection()
     for feature in fcAll.features:
@@ -156,11 +228,11 @@ for n in range(nRegions):
         iceRunoffFlux = np.zeros(nTime)
         seaIceFreshWaterFlux = np.zeros(nTime)
         layerThick = np.zeros(nTime)
-        #frazilThick = np.zeros(nTime)
+        frazilThick = np.zeros(nTime) # this is included in layerThicknessTendency
 
         # Get regional mask quantities
-        dsMask = dsRegionMask.isel(nRegions=n)
-        [openBryEdges, openBrySigns] = extract_openBoundaries(dsMask.regionCellMasks.values, dsMesh)
+        dsMask = dsRegionMask.isel(nRegions=regionIndex)
+        [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
         cellMask = dsMask.regionCellMasks == 1
         regionArea = areaCell.where(cellMask, drop=True)
         dvEdge = dsMesh.dvEdge[openBryEdges]
@@ -169,8 +241,10 @@ for n in range(nRegions):
 
         # Compute budget terms
         ktime = 0
+        kyear = 0
         for year in years:
-            print(f'Year = {year:04d} out of {len(years)} years total')
+            kyear = kyear + 1
+            print(f'Year = {year:04d} ({kyear} out of {len(years)} years total)')
             for month in range(1, 13):
                 print(f'  Month= {month:02d}')
                 modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
@@ -194,7 +268,7 @@ for n in range(nRegions):
                 #  First, get dz's from two neighboring cells for each edge
                 dzOnCells0 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
                 dzOnCells1 = ds.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
-                #  Then, interpolate dz's onto edges, also considering the topomask
+                #  Then, interpolate dz's onto edges
                 dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
                 dArea = dvEdge * dzOnEdges
                 normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
@@ -246,14 +320,18 @@ for n in range(nRegions):
                 # Compute layer thickness tendencies
                 if 'timeMonthly_avg_tendLayerThickness' in ds.keys():
                    layerThickTend = ds.timeMonthly_avg_tendLayerThickness.isel(Time=0).where(cellMask, drop=True)
-                   layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
+                   layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
+                   #layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
+                   #layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no layer thickness tendency variable found')
-                #if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
-                #   frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
-                #   frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
-                #else:
-                #   raise KeyError('no frazil layer thickness tendency variable found')
+                if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
+                   frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
+                   frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
+                   #frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
+                   #frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
+                else:
+                   raise KeyError('no frazil layer thickness tendency variable found')
                 t3 = time.time()
                 print('   Layer thickness tendencies calculation, #seconds = ', t3-t2)
 
@@ -267,7 +345,7 @@ for n in range(nRegions):
         iceRunoffFlux = 1/rho0 * m3ps_to_Sv * iceRunoffFlux
         seaIceFreshWaterFlux = 1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux
         thickTend = m3ps_to_Sv * layerThick
-        #frazilTend = m3ps_to_Sv * frazilThick
+        frazilTend = m3ps_to_Sv * frazilThick
 
         # Save to file
         ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
@@ -282,7 +360,7 @@ for n in range(nRegions):
         srunoffVar = ncid.createVariable('iceRunoffFlux', 'f8', ('Time'))
         icefreshVar = ncid.createVariable('seaIceFreshWaterFlux', 'f8', ('Time'))
         thickTendVar = ncid.createVariable('thicknessTendency', 'f8', ('Time'))
-        #frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
+        frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
 
         volNetLateralFluxVar.units = 'Sv'
         evapVar.units = 'Sv'
@@ -292,7 +370,7 @@ for n in range(nRegions):
         srunoffVar.units = 'Sv'
         icefreshVar.units = 'Sv'
         thickTendVar.units = 'Sv'
-        #frazilTendVar.units = 'Sv'
+        frazilTendVar.units = 'Sv'
 
         volNetLateralFluxVar.description = 'Net lateral volume transport across all open boundaries'
         evapVar.description = 'Volume change due to region integrated evaporation'
@@ -302,7 +380,7 @@ for n in range(nRegions):
         srunoffVar.description = 'Volume change due to region integrated solid runoff'
         icefreshVar.description = 'Volume change due to region integrated sea-ice freshwater flux'
         thickTendVar.description = 'Volume change due to total water column tendency (SSH changes)'
-        #frazilTendVar.description = 'Volume change due to frazil ice formation'
+        frazilTendVar.description = 'Volume change due to frazil ice formation'
 
         times[:] = t
         volNetLateralFluxVar[:] = volNetLateralFlux
@@ -313,7 +391,7 @@ for n in range(nRegions):
         srunoffVar[:] = iceRunoffFlux
         icefreshVar[:] = seaIceFreshWaterFlux
         thickTendVar[:] = thickTend
-        #frazilTendVar[:] = frazilTend
+        frazilTendVar[:] = frazilTend
         ncid.close()
     else:
         print(f'\nFile {outfile} already exists. Plotting only...\n')
@@ -332,33 +410,37 @@ for n in range(nRegions):
     iceRunoffFlux = ncid.variables['iceRunoffFlux'][:]
     seaIceFreshWaterFlux = ncid.variables['seaIceFreshWaterFlux'][:]
     thickTend = ncid.variables['thicknessTendency'][:]
-    #frazilTend = ncid.variables['frazilTendency'][:]
+    frazilTend = ncid.variables['frazilTendency'][:]
     ncid.close()
     res = thickTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
-    #res = thickTend + frazilTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
 
     # Compute running averages
-    volNetLateralFlux_runavg = pd.Series.rolling(pd.DataFrame(volNetLateralFlux), movingAverageMonths, center=True).mean()
-    evapFlux_runavg = pd.Series.rolling(pd.DataFrame(evapFlux), movingAverageMonths, center=True).mean()
-    rainFlux_runavg = pd.Series.rolling(pd.DataFrame(rainFlux), movingAverageMonths, center=True).mean()
-    snowFlux_runavg = pd.Series.rolling(pd.DataFrame(snowFlux), movingAverageMonths, center=True).mean()
-    riverRunoffFlux_runavg = pd.Series.rolling(pd.DataFrame(riverRunoffFlux), movingAverageMonths, center=True).mean()
-    iceRunoffFlux_runavg = pd.Series.rolling(pd.DataFrame(iceRunoffFlux), movingAverageMonths, center=True).mean()
-    seaIceFreshWaterFlux_runavg = pd.Series.rolling(pd.DataFrame(seaIceFreshWaterFlux), movingAverageMonths, center=True).mean()
-    thickTend_runavg = pd.Series.rolling(pd.DataFrame(thickTend), movingAverageMonths, center=True).mean()
-    #frazilTend_runavg = pd.Series.rolling(pd.DataFrame(frazilTend), movingAverageMonths, center=True).mean()
-    res_runavg = pd.Series.rolling(pd.DataFrame(res), movingAverageMonths, center=True).mean()
-    volNetLateralFluxMean = np.mean(volNetLateralFlux_runavg)
+    if movingAverageMonths!=1:
+        window = int(movingAverageMonths)
+        volNetLateralFlux_runavg = pd.Series(volNetLateralFlux).rolling(window, center=True).mean()
+        evapFlux_runavg = pd.Series(evapFlux).rolling(window, center=True).mean()
+        rainFlux_runavg = pd.Series(rainFlux).rolling(window, center=True).mean()
+        snowFlux_runavg = pd.Series(snowFlux).rolling(window, center=True).mean()
+        riverRunoffFlux_runavg = pd.Series(riverRunoffFlux).rolling(window, center=True).mean()
+        iceRunoffFlux_runavg = pd.Series(iceRunoffFlux).rolling(window, center=True).mean()
+        seaIceFreshWaterFlux_runavg = pd.Series(seaIceFreshWaterFlux).rolling(window, center=True).mean()
+        thickTend_runavg = pd.Series(thickTend).rolling(window, center=True).mean()
+        frazilTend_runavg = pd.Series(frazilTend).rolling(window, center=True).mean()
+        res_runavg = pd.Series(res).rolling(window, center=True).mean()
 
-    evapFluxMean = np.mean(evapFlux_runavg)
-    rainFluxMean = np.mean(rainFlux_runavg)
-    snowFluxMean = np.mean(snowFlux_runavg)
-    riverRunoffFluxMean = np.mean(riverRunoffFlux_runavg)
-    iceRunoffFluxMean = np.mean(iceRunoffFlux_runavg)
-    seaIceFreshWaterFluxMean = np.mean(seaIceFreshWaterFlux_runavg)
-    #frazilTendMean = np.mean(frazilTend_runavg)
-    thickTendMean = np.mean(thickTend_runavg)
-    resMean = np.mean(res_runavg)
+    # Compute long-term means
+    volNetLateralFluxMean = np.mean(volNetLateralFlux)
+    evapFluxMean = np.mean(evapFlux)
+    rainFluxMean = np.mean(rainFlux)
+    snowFluxMean = np.mean(snowFlux)
+    empMean = np.mean(evapFlux + rainFlux + snowFlux)
+    riverRunoffFluxMean = np.mean(riverRunoffFlux)
+    iceRunoffFluxMean = np.mean(iceRunoffFlux)
+    runoffMean = np.mean(riverRunoffFluxMean + iceRunoffFluxMean)
+    seaIceFreshWaterFluxMean = np.mean(seaIceFreshWaterFlux)
+    frazilTendMean = np.mean(frazilTend)
+    thickTendMean = np.mean(thickTend)
+    resMean = np.mean(res)
 
     figdpi = 300
     figsize = (16, 16)
@@ -372,7 +454,7 @@ for n in range(nRegions):
     ax[2, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
     ax[2, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
     ax[3, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
-    #ax[3, 1].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
+    ax[3, 1].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
     ax[4, 0].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
     ax[4, 1].plot(t, res, 'k', alpha=0.5, linewidth=1.5)
     if movingAverageMonths!=1:
@@ -383,7 +465,7 @@ for n in range(nRegions):
         ax[2, 0].plot(t, riverRunoffFlux_runavg, 'k', linewidth=3)
         ax[2, 1].plot(t, iceRunoffFlux_runavg, 'k', linewidth=3)
         ax[3, 0].plot(t, seaIceFreshWaterFlux_runavg, 'k', linewidth=3)
-        #ax[3, 1].plot(t, frazilTend_runavg, 'k', linewidth=3)
+        ax[3, 1].plot(t, frazilTend_runavg, 'k', linewidth=3)
         ax[4, 0].plot(t, thickTend_runavg, 'k', linewidth=3)
         ax[4, 1].plot(t, res_runavg, 'k', linewidth=3)
      
@@ -427,7 +509,7 @@ for n in range(nRegions):
     ax[2, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[2, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[3, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
-    #ax[3, 1].set_title(f'mean={frazilTendMean:.2e}', fontsize=16, fontweight='bold')
+    ax[3, 1].set_title(f'mean={frazilTendMean:.2e} (already in thickTend)', fontsize=14, fontweight='bold')
     ax[4, 0].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
     ax[4, 1].set_title(f'mean={resMean:.2e}', fontsize=16, fontweight='bold')
 
@@ -456,22 +538,24 @@ for n in range(nRegions):
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot()
     if movingAverageMonths==1:
-        ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label='netLateral')
-        ax.plot(t, evapFlux+rainFlux+snowFlux, 'c', linewidth=2, label='E-P')
-        ax.plot(t, riverRunoffFlux+iceRunoffFlux, 'g', linewidth=2, label='runoff')
-        ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label='seaiceFW')
-        ax.plot(t, thickTend, 'm', linewidth=2, label='thickTend')
-        #ax.plot(t, thickTend+frazilTend, 'm', linewidth=2, label='thick+frazil')
-        ax.plot(t, res, 'k', linewidth=2, label='res')
+        emp = evapFlux + rainFlux + snowFlux
+        runoff = riverRunoffFlux + iceRunoffFlux
+        ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
+        ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
+        ax.plot(t, runoff, 'g', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
+        ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
+        ax.plot(t, thickTend, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
+        ax.plot(t, res, 'k', alpha=0.5, linewidth=1, label=f'res ({resMean:.2e} Sv)')
     else:
-        ax.plot(t, volNetLateralFlux_runavg, 'r', linewidth=2, label='netLateral')
-        ax.plot(t, evapFlux_runavg+rainFlux_runavg+snowFlux_runavg, 'c', linewidth=2, label='E-P')
-        ax.plot(t, riverRunoffFlux_runavg+iceRunoffFlux_runavg, 'g', linewidth=2, label='runoff')
-        ax.plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label='seaiceFW')
-        ax.plot(t, thickTend_runavg, 'm', linewidth=2, label='thickTend')
-        #ax.plot(t, thickTend_runavg+frazilTend_runavg, 'm', linewidth=2, label='thick+frazil')
-        ax.plot(t, res_runavg, 'k', linewidth=2, label='res')
-        ax.set_title(f'{movingAverageMonths}-month running averages', fontsize=16, fontweight='bold')
+        emp = evapFlux_runavg + rainFlux_runavg + snowFlux_runavg
+        runoff = riverRunoffFlux_runavg + iceRunoffFlux_runavg
+        ax.plot(t, volNetLateralFlux_runavg, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
+        ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
+        ax.plot(t, runoff, 'g', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
+        ax.plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
+        ax.plot(t, thickTend_runavg, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
+        ax.plot(t, res_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({resMean:.2e} Sv)')
+        ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
     ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
     ax.autoscale(enable=True, axis='x', tight=True)
     ax.grid(color='k', linestyle=':', linewidth=0.5)

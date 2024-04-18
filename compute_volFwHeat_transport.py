@@ -38,14 +38,13 @@ def get_mask_short_names(mask):
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-casenameFull = 'E3SM-Arcticv2.1_historical0251'
-casename = 'E3SM-Arcticv2.1_historical0251'
+casenameFull = 'E3SM-Arcticv2.1_historical0151'
+casename = 'E3SM-Arcticv2.1_historical0151'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Choose years
 year1 = 1950
-year2 = 1951
-#year2 = 2014
+year2 = 2014
 years = range(year1, year2+1)
 nTime = 12*len(years)
 
@@ -461,7 +460,7 @@ for i in range(nTransects):
     ax[2].legend()
 
     fig.tight_layout(pad=0.5)
-    fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.025)
-    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1)
+    fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
+    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1.65)
 
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
