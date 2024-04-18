@@ -35,16 +35,27 @@ def get_mask_short_names(mask):
     return mask
 
 
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-casenameFull = 'E3SM-Arcticv2.1_historical0151'
-casename = 'E3SM-Arcticv2.1_historical0151'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+# Settings for nersc
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+#casenameFull = 'E3SM-Arcticv2.1_historical0151'
+#casename = 'E3SM-Arcticv2.1_historical0151'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+
+# Settings for erdc.hpc.mil
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
 
 # Choose years
-year1 = 1950
-year2 = 2014
+#year1 = 1950
+#year2 = 2014
+year1 = 1
+year2 = 386
 years = range(year1, year2+1)
 nTime = 12*len(years)
 
@@ -84,7 +95,7 @@ else:
             transectList[i] = "b'" + transectList[i]
 nTransects = len(transectList)
 maxEdges = dsMask.dims['maxEdgesInTransect']
-print(f'Computing/plotting time series for these transects: {transectList}\n')
+print(f'\nComputing/plotting time series for these transects: {transectList}\n')
 
 # Create a list of edges and total edges in each transect
 nEdgesInTransect = np.zeros(nTransects)
@@ -159,8 +170,10 @@ if not os.path.exists(outfile):
     salt_transportOut = np.zeros((nTime, nTransects))
 
     ktime = 0
+    kyear = 0
     for year in years:
-        print(f'Year = {year:04d} out of {len(years)} years total')
+        kyear = kyear + 1
+        print(f'Year = {year:04d} ({kyear} out of {len(years)} years total)')
         for month in range(1, 13):
             print(f'  Month= {month:02d}')
             modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
@@ -293,7 +306,7 @@ if not os.path.exists(outfile):
     ncid.createDimension('StrLen', 64)
 
     times = ncid.createVariable('Time', 'f8', 'Time')
-    transectNames = ncid.createVariable('TransectNames', 'c', ('nTransects', 'StrLen'))
+    transectNames = ncid.createVariable('transectNames', 'c', ('nTransects', 'StrLen'))
     vol_transportVar = ncid.createVariable('volTransport', 'f8', ('Time', 'nTransects'))
     vol_transportInVar = ncid.createVariable('volTransportIn', 'f8', ('Time', 'nTransects'))
     vol_transportOutVar = ncid.createVariable('volTransportOut', 'f8', ('Time', 'nTransects'))
@@ -348,8 +361,12 @@ if not os.path.exists(outfile):
     salt_transportOutVar[:, :] = salt_transportOut
 
     for i in range(nTransects):
-        nLetters = len(transectList[i])
-        transectNames[i, :nLetters] = transectList[i]
+        if platform.python_version()[0]=='3':
+            searchString = transectList[i][2:]
+        else:
+            searchString = transectList[i]
+        nLetters = len(searchString)
+        transectNames[i, :nLetters] = searchString
     ncid.close()
 else:
     print(f'\nFile {outfile} already exists. Plotting only...\n')
