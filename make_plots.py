@@ -14,30 +14,10 @@ import cmocean
 from common_functions import add_land_lakes_coastline
 
 
-def make_scatter_plot(lon, lat, fld, dotSize, cmap, clevels, cindices, cbarLabel, projectionName, figTitle, figFile, lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, cmap=None, clevels=None, cindices=None, cbarLabel=None):
     
     figdpi = 150
     figsize = [20, 20]
-
-    # Make colormap
-    colormap0 = cmap
-    colorIndices0 = cindices
-    if len(clevels)+1 == len(colorIndices0):
-        # we have 2 extra values for the under/over so make the colormap
-        # without these values
-        underColor = colormap0(colorIndices0[0])
-        overColor = colormap0(colorIndices0[-1])
-        colorIndices = colorIndices0[1:-1]
-    else:
-        colorIndices = colorIndices0
-        underColor = None
-        overColor = None
-    colormap = cols.ListedColormap(colormap0(colorIndices))
-    if underColor is not None:
-        colormap.set_under(underColor)
-    if overColor is not None:
-        colormap.set_over(overColor)
-    cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
 
     data_crs = ccrs.PlateCarree()
 
@@ -61,10 +41,14 @@ def make_scatter_plot(lon, lat, fld, dotSize, cmap, clevels, cindices, cbarLabel
 
     add_land_lakes_coastline(ax)
 
-    sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-    cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
-    cbar.ax.tick_params(labelsize=16, labelcolor='black')
-    cbar.set_label(cbarLabel, fontsize=14)
+    if fld is not None:
+        [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
+        sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
+        cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
+        cbar.ax.tick_params(labelsize=16, labelcolor='black')
+        cbar.set_label(cbarLabel, fontsize=14)
+    else:
+        sc = ax.scatter(lon, lat, s=dotSize, c='k', marker='D', transform=data_crs)
 
     ax.set_title(figTitle, y=1.04, fontsize=16)
     plt.savefig(figFile, bbox_inches='tight')
@@ -75,25 +59,7 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     figdpi = 150
     figsize = [20, 20]
 
-    # Make colormap
-    colormap0 = cmap
-    colorIndices0 = cindices
-    if len(clevels)+1 == len(colorIndices0):
-        # we have 2 extra values for the under/over so make the colormap
-        # without these values
-        underColor = colormap0(colorIndices0[0])
-        overColor = colormap0(colorIndices0[-1])
-        colorIndices = colorIndices0[1:-1]
-    else:
-        colorIndices = colorIndices0
-        underColor = None
-        overColor = None
-    colormap = cols.ListedColormap(colormap0(colorIndices))
-    if underColor is not None:
-        colormap.set_under(underColor)
-    if overColor is not None:
-        colormap.set_over(overColor)
-    cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
+    [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
 
     data_crs = ccrs.PlateCarree()
 
@@ -132,3 +98,25 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     ax.set_title(figTitle, y=1.04, fontsize=16)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
+
+
+def _make_discrete_colormap(colormap, colorindices, colorlevels):
+    colormap0 = colormap
+    colorindices0 = colorindices
+    if len(colorlevels)+1 == len(colorindices0):
+        # we have 2 extra values for the under/over so make the colormap
+        # without these values
+        underColor = colormap0(colorindices0[0])
+        overColor = colormap0(colorindices0[-1])
+        colorIndices = colorindices0[1:-1]
+    else:
+        colorindices = colorindices0
+        underColor = None
+        overColor = None
+    colormap = cols.ListedColormap(colormap0(colorindices))
+    if underColor is not None:
+        colormap.set_under(underColor)
+    if overColor is not None:
+        colormap.set_over(overColor)
+    colornorm = mpl.colors.BoundaryNorm(colorlevels, colormap.N)
+    return [colormap, colornorm]

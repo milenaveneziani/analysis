@@ -121,3 +121,6 @@ animations_verticalSections/
 TSprofiles/
 composites_maxMLDbased/
 ocean_native/
+
+# Processed data directories
+*_data/

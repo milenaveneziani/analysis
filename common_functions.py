@@ -28,8 +28,8 @@ import time
 from distutils.spawn import find_executable
 
 
-#def extract_openBoundaries(dsRegionMask, dsMesh):
-def extract_openBoundaries(regionMask, dsMesh):
+def extract_openBoundaries(dsRegionMask, dsMesh):
+#def extract_openBoundaries(regionMask, dsMesh):
     """
     Extract open boundaries of region mask.
 
@@ -48,34 +48,32 @@ def extract_openBoundaries(regionMask, dsMesh):
 
     openBoundarySigns: numpy array
         Open boundary edge signs (for transports computed on edges).
-
+`
     """
     # Authors
     # -------
     # Alice Barthel
 
 
-    #t0 = time.time()
-
     #cellsOnEdges = dsMesh.cellsOnEdge
     #cellsOnEdges0 = cellsOnEdges.isel(TWO=0)
     #cellsOnEdges1 = cellsOnEdges.isel(TWO=1)
-    ##print('\n0 cellsOnEdges[TWO=0]', cellsOnEdges0.where(cellsOnEdges0 == 0, drop=True))
+    #landCellsOnEdges0 = cellsOnEdges0.where(cellsOnEdges0 == 0, drop=True)
+    #landCellsOnEdges1 = cellsOnEdges1.where(cellsOnEdges1 == 0, drop=True)
+    ##print('\nLand cellsOnEdges0', landCellsOnEdges0)
+    ##print('\nLand cellsOnEdges1', landCellsOnEdges1)
     ##print('\nnegative cellsOnEdges[TWO=0]', cellsOnEdges0.where(cellsOnEdges0 < 0, drop=True))
     ##print('\npositive cellsOnEdges[TWO=0]', cellsOnEdges0.where(cellsOnEdges0 > 0, drop=True))
-    ##print(np.shape(cellsOnEdges0.values))
-    ##
-    ##print('\n0 cellsOnEdges[TWO=1]', cellsOnEdges1.where(cellsOnEdges1 == 0, drop=True))
     ##print('\nnegative cellsOnEdges[TWO=1]', cellsOnEdges1.where(cellsOnEdges1 < 0, drop=True))
     ##print('\npositive cellsOnEdges[TWO=1]', cellsOnEdges1.where(cellsOnEdges1 > 0, drop=True))
-    ##print(np.shape(cellsOnEdges1.values))
-    ##
+
+    #edgesOnCells = dsMesh.edgesOnCell
     #regionMask = dsRegionMask.regionCellMasks
-    #idEdgesOnRegionCells = dsMesh.edgesOnCell.where(regionMask == 1, drop=True)
+    #idEdgesOnRegionCells = edgesOnCells.where(regionMask == 1, drop=True)
     #idEdgesOnRegionCells = idEdgesOnRegionCells.stack(nEdges=('nCells', 'maxEdges'))
     #idEdgesOnRegionCells = idEdgesOnRegionCells.where(idEdgesOnRegionCells>0, drop=True)
-    #cellsOnEdges0 = cellsOnEdges0[idEdgesOnRegionCells.values.astype(int)-1]
-    #cellsOnEdges1 = cellsOnEdges1[idEdgesOnRegionCells.values.astype(int)-1]
+    #cellsOnEdges0 = cellsOnEdges0.isel(nEdges=idEdgesOnRegionCells.values.astype(int)-1)
+    #cellsOnEdges1 = cellsOnEdges1.isel(nEdges=idEdgesOnRegionCells.values.astype(int)-1)
     ## Remove land cellsOnEdges (i.e., cellsOnEdges==0)
     #oceanMask = np.logical_and(cellsOnEdges0>0, cellsOnEdges1>0)
     #idEdgesOnRegionCells = idEdgesOnRegionCells.where(oceanMask, drop=True)
@@ -85,10 +83,22 @@ def extract_openBoundaries(regionMask, dsMesh):
     #                         regionMask[oceanCellsOnEdges1.values.astype(int)-1].rename({'nCells': 'nEdges'}))
     #openBoundaryEdges = idEdgesOnRegionCells.where(openBoundaryEdgeMask, drop=True).values.astype(int)-1
     #print(np.sort(openBoundaryEdges))
-    # need to compute this:
-    #openBoundarySigns = np.sign(regionMask[cellsOnEdges[~getRidEdges, 1]] - 0.5)
-    #dsMask['openBoundaryEdges'] = ('nEdges', openBoundaryEdges)
-    #dsMask['openBoundarySigns'] = ('nEdges', openBoundarySigns)
+    ## need to compute this:
+    ##openBoundarySigns = np.sign(regionMask[cellsOnEdges[~getRidEdges, 1]] - 0.5)
+    ##dsRegionMask['openBoundaryEdges'] = ('nEdges', openBoundaryEdges)
+    ##dsRegionMask['openBoundarySigns'] = ('nEdges', openBoundarySigns)
+
+    
+    # Alice's code
+    # Get all (global) edges and switch to 0-indexing
+    #cellsOnEdges = dsMesh.variables['cellsOnEdge'][:]
+    #print(np.shape(cellsOnEdges))
+    #print(np.shape(np.where(cellsOnEdges[:, 0]==cellsOnEdges[:, 1])))
+    #print(np.shape(np.where(cellsOnEdges[:, 0]>cellsOnEdges[:, 1])))
+    #print(np.shape(np.where(cellsOnEdges[:, 0]<cellsOnEdges[:, 1])))
+    #print(np.shape(np.where(cellsOnEdges[:, 0]==0)))
+    #print(np.shape(np.where(cellsOnEdges[:, 1]==0)))
+    #boh
 
     # Alice's code
     # Get all (global) edges and switch to 0-indexing
@@ -98,12 +108,12 @@ def extract_openBoundaries(regionMask, dsMesh):
     landEdges = np.logical_or((cellsOnEdges[:, 0]==-1), (cellsOnEdges[:, 1]==-1))
 
     # Add edges that connect cells within the same region (i.e. *not* region boundaries)
-    getRidEdges = landEdges
     # note: ~landEdges avoids the issue with cell = -1 indexing the *last* element
-    getRidEdges[~landEdges] = (regionMask[cellsOnEdges[~landEdges, 0]]==regionMask[cellsOnEdges[~landEdges, 1]])
+    regionMask = dsRegionMask.regionCellMasks.values
+    landEdges[~landEdges] = (regionMask[cellsOnEdges[~landEdges, 0]]==regionMask[cellsOnEdges[~landEdges, 1]])
 
     # Output the 0-indexed edges that are our region open boundaries
-    openBoundaryEdges = np.where(~getRidEdges)[0]
+    openBoundaryEdges = np.where(~landEdges)[0]
     #print(np.sort(openBoundaryEdges))
 
     # Comput edgeSigns so that transport INTO the region is positive. This is 
@@ -114,11 +124,11 @@ def extract_openBoundaries(regionMask, dsMesh):
     # But, if cellsOnEdges[nEdge, 0] is inside the region and cellsOnEdges[nEdge, 1]
     # is outside the region, then the sign is flipped (np.sign(regionMask[cellsOnEdges[nEdge, 1]] - 0.5)
     # becomes -1. With this reasoning, the following also works (and we have verified that):
-    # openBoundarySigns = -np.sign(regionMask[cellsOnEdges[~getRidEdges, 0]] - 0.5)
-    openBoundarySigns = np.sign(regionMask[cellsOnEdges[~getRidEdges, 1]] - 0.5)
-    #print(time.time()-t0)
+    # openBoundarySigns = -np.sign(regionMask[cellsOnEdges[~landEdges, 0]] - 0.5)
+    openBoundarySigns = np.sign(regionMask[cellsOnEdges[~landEdges, 1]] - 0.5)
 
-    return openBoundaryEdges, openBoundarySigns
+    landEdges = np.logical_or((cellsOnEdges[:, 0]==-1), (cellsOnEdges[:, 1]==-1))
+    return openBoundaryEdges, openBoundarySigns, landEdges
 
 
 def compute_transect_maskfile(meshFile, featureFile, outFile):

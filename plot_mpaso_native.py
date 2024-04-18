@@ -220,11 +220,16 @@ for id in range(len(dlevels)):
 #clevels = [0., 10., 50., 100., 250., 500.0, 750., 1000., 2000., 3000., 5000.]
 #colormap = cmocean.cm.deep_r
 #dotSize = 0.25
-#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'Robinson', figtitle, figfileGlobal)
+#make_scatter_plot(lonCell, latCell, dotSize, figtitle, figfileGlobal, projectionName='Robinson',
+#                  fld=depth, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel='m')
 #dotSize = 5.0 # this should go up as resolution decreases
-#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
+#make_scatter_plot(lonCell, latCell, dotSize, figtitle, figfileNH, projectionName='NorthPolarStereo',
+#                  lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0,
+#                  fld=depth, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel='m')
 #dotSize = 25.0 # this should go up as resolution decreases
-#make_scatter_plot(lonCell, latCell, depth, dotSize, colormap, clevels, colorIndices, 'm', 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
+#make_scatter_plot(lonCell, latCell, dotSize, figtitle, figfileSH, projectionName='SouthPolarStereo',
+#                  lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0,
+#                  fld=depth, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel='m')
 
 for month in months:
     modelfile = '{}/{}.mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(
@@ -282,13 +287,18 @@ for month in months:
                 #print(np.min(fld3d), np.max(fld3d))
 
                 dotSize = 0.25
-                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevels, colorIndices, var['units'], 'Robinson', figtitle, figfileGlobal)
+                make_scatter_plot(lon, lat, dotSize, figtitle, figfileGlobal, projectionName='Robinson',
+                  fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=var['units'])
 
                 dotSize = 5.0 # this should go up as resolution decreases
-                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsNH, colorIndices, var['units'], 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
+                make_scatter_plot(lon, lat, dotSize, figtitle, figfileNH, projectionName='NorthPolarStereo',
+                  lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0,
+                  fld=fld, cmap=colormap, clevels=clevelsNH, cindices=colorIndices, cbarLabel=var['units'])
 
                 dotSize = 25.0 # this should go up as resolution decreases
-                make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsSH, colorIndices, var['units'], 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
+                make_scatter_plot(lon, lat, dotSize, figtitle, figfileSH, projectionName='SouthPolarStereo',
+                  lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0,
+                  fld=fld, cmap=colormap, clevels=clevelsSH, cindices=colorIndices, cbarLabel=var['units'])
 
         else:
             figtitle = '{}, year={}, month={}'.format(
@@ -311,12 +321,17 @@ for month in months:
             print('varname=', varname, 'month=', month, 'fldmin=', np.min(fld), 'fldmax=', np.max(fld))
 
             dotSize = 0.25
-            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevels, colorIndices, var['units'], 'Robinson', figtitle, figfileGlobal)
+            make_scatter_plot(lon, lat, dotSize, figtitle, figfileGlobal, projectionName='Robinson',
+              fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=var['units'])
 
             dotSize = 5.0 # this should go up as resolution decreases
-            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsNH, colorIndices, var['units'], 'NorthPolarStereo', figtitle, figfileNH, lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0)
+            make_scatter_plot(lon, lat, dotSize, figtitle, figfileNH, projectionName='NorthPolarStereo',
+              lon0=lon0NH, lon1=lon1NH, dlon=20.0, lat0=lat0NH, lat1=lat1NH, dlat=10.0,
+              fld=fld, cmap=colormap, clevels=clevelsNH, cindices=colorIndices, cbarLabel=var['units'])
 
             dotSize = 25.0 # this should go up as resolution decreases
-            make_scatter_plot(lon, lat, fld, dotSize, colormap, clevelsSH, colorIndices, var['units'], 'SouthPolarStereo', figtitle, figfileSH, lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0)
+            make_scatter_plot(lon, lat, dotSize, figtitle, figfileSH, projectionName='SouthPolarStereo',
+              lon0=lon0SH, lon1=lon1SH, dlon=20.0, lat0=lat0SH, lat1=lat1SH, dlat=10.0,
+              fld=fld, cmap=colormap, clevels=clevelsSH, cindices=colorIndices, cbarLabel=var['units'])
 
     f.close()
