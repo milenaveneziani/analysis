@@ -16,24 +16,22 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset, days_to_datetime
 
-startYear = 1950
-endYear = 2014
-#startYear = 1
-#endYear = 60
-#startYear = 65
-#endYear = 325
+#startYear = 1950
+#endYear = 2014
+startYear = 1
+endYear = 386
 calendar = 'gregorian'
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0201'
-runNameShort = runName
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
-rundir = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{runName}/archive'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0201'
+#runNameShort = runName
+##rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+##rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
+#rundir = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{runName}/archive'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -44,14 +42,14 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 #rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
 #isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
  
-# Settings for onyx
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1B60to10rA02'
-#runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/work/osinski/archive/{runName}'
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+# Settings for erdc.hpc.mil
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
+rundir = f'/p/archive/osinski/E3SM/{runName}'
+isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
