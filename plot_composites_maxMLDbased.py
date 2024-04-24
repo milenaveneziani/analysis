@@ -15,26 +15,26 @@ from mpas_analysis.ocean.utility import compute_zmid
 from make_plots import make_scatter_plot, make_streamline_plot
 
 
-#startYear = [1950]
-#endYear = [2014]
-startSimYear = 1
-startYear = [1, 245]
-endYear = [140, 386]
+startYear = [1950]
+endYear = [2014]
+#startSimYear = 1
+#startYear = [1, 245]
+#endYear = [140, 386]
 
 # Settings for nersc
-#meshFile = f'/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0151'
-##runName = 'E3SMv2.1B60to10rA02'
-## Relevant for streamlines case
-#remap = 'cmip6_720x1440_aave.20240401'
-#remapFile = f'/global/cfs/cdirs/m1199/diagnostics/maps/map_ARRM10to60E2r1_to_{remap}.nc'
-
-# Settings for erdc.hpc.mil
-meshFile = f'/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1B60to10rA02'
+meshFile = f'/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0151'
+#runName = 'E3SMv2.1B60to10rA02'
 # Relevant for streamlines case
 remap = 'cmip6_720x1440_aave.20240401'
 remapFile = f'/global/cfs/cdirs/m1199/diagnostics/maps/map_ARRM10to60E2r1_to_{remap}.nc'
+
+# Settings for erdc.hpc.mil
+#meshFile = f'/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1B60to10rA02'
+## Relevant for streamlines case
+#remap = 'cmip6_720x1440_aave.20240401'
+#remapFile = f'/global/cfs/cdirs/m1199/diagnostics/maps/map_ARRM10to60E2r1_to_{remap}.nc'
 
 indir0 = f'./composites_maxMLDbased_data/{runName}'
 figdir0 = f'./composites_maxMLDbased/{runName}'
@@ -156,7 +156,23 @@ variables = [
               'isvar3d': False,
               'mpas': 'timeMonthly_avg_iceVolumeCell',
               'clevels': [0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0],
-              'colormap': plt.get_cmap('YlGnBu_r')}
+              'colormap': plt.get_cmap('YlGnBu_r')},
+             {'name': 'iceDivergence',
+              'title': 'Sea Ice divergence',
+              'units': '%/day',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_divergence',
+              'clevels': [-10.0, -8.0, -6.0, -4.0, -2.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10.0],
+              'colormap': cmocean.cm.balance},
+             {'name': 'iceSpeed',
+              'title': 'Sea Ice speed',
+              'units': 'm/s',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_uVelocityGeo',
+              'clevels': [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.8],
+              'colormap': cmocean.cm.solar}
             ]
 #   Atmosphere variables
 #modelComp = 'atm'
@@ -177,6 +193,10 @@ lonCell = dsMesh.lonCell.values
 latCell = dsMesh.latCell.values
 lonCell = 180/np.pi*lonCell
 latCell = 180/np.pi*latCell
+lonVertex = dsMesh.lonVertex.values
+latVertex = dsMesh.latVertex.values
+lonVertex = 180/np.pi*lonVertex
+latVertex = 180/np.pi*latVertex
 z = dsMesh.refBottomDepth
 maxLevelCell = dsMesh.maxLevelCell # (relevant if plotDepthAvg = True)
 # Find model levels for each depth level (relevant if plotDepthAvg = False)

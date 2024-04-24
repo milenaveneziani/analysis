@@ -18,12 +18,12 @@ matplotlib.rc('xtick', labelsize=14)
 matplotlib.rc('ytick', labelsize=14)
 plt.rc('font', weight='bold')
 
-#startSimYear = 1950
-#startYear = [1950]
-#endYear = [2014]
-startSimYear = 1
-startYear = [1, 245]
-endYear = [140, 386]
+startSimYear = 1950
+startYear = [1950]
+endYear = [2014]
+#startSimYear = 1
+#startYear = [1, 245]
+#endYear = [140, 386]
 years = np.arange(startYear[0], endYear[0] + 1)
 for iy in range(1, np.size(startYear)):
     years = np.append(years, np.arange(startYear[iy], endYear[iy] + 1))
@@ -31,24 +31,24 @@ calendar = 'gregorian'
 referenceDate = '0001-01-01'
 
 # Settings for nersc
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0151'
-##runName = 'E3SMv2.1B60to10rA02'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#postprocmaindir = rundir
-## Note: the following two variables cannot be both True
-#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
-#isSingleVarFiles = False # if True 'archive/{modelComp}/singleVarFiles' will be affixed to rundir later on
-
-# Settings for erdc.hpc.mil
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/archive/osinski/E3SM/{runName}'
-rundir = f'/p/work/milena/archive/{runName}'
-postprocmaindir = f'/p/work/milena/archive/{runName}'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0151'
+#runName = 'E3SMv2.1B60to10rA02'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
+postprocmaindir = rundir
 # Note: the following two variables cannot be both True
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
+
+# Settings for erdc.hpc.mil
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1B60to10rA02'
+##rundir = f'/p/archive/osinski/E3SM/{runName}'
+#rundir = f'/p/work/milena/archive/{runName}'
+#postprocmaindir = f'/p/work/milena/archive/{runName}'
+## Note: the following two variables cannot be both True
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
  
 maxMLDdir = f'./timeseries_data/{runName}/maxMLD'
 outdir0 = f'./composites_maxMLDbased_data/{runName}'
@@ -120,22 +120,24 @@ variables = [
              {'name': 'iceArea',
               'mpas': 'timeMonthly_avg_iceAreaCell'},
              {'name': 'iceVolume',
-              'mpas': 'timeMonthly_avg_iceVolumeCell'}
+              'mpas': 'timeMonthly_avg_iceVolumeCell'},
+             {'name': 'iceDivergence',
+              'mpas': 'timeMonthly_avg_divergence'},
+             {'name': 'uVelocityGeo',
+              'mpas': 'timeMonthly_avg_uVelocityGeo'},
+             {'name': 'vVelocityGeo',
+              'mpas': 'timeMonthly_avg_vVelocityGeo'}
             ]
 #   Atmosphere variables
 #modelComp = 'atm'
 #modelName = 'eam'
 
 if isShortTermArchive:
-    #rundir = f'{rundir}/archive/{modelComp}/hist'
     rundir = f'{rundir}/{modelComp}/hist'
 if isSingleVarFiles:
-    rundir = f'{rundir}/archive/{modelComp}/singleVarFiles'
+    rundir = f'{rundir}/{modelComp}/singleVarFiles'
 # The following is only relevant for post-processed variables (such as depthAvg fields)
-if postprocmaindir==rundir:
-    postprocdir = f'{postprocmaindir}/archive/{modelComp}/postproc'
-else:
-    postprocdir = f'{postprocmaindir}/{modelComp}/postproc'
+postprocdir = f'{postprocmaindir}/{modelComp}/postproc'
 if not os.path.isdir(postprocdir):
     os.makedirs(postprocdir)
 
