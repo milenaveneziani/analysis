@@ -18,12 +18,13 @@ matplotlib.rc('xtick', labelsize=14)
 matplotlib.rc('ytick', labelsize=14)
 plt.rc('font', weight='bold')
 
-startSimYear = 1950
-startYear = [1950]
-endYear = [2014]
-#startSimYear = 1
+#startSimYear = 1950
+#startYear = [1950]
+#endYear = [2014]
+startSimYear = 1
 #startYear = [1, 245]
-#endYear = [140, 386]
+startYear = [21, 245]
+endYear = [140, 386]
 years = np.arange(startYear[0], endYear[0] + 1)
 for iy in range(1, np.size(startYear)):
     years = np.append(years, np.arange(startYear[iy], endYear[iy] + 1))
@@ -31,24 +32,25 @@ calendar = 'gregorian'
 referenceDate = '0001-01-01'
 
 # Settings for nersc
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0151'
-#runName = 'E3SMv2.1B60to10rA02'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0151'
+##runName = 'E3SMv2.1B60to10rA02'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
+#postprocmaindir = rundir
+## Note: the following two variables cannot be both True
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
+
+# Settings for erdc.hpc.mil
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1B60to10rA02'
+#rundir = f'/p/archive/osinski/E3SM/{runName}'
+rundir = f'/p/work/milena/archive/{runName}'
+#postprocmaindir = f'/p/work/milena/archive/{runName}'
 postprocmaindir = rundir
 # Note: the following two variables cannot be both True
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
 isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
-
-# Settings for erdc.hpc.mil
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1B60to10rA02'
-##rundir = f'/p/archive/osinski/E3SM/{runName}'
-#rundir = f'/p/work/milena/archive/{runName}'
-#postprocmaindir = f'/p/work/milena/archive/{runName}'
-## Note: the following two variables cannot be both True
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
-#isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
  
 maxMLDdir = f'./timeseries_data/{runName}/maxMLD'
 outdir0 = f'./composites_maxMLDbased_data/{runName}'
@@ -77,57 +79,61 @@ titleClimoMonths = 'JFMA'
 # ice variables (2d only)
 #
 #   Ocean variables
-#modelComp = 'ocn'
-#modelName = 'mpaso'
+modelComp = 'ocn'
+modelName = 'mpaso'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
 #             {'name': 'maxMLD',
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
 #            ]
 #
-#mpasFile = 'timeSeriesStatsMonthly'
-#variables = [
-#             #{'name': 'velocityZonalDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_velocityZonal'},
-#             #{'name': 'velocityMeridionalDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
-#             {'name': 'velocityZonal',
-#              'mpas': 'timeMonthly_avg_velocityZonal'},
-#             {'name': 'velocityMeridional',
-#              'mpas': 'timeMonthly_avg_velocityMeridional'},
-#             {'name': 'activeTracers_temperature',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-#             {'name': 'activeTracers_salinity',
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-#             {'name': 'activeTracers_temperatureDepthAvg',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-#             {'name': 'activeTracers_salinityDepthAvg',
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-#             {'name': 'dThreshMLD',
-#              'mpas': 'timeMonthly_avg_dThreshMLD'},
-#             {'name': 'sensibleHeatFlux',
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
-#             ]
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
+             {'name': 'velocityZonalDepthAvg',
+              'mpas': 'timeMonthly_avg_velocityZonal'},
+             {'name': 'velocityMeridionalDepthAvg',
+              'mpas': 'timeMonthly_avg_velocityMeridional'},
+             {'name': 'velocityZonal',
+              'mpas': 'timeMonthly_avg_velocityZonal'},
+             {'name': 'velocityMeridional',
+              'mpas': 'timeMonthly_avg_velocityMeridional'},
+             {'name': 'activeTracers_temperature',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinity',
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'activeTracers_temperatureDepthAvg',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinityDepthAvg',
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'dThreshMLD',
+              'mpas': 'timeMonthly_avg_dThreshMLD'},
+             {'name': 'windStressZonal',
+              'mpas': 'timeMonthly_avg_windStressZonal'},
+             {'name': 'windStressMeridional',
+              'mpas': 'timeMonthly_avg_windStressMeridional'},
+             {'name': 'sensibleHeatFlux',
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
+             ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
              #{'name': 'latentHeatFlux',
              # 'mpas': 'timeMonthly_avg_latentHeatFlux'}
 #   Sea ice variables
-modelComp = 'ice'
-modelName = 'mpassi'
-mpasFile = 'timeSeriesStatsMonthly'
-variables = [
-             {'name': 'iceArea',
-              'mpas': 'timeMonthly_avg_iceAreaCell'},
-             {'name': 'iceVolume',
-              'mpas': 'timeMonthly_avg_iceVolumeCell'},
-             {'name': 'iceDivergence',
-              'mpas': 'timeMonthly_avg_divergence'},
-             {'name': 'uVelocityGeo',
-              'mpas': 'timeMonthly_avg_uVelocityGeo'},
-             {'name': 'vVelocityGeo',
-              'mpas': 'timeMonthly_avg_vVelocityGeo'}
-            ]
+#modelComp = 'ice'
+#modelName = 'mpassi'
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
+#             {'name': 'iceArea',
+#              'mpas': 'timeMonthly_avg_iceAreaCell'},
+#             {'name': 'iceVolume',
+#              'mpas': 'timeMonthly_avg_iceVolumeCell'},
+#             {'name': 'iceDivergence',
+#              'mpas': 'timeMonthly_avg_divergence'},
+#             {'name': 'uVelocityGeo',
+#              'mpas': 'timeMonthly_avg_uVelocityGeo'},
+#             {'name': 'vVelocityGeo',
+#              'mpas': 'timeMonthly_avg_vVelocityGeo'}
+#            ]
 #   Atmosphere variables
 #modelComp = 'atm'
 #modelName = 'eam'
@@ -145,7 +151,7 @@ if not os.path.isdir(postprocdir):
 # Note: for now, it is easier to do this for each depth range
 #zmins = [-100., -600., -8000., -8000.]
 #zmaxs = [0., -100., -600., 0.]
-#zmin = -100.
+#zmin = -50.
 #zmax = 0.
 zmin = -600.
 zmax = -100.
@@ -210,7 +216,7 @@ for regionName in regions:
     maxMLDstd = np.std(maxMLD_seasonal)
     mld1 = np.min(maxMLD_seasonal) + maxMLDstd
     mld2 = np.max(maxMLD_seasonal) - maxMLDstd
-    #print(mld1, mld2)
+    print(mld1, mld2)
     #print(np.min(maxMLD_seasonal) + 1.5*maxMLDstd, np.max(maxMLD_seasonal) - 1.5*maxMLDstd)
     #print(np.min(maxMLD_seasonal) + 2*maxMLDstd, np.max(maxMLD_seasonal) - 2*maxMLDstd)
     conditionLow  = np.where(maxMLD_seasonal<mld1)
@@ -224,10 +230,11 @@ for regionName in regions:
     years_low  = years[conditionLow]
     years_high = years[conditionHigh]
     years_med  = years[conditionMed]
-    #print('years_low=', np.size(years_low))
+    print('years_low, size(years_low)=', years_low, np.size(years_low))
+    print('years_high, size(years_high)=', years_high, np.size(years_high))
+    boh
     #print('years_low1.5=', np.size(years[np.where(maxMLD_seasonal<np.min(maxMLD_seasonal) + 1.5*maxMLDstd)]))
     #print('years_low2=', np.size(years[np.where(maxMLD_seasonal<np.min(maxMLD_seasonal) + 2*maxMLDstd)]))
-    #print('years_high=', years_high)
     #print('years_high1.5=', years[np.where(maxMLD_seasonal>=np.max(maxMLD_seasonal) - 1.5*maxMLDstd)])
     #print('years_high2=', years[np.where(maxMLD_seasonal>=np.max(maxMLD_seasonal) - 2*maxMLDstd)])
 

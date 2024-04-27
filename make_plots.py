@@ -10,6 +10,7 @@ import cartopy.crs as ccrs
 from cartopy.util import add_cyclic_point
 import matplotlib.ticker as mticker
 import cmocean
+import copy
 
 from common_functions import add_land_lakes_coastline
 
@@ -44,7 +45,10 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     if fld is not None:
         [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
         sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-        cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
+        if cindices is not None:
+            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
+        else:
+            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5)
         cbar.ax.tick_params(labelsize=16, labelcolor='black')
         cbar.set_label(cbarLabel, fontsize=14)
     else:
@@ -101,22 +105,22 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
 
 
 def _make_discrete_colormap(colormap, colorindices, colorlevels):
-    colormap0 = colormap
-    colorindices0 = colorindices
-    if len(colorlevels)+1 == len(colorindices0):
-        # we have 2 extra values for the under/over so make the colormap
-        # without these values
-        underColor = colormap0(colorindices0[0])
-        overColor = colormap0(colorindices0[-1])
-        colorIndices = colorindices0[1:-1]
-    else:
-        colorindices = colorindices0
-        underColor = None
-        overColor = None
-    colormap = cols.ListedColormap(colormap0(colorindices))
-    if underColor is not None:
-        colormap.set_under(underColor)
-    if overColor is not None:
-        colormap.set_over(overColor)
+    if colorindices is not None:
+        colorindices0 = colorindices
+        if len(colorlevels)+1 == len(colorindices0):
+            # we have 2 extra values for the under/over so make the colormap
+            # without these values
+            colorindices = colorindices0[1:-1]
+            underColor = colormap(colorindices0[0])
+            overColor = colormap(colorindices0[-1])
+        else:
+            colorindices = colorindices0
+            underColor = None
+            overColor = None
+        colormap = cols.ListedColormap(colormap(colorindices))
+        if underColor is not None:
+            colormap.set_under(underColor)
+        if overColor is not None:
+            colormap.set_over(overColor)
     colornorm = mpl.colors.BoundaryNorm(colorlevels, colormap.N)
     return [colormap, colornorm]
