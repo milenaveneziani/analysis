@@ -40,22 +40,30 @@ earthRadius = 6367.44
 #modeldir = f'/p/work/milena/analysis/E3SMv2.1B60to10rA02/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
 
 ####### Settings for nersc
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/gimsoy_to_GreenlandShelf.geojson'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticTransectsFramToBeaufortEast20230901.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_gimsoy_to_GreenlandShelf.nc'
 #casename = 'E3SMv2.1B60to10rA02'
+casename = 'E3SM-Arcticv2.1_historical0101'
 #climoyearStart = 191
 #climoyearEnd = 200
+climoyearStart = 2001
+climoyearEnd = 2014
+climoyearStart = 1980
+climoyearEnd = 2000
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
+#casename = '20220715.submeso.piControl.ne30pg2_EC30to60E2r2.chrysalis'
+#climoyearStart = 50
+#climoyearEnd = 59
 #modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
-casename = '20220715.submeso.piControl.ne30pg2_EC30to60E2r2.chrysalis'
-climoyearStart = 50
-climoyearEnd = 59
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/monthlyClimos/years{climoyearStart}-{climoyearEnd}'
 
-months = [3, 6, 7, 8, 9, 10, 11, 12]
-months = [3, 8, 9, 12]
+#months = [3, 6, 7, 8, 9, 10, 11, 12]
+#months = [3, 8, 9, 12]
+months = [3, 8]
 
 transectNames = ['all']
 #transectNames = ['Smith Bay - Beaufort Shelf West', 'Kaktovik - Beaufort Shelf Central', 'Mackenzie Shelf - Beaufort Shelf Central', 'Banks Island - Beaufort Shelf East']
@@ -67,7 +75,8 @@ transectNames = ['all']
 ##transectNames = ['Barents Sea Opening', 'Bering Strait', 'Davis Strait',
 ##                 'Denmark Strait', 'Fram Strait', 'Iceland-Faroe-Scotland']
 ##transectNames = ['OSNAP section East', 'OSNAP section West']
-zmaxUpperPanel = 100.0
+#zmaxUpperPanel = 100.0
+zmaxUpperPanel = 10000.0
 
 figdir = './verticalSections/{}'.format(casename)
 if not os.path.isdir(figdir):
@@ -86,8 +95,9 @@ figdpi = 300
 colorIndices0 = [0, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 250, 255]
 #clevelsT = [-2.0, -1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10., 12.]
 #clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 34.0, 34.5, 34.8, 34.85, 34.9, 34.95, 35.0, 35.5]
-clevelsT = [-1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
-clevelsS = [32.0, 33.0, 33.5, 34.0, 34.5, 34.7, 34.8, 34.82, 34.85, 34.87, 34.9, 34.95, 35.0]
+clevelsT = [-1.8, -1.5, -1.2, -1.0, -0.8, -0.5, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+clevelsS = [32.2, 33.0, 33.5, 34.0, 34.5, 34.7, 34.8, 34.85, 34.95, 35.05, 35.075, 35.1, 35.2]
+clevelsSigma3 = [41.3, 41.5, 41.6, 41.7, 41.8, 41.9, 41.95, 41.96, 41.97, 41.98, 41.99, 42.00, 42.01]
 # Better for OSNAP:
 #clevelsT = [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]
 #clevelsS = [31.0, 33.0, 33.5, 33.8, 34.2, 34.6, 34.8, 34.85, 34.9, 34.95, 35.0, 35.2, 35.5]
@@ -95,49 +105,73 @@ clevelsV = [-0.25, -0.2, -0.15, -0.1, -0.02, 0.0, 0.02, 0.1, 0.2, 0.3, 0.5]
 #colormapT = plt.get_cmap('RdBu_r')
 colormapT = cmocean.cm.thermal
 colormapS = cmocean.cm.haline
+colormapSigma3 = cmocean.cm.delta
 colormapV = plt.get_cmap('RdBu_r')
 #colormapV = cmocean.cm.balance
 #
-underColor = colormapT(colorIndices0[0])
-overColor = colormapT(colorIndices0[-1])
 if len(clevelsT) + 1 == len(colorIndices0):
     # we have 2 extra values for the under/over so make the colormap
     # without these values
+    underColor = colormapT(colorIndices0[0])
+    overColor = colormapT(colorIndices0[-1])
     colorIndices = colorIndices0[1:-1]
-elif len(clevelsT) - 1 != len(colorIndices0):
-    # indices list must be either one element shorter
-    # or one element longer than colorbarLevels list
-    raise ValueError('length mismatch between indices and '
-                     'T colorbarLevels')
+else:
+    colorIndices = colorIndices0
+    underColor = None
+    overColor = None
 colormapT = cols.ListedColormap(colormapT(colorIndices))
-colormapT.set_under(underColor)
-colormapT.set_over(overColor)
-underColor = colormapS(colorIndices0[0])
-overColor = colormapS(colorIndices0[-1])
+if underColor is not None:
+    colormapT.set_under(underColor)
+if overColor is not None:
+    colormapT.set_over(overColor)
+#
 if len(clevelsS) + 1 == len(colorIndices0):
     # we have 2 extra values for the under/over so make the colormap
     # without these values
+    underColor = colormapS(colorIndices0[0])
+    overColor = colormapS(colorIndices0[-1])
     colorIndices = colorIndices0[1:-1]
-elif len(clevelsS) - 1 != len(colorIndices0):
-    # indices list must be either one element shorter
-    # or one element longer than colorbarLevels list
-    raise ValueError('length mismatch between indices and '
-                     'S colorbarLevels')
+else:
+    colorIndices = colorIndices0
+    underColor = None
+    overColor = None
 colormapS = cols.ListedColormap(colormapS(colorIndices))
-colormapS.set_under(underColor)
-colormapS.set_over(overColor)
+if underColor is not None:
+    colormapS.set_under(underColor)
+if overColor is not None:
+    colormapS.set_over(overColor)
+#
+if len(clevelsSigma3) + 1 == len(colorIndices0):
+    # we have 2 extra values for the under/over so make the colormap
+    # without these values
+    underColor = colormapSigma3(colorIndices0[0])
+    overColor = colormapSigma3(colorIndices0[-1])
+    colorIndices = colorIndices0[1:-1]
+else:
+    colorIndices = colorIndices0
+    underColor = None
+    overColor = None
+colormapSigma3 = cols.ListedColormap(colormapSigma3(colorIndices))
+if underColor is not None:
+    colormapSigma3.set_under(underColor)
+if overColor is not None:
+    colormapSigma3.set_over(overColor)
+#
 colormapV = cols.ListedColormap(colormapV(colorIndices))
 #
 cnormT = mpl.colors.BoundaryNorm(clevelsT, colormapT.N)
 cnormS = mpl.colors.BoundaryNorm(clevelsS, colormapS.N)
+cnormSigma3 = mpl.colors.BoundaryNorm(clevelsSigma3, colormapSigma3.N)
 cnormV = mpl.colors.BoundaryNorm(clevelsV, colormapV.N)
 
 #sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
 sigma2contours = None
 #sigma0contours = np.arange(26.0, 28.0, 0.2) # Good for OSNAP, but not for all arcticSections
 #sigma0contours = [24.0, 25.0, 26.0, 27.0, 27.2, 27.4, 27.6, 27.8, 28.0]
-sigma0contours = [24.0, 24.5, 25.0, 26.0, 27.0, 27.8, 28.0]
-#sigma0contours = None
+#sigma0contours = [24.0, 24.5, 25.0, 26.0, 27.0, 27.8, 28.0]
+sigma0contours = None
+sigma3contours = [40.6, 41.3, 41.5, 41.6, 41.7, 41.8, 41.9, 41.95, 41.96, 41.97, 41.98, 41.99, 42.00, 42.01]
+#sigma3contours = None
 
 # Load in MPAS mesh and transect mask file
 mesh = xr.open_dataset(meshfile)
@@ -302,8 +336,9 @@ for n in range(nTransects):
         # Compute sigma's
         SA = gsw.SA_from_SP(salt, pressure[np.newaxis, :], lonmean, latmean)
         CT = gsw.CT_from_pt(SA, temp)
-        sigma2 = gsw.density.sigma2(SA, CT)
         sigma0 = gsw.density.sigma0(SA, CT)
+        sigma2 = gsw.density.sigma2(SA, CT)
+        sigma3 = gsw.density.sigma3(SA, CT)
 
         zmax = z[np.max(maxLevelEdge)]
 
@@ -335,19 +370,24 @@ for n in range(nTransects):
             cbar = fig.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
             cbar.ax.tick_params(labelsize=12, labelcolor='black')
             cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
-            if sigma2contours is not None:
-                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
             if sigma0contours is not None:
                 cs = ax[0].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
                 cs = ax[1].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma2contours is not None:
+                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma3contours is not None:
+                cs = ax[0].contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
             add_inset(fig, fc, width=1.2, height=1.2, xbuffer=-0.8, ybuffer=0.4)
         else:
-            figsize = (12, 6)
+            figsize = (15, 6)
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot()
             cf = ax.contourf(x, y, temp, cmap=colormapT, norm=cnormT, levels=clevelsT, extend='both')
@@ -365,12 +405,15 @@ for n in range(nTransects):
             cbar = plt.colorbar(cf, cax=cax, ticks=clevelsT, boundaries=clevelsT, **kw)
             cbar.ax.tick_params(labelsize=12, labelcolor='black')
             cbar.set_label('C$^\circ$', fontsize=12, fontweight='bold')
-            if sigma2contours is not None:
-                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
             if sigma0contours is not None:
                 cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma2contours is not None:
+                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma3contours is not None:
+                cs = ax.contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
             add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.7, ybuffer=0.4)
         plt.savefig(figfile, dpi=figdpi, bbox_inches='tight')
         plt.close()
@@ -402,19 +445,24 @@ for n in range(nTransects):
             cbar = fig.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
             cbar.ax.tick_params(labelsize=12, labelcolor='black')
             cbar.set_label('psu', fontsize=12, fontweight='bold')
-            if sigma2contours is not None:
-                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
-                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
             if sigma0contours is not None:
                 cs = ax[0].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
                 cs = ax[1].contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma2contours is not None:
+                cs = ax[0].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma3contours is not None:
+                cs = ax[0].contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
+                cs = ax[1].contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
             add_inset(fig, fc, width=1.2, height=1.2, xbuffer=-0.8, ybuffer=0.4)
         else:
-            figsize = (12, 6)
+            figsize = (15, 6)
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot()
             cf = ax.contourf(x, y, salt, cmap=colormapS, norm=cnormS, levels=clevelsS, extend='both')
@@ -432,13 +480,41 @@ for n in range(nTransects):
             cbar = plt.colorbar(cf, cax=cax, ticks=clevelsS, boundaries=clevelsS, **kw)
             cbar.ax.tick_params(labelsize=12, labelcolor='black')
             cbar.set_label('psu$', fontsize=12, fontweight='bold')
-            if sigma2contours is not None:
-                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
-                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
             if sigma0contours is not None:
                 cs = ax.contour(x, y, sigma0, sigma0contours, colors='k', linewidths=1.5)
                 cb = plt.clabel(cs, levels=sigma0contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma2contours is not None:
+                cs = ax.contour(x, y, sigma2, sigma2contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma2contours, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+            if sigma3contours is not None:
+                cs = ax.contour(x, y, sigma3, sigma3contours, colors='k', linewidths=1.5)
+                cb = plt.clabel(cs, levels=sigma3contours, inline=True, inline_spacing=2, fmt='%3.2f', fontsize=9)
             add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.7, ybuffer=0.4)
+        plt.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+        plt.close()
+
+        #  then Sigma3
+        figtitle = f'Potential density sigma3 ({transectName}), {casename} (month={m}, years={climoyearStart}-{climoyearEnd})'
+        figfile = f'{figdir}/sigma3_{tname}_{casename}_{m:02d}_years{climoyearStart:04d}-{climoyearEnd:04d}.png'
+        figsize = (15, 6)
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot()
+        cf = ax.contourf(x, y, sigma3, cmap=colormapSigma3, norm=cnormSigma3, levels=clevelsSigma3, extend='both')
+        ax.set_ylim(0, zmax)
+        ax.set_facecolor('darkgrey')
+        ax.invert_yaxis()
+        ax.set_xlabel('Distance (km)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Depth (m)', fontsize=12, fontweight='bold')
+        ax.set_title(figtitle, fontsize=12, fontweight='bold')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[0]), xy=(0, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[0]), xy=(0, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lat={:5.2f}'.format(180.0/np.pi*latEdges[-1]), xy=(1, -0.1), xycoords='axes fraction', ha='center', va='bottom')
+        ax.annotate('lon={:5.2f}'.format(180.0/np.pi*lonEdges[-1]), xy=(1, -0.15), xycoords='axes fraction', ha='center', va='bottom')
+        cax, kw = mpl.colorbar.make_axes(ax, location='right', pad=0.05, shrink=0.9)
+        cbar = plt.colorbar(cf, cax=cax, ticks=clevelsSigma3, boundaries=clevelsSigma3, **kw)
+        cbar.ax.tick_params(labelsize=12, labelcolor='black')
+        cbar.set_label('kg/m$^3$', fontsize=12, fontweight='bold')
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.7, ybuffer=0.4)
         plt.savefig(figfile, dpi=figdpi, bbox_inches='tight')
         plt.close()
 
