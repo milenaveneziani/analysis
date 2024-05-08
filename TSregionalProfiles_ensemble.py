@@ -27,18 +27,18 @@ colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'teal'] # 
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
 regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_regions_detailed.nc'
-regionName = 'Barents Sea'
+#regionName = 'Barents Sea'
 #regionName = 'Eurasian Basin'
-#regionName = 'Canada Basin'
+regionName = 'Canada Basin'
 #regionName = 'Kara Sea'
 #regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 
 # relevant if plotClimos=True
-#climoyearStart = 2000
-#climoyearEnd = 2014
-climoyearStart = 1950
-climoyearEnd = 1970
+climoyearStart = 2000
+climoyearEnd = 2014
+#climoyearStart = 1950
+#climoyearEnd = 1970
 # seasons options: '01'-'12', 'ANN', 'JFM', 'JAS', 'MAJ', 'OND'
 # (depending on what was set in mpas-analysis)
 seasons = ['02', '08']

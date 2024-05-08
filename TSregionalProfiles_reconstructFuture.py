@@ -13,7 +13,10 @@ import gsw
 seasons = [2, 8]
 
 # Barents Sea
-lonMean = 42.5
+#lonMean = 42.5
+#latMean = 75
+# Canada Basin
+lonMean = -142.5
 latMean = 75
 
 figdir = f'./TSprofiles/E3SM-Arcticv2.1_historical'
@@ -66,12 +69,18 @@ for season in seasons:
         tick.set_weight('bold')
     ax_Cprofile.yaxis.get_offset_text().set_fontsize(fontsize_smallLabels)
     ax_Cprofile.yaxis.get_offset_text().set_weight('bold')
-    Tfigtitle = f'Temperature (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
-    Tfigfile = f'{figdir}/TprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
-    Sfigtitle = f'Salinity (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
-    Sfigfile = f'{figdir}/SprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
-    Cfigtitle = f'Sound speed (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
-    Cfigfile = f'{figdir}/CprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    #Tfigtitle = f'Temperature (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
+    #Tfigfile = f'{figdir}/TprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    #Sfigtitle = f'Salinity (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
+    #Sfigfile = f'{figdir}/SprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    #Cfigtitle = f'Sound speed (Barents Sea)\n{season:02d} - years 2031-2050 (reconstructed)'
+    #Cfigfile = f'{figdir}/CprofileBarentsSea_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    Tfigtitle = f'Temperature (Canada Basin)\n{season:02d} - years 2031-2050 (reconstructed)'
+    Tfigfile = f'{figdir}/TprofileCanadaBasin_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    Sfigtitle = f'Salinity (Canada Basin)\n{season:02d} - years 2031-2050 (reconstructed)'
+    Sfigfile = f'{figdir}/SprofileCanadaBasin_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
+    Cfigtitle = f'Sound speed (Canada Basin)\n{season:02d} - years 2031-2050 (reconstructed)'
+    Cfigfile = f'{figdir}/CprofileCanadaBasin_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.png'
 
     ax_Tprofile.set_xlabel('Temperature ($^\circ$C)', fontsize=fontsize_labels, fontweight='bold')
     ax_Tprofile.set_ylabel('Depth (m)', fontsize=fontsize_labels, fontweight='bold')
@@ -91,11 +100,16 @@ for season in seasons:
     #ax_Cprofile.set_xlim(1430., 1470.)
     ax_Cprofile.set_ylim(-500, 0)
 
-    infileE3SM0 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years1950-1970.nc'
-    infileE3SM1 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2000-2014.nc'
-    infileHighresMIP0 = f'./TSprofiles_data/HighresMIP/hist-1950/BarentsSea_profiles_HighresMIP_hist-1950_{season:02d}_years1950-1970.nc'
-    infileHighresMIP1 = f'./TSprofiles_data/HighresMIP/hist-1950/BarentsSea_profiles_HighresMIP_hist-1950_{season:02d}_years2000-2014.nc'
-    infileHighresMIP2 = f'./TSprofiles_data/HighresMIP/highres-future/BarentsSea_profiles_HighresMIP_highres-future_{season:02d}_years2031-2050.nc'
+    #infileE3SM0 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years1950-1970.nc'
+    #infileE3SM1 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2000-2014.nc'
+    #infileHighresMIP0 = f'./TSprofiles_data/HighresMIP/hist-1950/BarentsSea_profiles_HighresMIP_hist-1950_{season:02d}_years1950-1970.nc'
+    #infileHighresMIP1 = f'./TSprofiles_data/HighresMIP/hist-1950/BarentsSea_profiles_HighresMIP_hist-1950_{season:02d}_years2000-2014.nc'
+    #infileHighresMIP2 = f'./TSprofiles_data/HighresMIP/highres-future/BarentsSea_profiles_HighresMIP_highres-future_{season:02d}_years2031-2050.nc'
+    infileE3SM0 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/CanadaBasin_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years1950-1970.nc'
+    infileE3SM1 = f'./TSprofiles_data/E3SM-Arcticv2.1_historical/0151/CanadaBasin_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2000-2014.nc'
+    infileHighresMIP0 = f'./TSprofiles_data/HighresMIP/hist-1950/CanadaBasin_profiles_HighresMIP_hist-1950_{season:02d}_years1950-1970.nc'
+    infileHighresMIP1 = f'./TSprofiles_data/HighresMIP/hist-1950/CanadaBasin_profiles_HighresMIP_hist-1950_{season:02d}_years2000-2014.nc'
+    infileHighresMIP2 = f'./TSprofiles_data/HighresMIP/highres-future/CanadaBasin_profiles_HighresMIP_highres-future_{season:02d}_years2031-2050.nc'
     dsE3SM0 = xr.open_dataset(infileE3SM0)
     dsE3SM1 = xr.open_dataset(infileE3SM1)
     dsHighresMIP0 = xr.open_dataset(infileHighresMIP0)
@@ -146,7 +160,8 @@ for season in seasons:
     SA = gsw.conversions.SA_from_SP(SE3SMssp, pres, lonMean, latMean)
     CT = gsw.conversions.CT_from_pt(SA, TE3SMssp)
     soundspeedE3SMssp = gsw.sound_speed(SA, CT, pres)
-    outfile = f'{outdir}/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.nc'
+    #outfile = f'{outdir}/BarentsSea_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.nc'
+    outfile = f'{outdir}/CanadaBasin_profiles_E3SM-Arcticv2.1_historical0151_{season:02d}_years2031-2050_reconstructed.nc'
     dsOut = xr.Dataset()
     dsOut['Tprofile'] = TE3SMssp
     dsOut['Tprofile'].attrs['units'] = 'degC'
