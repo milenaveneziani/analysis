@@ -39,21 +39,32 @@ import matplotlib.ticker as mticker
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
-featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+##featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
 #casename = 'GM600_Redi600'
 #casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
 #modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_greaterArctic04082024.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions.nc'
-casenameFull = 'E3SM-Arcticv2.1_historical0151'
-casename = 'E3SM-Arcticv2.1_historical0151'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SM-Arcticv2.1_historical0151'
+#casename = 'E3SM-Arcticv2.1_historical0151'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+
+# Settings for erdc.hpc.mil
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_NH.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
+regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
 
 regionNames = ['all']
 #regionNames = ['Greater Arctic']
@@ -61,12 +72,12 @@ regionNames = ['all']
 #regionNames = ['North Atlantic subtropical gyre']
 
 # Choose years
-year1 = 1950
-year2 = 1955
+#year1 = 1950
+#year2 = 1955
 #year2 = 2014
-#year1 = 1
-#year2 = 65
-#year2 = 500
+year1 = 1
+#year2 = 5
+year2 = 386
 years = range(year1, year2+1)
 
 referenceDate = '0001-01-01'
@@ -320,16 +331,14 @@ for n in range(nRegions):
                 # Compute layer thickness tendencies
                 if 'timeMonthly_avg_tendLayerThickness' in ds.keys():
                    layerThickTend = ds.timeMonthly_avg_tendLayerThickness.isel(Time=0).where(cellMask, drop=True)
+                   layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
                    layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
-                   #layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
-                   #layerThick[ktime] = (layerThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no layer thickness tendency variable found')
                 if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
                    frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
-                   frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
-                   #frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
-                   #frazilThick[ktime] = (frazilThickTend.sum(dim='nVertLevels', skipna=True) * regionArea).sum(dim='nCells').values
+                   frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
+                   #frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
                 else:
                    raise KeyError('no frazil layer thickness tendency variable found')
                 t3 = time.time()
@@ -412,7 +421,8 @@ for n in range(nRegions):
     thickTend = ncid.variables['thicknessTendency'][:]
     frazilTend = ncid.variables['frazilTendency'][:]
     ncid.close()
-    res = thickTend - (volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux)
+    tot = volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
+    res = thickTend - tot
 
     # Compute running averages
     if movingAverageMonths!=1:
@@ -427,6 +437,7 @@ for n in range(nRegions):
         thickTend_runavg = pd.Series(thickTend).rolling(window, center=True).mean()
         frazilTend_runavg = pd.Series(frazilTend).rolling(window, center=True).mean()
         res_runavg = pd.Series(res).rolling(window, center=True).mean()
+        tot_runavg = pd.Series(tot).rolling(window, center=True).mean()
 
     # Compute long-term means
     volNetLateralFluxMean = np.mean(volNetLateralFlux)
@@ -441,6 +452,7 @@ for n in range(nRegions):
     frazilTendMean = np.mean(frazilTend)
     thickTendMean = np.mean(thickTend)
     resMean = np.mean(res)
+    totMean = np.mean(tot)
 
     figdpi = 300
     figsize = (16, 16)
@@ -509,7 +521,7 @@ for n in range(nRegions):
     ax[2, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[2, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
     ax[3, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
-    ax[3, 1].set_title(f'mean={frazilTendMean:.2e} (already in thickTend)', fontsize=14, fontweight='bold')
+    ax[3, 1].set_title(f'mean={frazilTendMean:.2e}', fontsize=14, fontweight='bold')
     ax[4, 0].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
     ax[4, 1].set_title(f'mean={resMean:.2e}', fontsize=16, fontweight='bold')
 
@@ -525,7 +537,7 @@ for n in range(nRegions):
     ax[3, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
     ax[3, 1].set_ylabel('Frazil thickness tend (Sv)', fontsize=12, fontweight='bold')
     ax[4, 0].set_ylabel('Layer thickness tend (Sv)', fontsize=12, fontweight='bold')
-    ax[4, 1].set_ylabel('Residual (Sv)', fontsize=12, fontweight='bold')
+    ax[4, 1].set_ylabel('Res=layerThickTend-sumAllTerms (Sv)', fontsize=12, fontweight='bold')
 
     fig.tight_layout(pad=0.5)
     fig.suptitle(f'Region = {regionName}, runname = {casename}', \

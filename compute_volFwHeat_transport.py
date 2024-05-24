@@ -49,7 +49,8 @@ maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections202209
 featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
 casenameFull = 'E3SMv2.1B60to10rA02'
 casename = 'E3SMv2.1B60to10rA02'
-modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
 
 # Choose years
 #year1 = 1950
