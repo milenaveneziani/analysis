@@ -19,11 +19,11 @@ plotMonthly = False
 if plotClimos==plotMonthly:
     raise ValueError('Variables plotClimos and plotMonthly cannot be identical')
 plotPHCWOA = True # only works for monthly seasons for now (one season at a  time)
-plotHighresMIP = True
+plotHighresMIP = False
 
 ensembleName = 'E3SM-Arcticv2.1_historical'
 ensembleMemberNames = ['0101', '0151', '0201', '0251', '0301']
-colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'teal'] # same length as ensembleMemberNames
+colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'green'] # same length as ensembleMemberNames
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
 regionmaskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_regions_detailed.nc'

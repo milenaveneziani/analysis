@@ -40,65 +40,117 @@ def _add_figure_panel(figsize, figdpi, figtitle, figylabel, xlim):
     return [fig, ax]
 
 
-figdir = 'E3SM-Arcticv2.1'
-maindir = '/global/cfs/cdirs/m1199/e3sm-arrm-simulations'
+figdir = 'E3SM-LRv2.1'
+#figdir = 'E3SM-Arcticv2.1'
+#figdir = 'E3SMv2.1B60to10rA02'
+#maindir = '/global/cfs/cdirs/m1199/e3sm-arrm-simulations'
+maindir = '/global/cfs/cdirs/m1199/E3SMv2.1-LR'
 simsToPlot = [
-               {'mocDatadir': f'{maindir}/E3SMv2.1B60to10rA02/mpas-analysis/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SMv2.1B60to10rA02/globalTS/atm/glb/ts/monthly/386yr',
-                'yearStart': 1,
-                'yearEnd':386,
-                'shiftyear': 0,
-                'label': '1950-control',
-                'color': 'k',
-                'linewidth': 1.2,
-                'alpha': 1},
-               {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/mpas-analysis/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/globalTS/atm/glb/ts/monthly/65yr',
-                'yearStart': 1950,
+              # {'mocDatadir': f'{maindir}/E3SMv2.1B60to10rA02/mpas-analysis/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SMv2.1B60to10rA02/mpas-analysis/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SMv2.1B60to10rA02/globalTS/ocn/glb/ts/monthly/386yr',
+              #  'atmDatadir': f'{maindir}/E3SMv2.1B60to10rA02/globalTS/atm/glb/ts/monthly/386yr',
+              #  'yearStart': 1,
+              #  'yearEnd':386,
+              #  'shiftyear': 0,
+              #  'label': '1950-control',
+              #  'color': 'k',
+              #  'linewidth': 1.2,
+              #  'alpha': 1}
+              ##  'alpha': 1},
+              # {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/mpas-analysis/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/mpas-analysis/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/globalTS/ocn/glb/ts/monthly/65yr',
+              #  'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0101/globalTS/atm/glb/ts/monthly/65yr',
+               {'mocDatadir': f'{maindir}/v2_1.LR.historical_0101/post/ocn/glb/ts/monthly/5yr',
+                'iceDatadir': f'{maindir}/v2_1.LR.historical_0101/post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/timeseries',
+                'ocnDatadir': f'{maindir}/v2_1.LR.historical_0101/post/ocn/glb/ts/monthly/165yr',
+                'atmDatadir': f'{maindir}/v2_1.LR.historical_0101/post/atm/glb/ts/monthly/165yr',
+              #  'yearStart': 1950,
+                'yearStart': 1850,
                 'yearEnd':2014,
-                'shiftyear': 101,
+              #  'shiftyear': 101,
+              #  'shiftyear': 1950,
+                'shiftyear': 1850,
                 'label': 'hist 101',
                 'color': 'mediumblue',
-                'linewidth': 2,
+                'linewidth': 1.2,
                 'alpha': 0.6},
-               {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/mpas-analysis/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/globalTS/atm/glb/ts/monthly/65yr',
-                'yearStart': 1950,
+              # {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/mpas-analysis/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/mpas-analysis/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/globalTS/ocn/glb/ts/monthly/65yr',
+              #  'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0151/globalTS/atm/glb/ts/monthly/65yr',
+               {'mocDatadir': f'{maindir}/v2_1.LR.historical_0151/post/ocn/glb/ts/monthly/5yr',
+                'iceDatadir': f'{maindir}/v2_1.LR.historical_0151/post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/timeseries',
+                'ocnDatadir': f'{maindir}/v2_1.LR.historical_0151/post/ocn/glb/ts/monthly/165yr',
+                'atmDatadir': f'{maindir}/v2_1.LR.historical_0151/post/atm/glb/ts/monthly/165yr',
+              #  'yearStart': 1950,
+                'yearStart': 1850,
                 'yearEnd':2014,
-                'shiftyear': 151,
+              #  'shiftyear': 151,
+              #  'shiftyear': 1950,
+                'shiftyear': 1850,
                 'label': 'hist 151',
                 'color': 'dodgerblue',
-                'linewidth': 2,
+                'linewidth': 1.2,
                 'alpha': 0.6},
-               {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/mpas-analysis/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/globalTS/atm/glb/ts/monthly/65yr',
-                'yearStart': 1950,
+              # {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/mpas-analysis/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/mpas-analysis/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/globalTS/ocn/glb/ts/monthly/65yr',
+              #  'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0201/globalTS/atm/glb/ts/monthly/65yr',
+               {'mocDatadir': f'{maindir}/v2_1.LR.historical_0201/post/ocn/glb/ts/monthly/5yr',
+                'iceDatadir': f'{maindir}/v2_1.LR.historical_0201/post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/timeseries',
+                'ocnDatadir': f'{maindir}/v2_1.LR.historical_0201/post/ocn/glb/ts/monthly/165yr',
+                'atmDatadir': f'{maindir}/v2_1.LR.historical_0201/post/atm/glb/ts/monthly/165yr',
+              #  'yearStart': 1950,
+                'yearStart': 1850,
                 'yearEnd':2014,
-                'shiftyear': 201,
+              #  'shiftyear': 201,
+              #  'shiftyear': 1950,
+                'shiftyear': 1850,
                 'label': 'hist 201',
                 'color': 'deepskyblue',
-                'linewidth': 2,
+                'linewidth': 1.2,
                 'alpha': 0.6},
-               {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/mpas_analysis_output/yrs2000-2014/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/globalTS/atm/glb/ts/monthly/65yr',
-                'yearStart': 1950,
+              # {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/mpas_analysis_output/yrs2000-2014/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/mpas_analysis_output/yrs2000-2014/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/globalTS/ocn/glb/ts/monthly/65yr',
+              #  'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0251/globalTS/atm/glb/ts/monthly/65yr',
+               {'mocDatadir': f'{maindir}/v2_1.LR.historical_0251/post/ocn/glb/ts/monthly/5yr',
+                'iceDatadir': f'{maindir}/v2_1.LR.historical_0251/post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/timeseries',
+                'ocnDatadir': f'{maindir}/v2_1.LR.historical_0251/post/ocn/glb/ts/monthly/165yr',
+                'atmDatadir': f'{maindir}/v2_1.LR.historical_0251/post/atm/glb/ts/monthly/165yr',
+              #  'yearStart': 1950,
+                'yearStart': 1850,
                 'yearEnd':2014,
-                'shiftyear': 251,
+              #  'shiftyear': 251,
+              #  'shiftyear': 1950,
+                'shiftyear': 1850,
                 'label': 'hist 251',
                 'color': 'lightseagreen',
-                'linewidth': 2,
+                'linewidth': 1.2,
                 'alpha': 0.6},
-               {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/mpas_analysis_output/yrs2000-2014/timeseries/moc',
-                'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/globalTS/atm/glb/ts/monthly/65yr',
-                'yearStart': 1950,
+              # {'mocDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/mpas_analysis_output/yrs2000-2014/timeseries/moc',
+              #  'iceDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/mpas_analysis_output/yrs2000-2014/timeseries',
+              #  'ocnDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/globalTS/ocn/glb/ts/monthly/65yr',
+              #  'atmDatadir': f'{maindir}/E3SM-Arcticv2.1_historical0301/globalTS/atm/glb/ts/monthly/65yr',
+               {'mocDatadir': f'{maindir}/v2_1.LR.historical_0301/post/ocn/glb/ts/monthly/5yr',
+                'iceDatadir': f'{maindir}/v2_1.LR.historical_0301/post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/timeseries',
+                'ocnDatadir': f'{maindir}/v2_1.LR.historical_0301/post/ocn/glb/ts/monthly/165yr',
+                'atmDatadir': f'{maindir}/v2_1.LR.historical_0301/post/atm/glb/ts/monthly/165yr',
+              #  'yearStart': 1950,
+                'yearStart': 1850,
                 'yearEnd':2014,
-                'shiftyear': 301,
+              #  'shiftyear': 301,
+              #  'shiftyear': 1950,
+                'shiftyear': 1850,
                 'label': 'hist 301',
                 'color': 'green',
-                'linewidth': 2,
+                'linewidth': 1.2,
                 'alpha': 0.6}
             ]
 
+plotEnsembleMean = True # Turn this off if plotting a PI or 1950 control on top of the ensemble
 movingAverageMonths = 12 # months
 ##############################################################
 figdir = f'./timeseries/{figdir}'
@@ -116,20 +168,43 @@ legend_properties = {'size':fontsize_smallLabels, 'weight':'bold'}
 figfile_moc = f'{figdir}/moc26.png'
 figtitle = f'Max MOC at 26N ({int(movingAverageMonths/12)}-year running avg)'
 figylabel = 'Sv'
-[fig_moc, ax_moc] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+[fig_moc, ax_moc] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [1950, 2014])
+#[fig_moc, ax_moc] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
 
 figfile_restom = f'{figdir}/restom.png'
 figtitle = f'Top of the atmosphere energy budget ({int(movingAverageMonths/12)}-year running avg)'
 figylabel = 'W/m$^2$'
-[fig_restom, ax_restom] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+[fig_restom, ax_restom] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [1950, 2014])
+#[fig_restom, ax_restom] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
 
 figfile_ts = f'{figdir}/ts.png'
 figtitle = f'Global surface temperature ({int(movingAverageMonths/12)}-year running avg)'
 figylabel = 'K'
-[fig_ts, ax_ts] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+[fig_ts, ax_ts] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [1950, 2014])
+#[fig_ts, ax_ts] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+
+figfile_ohc = f'{figdir}/ohc.png'
+figtitle = f'Global ocean heat content ({int(movingAverageMonths/12)}-year running avg)'
+figylabel = 'J'
+[fig_ohc, ax_ohc] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [1950, 2014])
+#[fig_ohc, ax_ohc] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+
+figfile_ice = f'{figdir}/iceVolume.png'
+figtitle = f'Northern Hemisphere integrated ice volume ({int(movingAverageMonths/12)}-year running avg)'
+figylabel = 'm$^3$'
+[fig_ice, ax_ice] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [1950, 2015])
+#[fig_ice, ax_ice] = _add_figure_panel(figsize, figdpi, figtitle, figylabel, [0, 386])
+
+moc26_ensembleMean = 0.0
+restom_ensembleMean = 0.0
+ohc_ensembleMean = 0.0
+iceVol_ensembleMean = 0.0
+ts_ensembleMean = 0.0
 
 for sim in simsToPlot:
     mocindir = sim['mocDatadir']
+    iceindir = sim['iceDatadir']
+    ocnindir = sim['ocnDatadir']
     atmindir = sim['atmDatadir']
     yearStart = sim['yearStart']
     yearEnd = sim['yearEnd']
@@ -148,6 +223,7 @@ for sim in simsToPlot:
     if movingAverageMonths!=1:
         window = int(movingAverageMonths)
         moc26 = pd.Series(moc26).rolling(window, center=True).mean()
+    moc26_ensembleMean = moc26_ensembleMean + moc26.values
     kmonths = len(moc26.values)
     time = np.arange(kmonths)/12 + shiftyear
     # The following doesn't work. Honestly, I don't know why python handles times so weirdly..
@@ -162,40 +238,95 @@ for sim in simsToPlot:
 
     infile = f'{atmindir}/FSNT_{yearStart:04d}01_{yearEnd:04d}12.nc'
     if os.path.exists(infile):
-        dsFSNT = xr.open_dataset(infile).isel(rgn=0)
+        dsFSNT = xr.open_dataset(infile) # older global time series diag did not include other regions
+        #dsFSNT = xr.open_dataset(infile).isel(rgn=0)
     else:
         raise IOError(f'FSNT file {infile} not found')
     infile = f'{atmindir}/FLNT_{yearStart:04d}01_{yearEnd:04d}12.nc'
     if os.path.exists(infile):
-        dsFLNT = xr.open_dataset(infile).isel(rgn=0)
+        dsFLNT = xr.open_dataset(infile) # older global time series diag did not include other regions
+        #dsFLNT = xr.open_dataset(infile).isel(rgn=0)
     else:
         raise IOError(f'FLNT file {infile} not found')
     restom = dsFSNT.FSNT - dsFLNT.FLNT
     if movingAverageMonths!=1:
         window = int(movingAverageMonths)
         restom = pd.Series(restom).rolling(window, center=True).mean()
+    restom_ensembleMean = restom_ensembleMean + restom.values
     ax_restom.plot(time, restom, '-', color=linecolor, alpha=linealpha, linewidth=linewidth, label=legendlabel)
 
     infile = f'{atmindir}/TS_{yearStart:04d}01_{yearEnd:04d}12.nc'
     if os.path.exists(infile):
-        dsTS = xr.open_dataset(infile).isel(rgn=0)
+        dsTS = xr.open_dataset(infile) # older global time series diag did not include other regions
+        #dsTS = xr.open_dataset(infile).isel(rgn=0)
     else:
         raise IOError(f'TS file {infile} not found')
     ts = dsTS.TS
     if movingAverageMonths!=1:
         window = int(movingAverageMonths)
         ts = pd.Series(ts).rolling(window, center=True).mean()
+    ts_ensembleMean = ts_ensembleMean + ts.values
     ax_ts.plot(time, ts, '-', color=linecolor, alpha=linealpha, linewidth=linewidth, label=legendlabel)
 
+    infile = f'{ocnindir}/mpaso.glb.{yearStart:04d}01-{yearEnd:04d}12.nc'
+    if os.path.exists(infile):
+        dsOHC = xr.open_dataset(infile)
+    else:
+        raise IOError(f'OHC file {infile} not found')
+    ohc = dsOHC.ohc
+    if movingAverageMonths!=1:
+        window = int(movingAverageMonths)
+        ohc = pd.Series(ohc).rolling(window, center=True).mean()
+    ohc_ensembleMean = ohc_ensembleMean + ohc.values
+    ax_ohc.plot(time, ohc, '-', color=linecolor, alpha=linealpha, linewidth=linewidth, label=legendlabel)
+
+    infile = f'{iceindir}/seaIceAreaVolNH.nc'
+    if os.path.exists(infile):
+        dsIce = xr.open_dataset(infile)
+    else:
+        raise IOError(f'Sea ice file {infile} not found')
+    iceVol = dsIce.iceVolume
+    if movingAverageMonths!=1:
+        window = int(movingAverageMonths)
+        iceVol = pd.Series(iceVol).rolling(window, center=True).mean()
+    iceVol_ensembleMean = iceVol_ensembleMean + iceVol.values
+    ax_ice.plot(time, iceVol, '-', color=linecolor, alpha=linealpha, linewidth=linewidth, label=legendlabel)
+
+nsims = len(simsToPlot)
+
+moc26_ensembleMean = moc26_ensembleMean/nsims
+restom_ensembleMean = restom_ensembleMean/nsims
+ts_ensembleMean = ts_ensembleMean/nsims
+ohc_ensembleMean = ohc_ensembleMean/nsims
+iceVol_ensembleMean = iceVol_ensembleMean/nsims
+
+if plotEnsembleMean is True:
+    ax_moc.plot(time, moc26_ensembleMean, '-', color='black', alpha=1, linewidth=2, label='ensemble mean')
 ax_moc.legend(prop=legend_properties)
 #ax_moc.legend(prop=legend_properties, loc='lower left', bbox_to_anchor=(1, 0.5))
 fig_moc.savefig(figfile_moc, bbox_inches='tight')
 plt.close(fig_moc)
 
+if plotEnsembleMean is True:
+    ax_restom.plot(time, restom_ensembleMean, '-', color='black', alpha=1, linewidth=2, label='ensemble mean')
 ax_restom.legend(prop=legend_properties)
 fig_restom.savefig(figfile_restom, bbox_inches='tight')
 plt.close(fig_restom)
 
+if plotEnsembleMean is True:
+    ax_ts.plot(time, ts_ensembleMean, '-', color='black', alpha=1, linewidth=2, label='ensemble mean')
 ax_ts.legend(prop=legend_properties)
 fig_ts.savefig(figfile_ts, bbox_inches='tight')
 plt.close(fig_ts)
+
+if plotEnsembleMean is True:
+    ax_ohc.plot(time, ohc_ensembleMean, '-', color='black', alpha=1, linewidth=2, label='ensemble mean')
+ax_ohc.legend(prop=legend_properties)
+fig_ohc.savefig(figfile_ohc, bbox_inches='tight')
+plt.close(fig_ohc)
+
+if plotEnsembleMean is True:
+    ax_ice.plot(time, iceVol_ensembleMean, '-', color='black', alpha=1, linewidth=2, label='ensemble mean')
+ax_ice.legend(prop=legend_properties)
+fig_ice.savefig(figfile_ice, bbox_inches='tight')
+plt.close(fig_ice)
