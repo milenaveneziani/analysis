@@ -1,3 +1,12 @@
+#
+# This script does two things: 1) identifies years of anomalously high and low
+# convection in specific regions, based on seasonal maximum mixed layer depth
+# whose monthly values have been computed previously (and stored in maxMLDdir);
+# 2) computes composites of a number of variables (native MPAS fields or
+# processed quantities such as depth-averaged fields) based on the years
+# identified in 1).
+#
+
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 import os
@@ -22,7 +31,9 @@ plt.rc('font', weight='bold')
 #startYear = [1950]
 #endYear = [2014]
 startSimYear = 1
-#startYear = [1, 245]
+#startYear = [1]
+#endYear = [386]
+##startYear = [1, 245]
 startYear = [21, 245]
 endYear = [140, 386]
 years = np.arange(startYear[0], endYear[0] + 1)
@@ -35,21 +46,22 @@ referenceDate = '0001-01-01'
 #meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SM-Arcticv2.1_historical0151'
 ##runName = 'E3SMv2.1B60to10rA02'
+# Directories where fields for step 2) are stored:
 #rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}/archive'
 #postprocmaindir = rundir
 ## Note: the following two variables cannot be both True
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
-#isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
+#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+#isSingleVarFiles = False # if True 'archive/{modelComp}/singleVarFiles' will be affixed to rundir later on
 
 # Settings for erdc.hpc.mil
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 runName = 'E3SMv2.1B60to10rA02'
+# Directories where fields for step 2) are stored:
 #rundir = f'/p/archive/osinski/E3SM/{runName}'
-rundir = f'/p/work/milena/archive/{runName}'
-#postprocmaindir = f'/p/work/milena/archive/{runName}'
+rundir = f'/p/work/milena/{runName}'
 postprocmaindir = rundir
 # Note: the following two variables cannot be both True
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 isSingleVarFiles = False # if True '{modelComp}/singleVarFiles' will be affixed to rundir later on
  
 maxMLDdir = f'./timeseries_data/{runName}/maxMLD'
@@ -74,6 +86,7 @@ regions = ['Greenland Sea', 'Norwegian Sea']
 climoMonths = [1, 2, 3, 4] # JFMA
 titleClimoMonths = 'JFMA'
 
+# Fields relevant for step 2):
 # Choose either variables in timeSeriesStatsMonthly
 # or variables in timeSeriesStatsMonthlyMax (2d only) or
 # ice variables (2d only)
@@ -89,10 +102,10 @@ modelName = 'mpaso'
 #
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'velocityZonalDepthAvg',
-              'mpas': 'timeMonthly_avg_velocityZonal'},
-             {'name': 'velocityMeridionalDepthAvg',
-              'mpas': 'timeMonthly_avg_velocityMeridional'},
+             #{'name': 'velocityZonalDepthAvg',
+             # 'mpas': 'timeMonthly_avg_velocityZonal'},
+             #{'name': 'velocityMeridionalDepthAvg',
+             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
              {'name': 'velocityZonal',
               'mpas': 'timeMonthly_avg_velocityZonal'},
              {'name': 'velocityMeridional',
@@ -101,10 +114,10 @@ variables = [
               'mpas': 'timeMonthly_avg_activeTracers_temperature'},
              {'name': 'activeTracers_salinity',
               'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             {'name': 'activeTracers_temperatureDepthAvg',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             {'name': 'activeTracers_salinityDepthAvg',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             #{'name': 'activeTracers_temperatureDepthAvg',
+             # 'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             #{'name': 'activeTracers_salinityDepthAvg',
+             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'},
              {'name': 'dThreshMLD',
               'mpas': 'timeMonthly_avg_dThreshMLD'},
              {'name': 'windStressZonal',
@@ -139,11 +152,11 @@ variables = [
 #modelName = 'eam'
 
 if isShortTermArchive:
-    rundir = f'{rundir}/{modelComp}/hist'
+    rundir = f'{rundir}/archive/{modelComp}/hist'
 if isSingleVarFiles:
     rundir = f'{rundir}/{modelComp}/singleVarFiles'
 # The following is only relevant for post-processed variables (such as depthAvg fields)
-postprocdir = f'{postprocmaindir}/{modelComp}/postproc'
+postprocdir = f'{postprocmaindir}/archive/{modelComp}/postproc'
 if not os.path.isdir(postprocdir):
     os.makedirs(postprocdir)
 
@@ -160,8 +173,12 @@ dsMesh = xr.open_dataset(meshFile)
 z = dsMesh.refBottomDepth
 maxLevelCell = dsMesh.maxLevelCell
 
+#####
+##### STEP 1 #####
+#####
+
 # Identify high-convection and low-convection years based on
-# previously computed regional averages of JFMA maxMLD fields
+# previously computed regional averages of monthly maxMLD fields
 timeSeriesFiles = []
 for year in years:
     timeSeriesFiles.append(f'{maxMLDdir}/{groupName}_max_year{year:04d}.nc')
@@ -175,7 +192,7 @@ for date in datetimes.flat:
     timeyears.append(date.year)
 
 for regionName in regions:
-    print(f'\nIdentify years of low/high convection based on maxMLD for region: {regionName}')
+    print(f'\nIdentify years of low/high convection based on maxMLD for region: {regionName}\n')
     regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
     regionIndex = np.where(regionNames==regionName)[0]
 
@@ -191,65 +208,33 @@ for regionName in regions:
         monthmask = [i for i, x in enumerate(timemonths) if x in set(climoMonths)]
         maxMLD_seasonal[iy] = dsIn_yearly.maxMLD.isel(Time=monthmask, nRegions=regionIndex).mean().values
 
-    #ax = plt.subplot(3, 1, 1)
-    #n, bins, patches = plt.hist(maxMLD_seasonal, bins=10, color='#607c8e', alpha=0.7, rwidth=0.9)
-    #ax.set_xticks(bins)
-    #ax.set_xticklabels(np.int16(bins))
-    #plt.grid(axis='y', alpha=0.75)
-    #plt.xlabel(f'{titleClimoMonths}-avg maxMLD')
-    #plt.ylabel('# of years')
-    #plt.title(f'{regionName}')
-    #ax = plt.subplot(3, 1, 2)
-    #n, bins, patches = plt.hist(maxMLD, bins=10, color='#607c8e', alpha=0.7, rwidth=0.9)
-    #ax.set_xticks(bins)
-    #ax.set_xticklabels(np.int16(bins))
-    #plt.grid(axis='y', alpha=0.75)
-    #plt.xlabel(f'{titleClimoMonths} (monthly) maxMLD')
-    #plt.ylabel('# of months')
-    #ax = plt.subplot(3, 1, 3)
-    #plt.plot(years, maxMLD_seasonal, linewidth=2)
-    #plt.xlabel('years')
-    #plt.ylabel(f'{titleClimoMonths}-avg maxMLD')
-    #plt.savefig(f'{figdir}/maxMLDhist_{regionNameShort}.png', dpi='figure', bbox_inches='tight', pad_inches=0.1)
-    #plt.close()
+    print('quantile 0 =', np.quantile(maxMLD_seasonal, 0), '  min = ', np.min(maxMLD_seasonal))
+    print('quantile 1 =', np.quantile(maxMLD_seasonal, 0.25))
+    print('quantile 2 =', np.quantile(maxMLD_seasonal, 0.5), '  median = ', np.median(maxMLD_seasonal))
+    print('quantile 3 =', np.quantile(maxMLD_seasonal, 0.75))
+    print('quantile 4 =', np.quantile(maxMLD_seasonal, 1), '  max = ', np.max(maxMLD_seasonal))
+    print('mean = ', np.mean(maxMLD_seasonal))
+    print('std = ', np.std(maxMLD_seasonal))
+    # this works only for normally distributed fields:
+    #maxMLDstd = np.std(maxMLD_seasonal)
+    #mld1 = np.min(maxMLD_seasonal) + 1.5*maxMLDstd
+    #mld2 = np.max(maxMLD_seasonal) - 1.5*maxMLDstd
+    mld1 = np.quantile(maxMLD_seasonal, 0.15)
+    mld2 = np.quantile(maxMLD_seasonal, 0.85)
+    #mld1 = np.quantile(maxMLD_seasonal, 0.25) # first quartile
+    #mld2 = np.quantile(maxMLD_seasonal, 0.75) # third quartile
+    print('mld1 = ', mld1, 'mdl2 = ', mld2)
 
-    maxMLDstd = np.std(maxMLD_seasonal)
-    mld1 = np.min(maxMLD_seasonal) + maxMLDstd
-    mld2 = np.max(maxMLD_seasonal) - maxMLDstd
-    print(mld1, mld2)
-    #print(np.min(maxMLD_seasonal) + 1.5*maxMLDstd, np.max(maxMLD_seasonal) - 1.5*maxMLDstd)
-    #print(np.min(maxMLD_seasonal) + 2*maxMLDstd, np.max(maxMLD_seasonal) - 2*maxMLDstd)
-    conditionLow  = np.where(maxMLD_seasonal<mld1)
-    conditionHigh = np.where(maxMLD_seasonal>=mld2)
-    conditionMed  = np.logical_and(maxMLD_seasonal>=mld1, maxMLD_seasonal<mld2)
-    #dbinRange = bins[-1]-bins[0]
-    #conditionLow  = np.where(maxMLD_seasonal<bins[0]+0.2*dbinRange)
-    #conditionHigh = np.where(maxMLD_seasonal>=bins[-1]-0.2*dbinRange)
-    #conditionMed  = np.logical_and(maxMLD_seasonal>=bins[0]+0.2*dbinRange, maxMLD_seasonal<bins[-1]-0.2*dbinRange)
-
-    years_low  = years[conditionLow]
-    years_high = years[conditionHigh]
-    years_med  = years[conditionMed]
-    print('years_low, size(years_low)=', years_low, np.size(years_low))
-    print('years_high, size(years_high)=', years_high, np.size(years_high))
-    boh
-    #print('years_low1.5=', np.size(years[np.where(maxMLD_seasonal<np.min(maxMLD_seasonal) + 1.5*maxMLDstd)]))
-    #print('years_low2=', np.size(years[np.where(maxMLD_seasonal<np.min(maxMLD_seasonal) + 2*maxMLDstd)]))
-    #print('years_high1.5=', years[np.where(maxMLD_seasonal>=np.max(maxMLD_seasonal) - 1.5*maxMLDstd)])
-    #print('years_high2=', years[np.where(maxMLD_seasonal>=np.max(maxMLD_seasonal) - 2*maxMLDstd)])
-
-    # Save this information to ascii files
-    np.savetxt(f'{outdir}/years_maxMLDlow.dat', years_low, fmt='%5d', delimiter=' ')
-    np.savetxt(f'{outdir}/years_maxMLDhigh.dat', years_high, fmt='%5d', delimiter=' ')
-
-    # Make better histogram plot
+    # Make histogram plot
     plt.figure(figsize=[10, 8], dpi=150)
     ax = plt.subplot()
     n, bins, patches = plt.hist(maxMLD_seasonal, bins=12, color='#607c8e', alpha=0.7, rwidth=0.9)
     ax.set_xticks(bins)
     ax.set_xticklabels(np.int16(bins))
-    ax.axvspan(np.min(maxMLD_seasonal), mld1, alpha=0.3, color='salmon')
-    ax.axvspan(mld2, np.max(maxMLD_seasonal), alpha=0.3, color='salmon')
+    ax.axvspan(np.min(maxMLD_seasonal), np.quantile(maxMLD_seasonal, 0.15), alpha=0.3, color='salmon')
+    #ax.axvspan(np.min(maxMLD_seasonal), np.quantile(maxMLD_seasonal, 0.25), alpha=0.3, color='salmon')
+    ax.axvspan(np.quantile(maxMLD_seasonal, 0.85), np.max(maxMLD_seasonal), alpha=0.3, color='salmon')
+    #ax.axvspan(np.quantile(maxMLD_seasonal, 0.75), np.max(maxMLD_seasonal), alpha=0.3, color='salmon')
     ax.set_xlim(np.min(maxMLD_seasonal), np.max(maxMLD_seasonal))
     ax.set_xlabel(f'{titleClimoMonths}-avg maxMLD [m]', fontsize=16, fontweight='bold', labelpad=10)
     ax.set_ylabel('# of years', fontsize=14, fontweight='bold', labelpad=10)
@@ -260,7 +245,29 @@ for regionName in regions:
     plt.savefig(f'{figdir}/maxMLDhist_{regionNameShort}.png', bbox_inches='tight')
     plt.close()
 
-    # Now compute monthly climatologies associated with these composites and plot them
+    conditionLow  = np.less(maxMLD_seasonal, mld1)
+    conditionHigh = np.greater_equal(maxMLD_seasonal, mld2)
+    conditionMed  = np.logical_and(maxMLD_seasonal>=mld1, maxMLD_seasonal<mld2)
+
+    years_low  = np.int32(years*conditionLow)
+    years_high = np.int32(years*conditionHigh)
+    years_med  = np.int32(years*conditionMed)
+    yLow = years_low[np.nonzero(years_low)]
+    yHigh = years_high[np.nonzero(years_high)]
+    yMed = years_med[np.nonzero(years_med)]
+    print(yLow)
+    print(yHigh)
+    print(yMed)
+
+    # Save this information to ascii files
+    np.savetxt(f'{outdir}/years_maxMLDlow.dat', yLow, fmt='%5d', delimiter=' ')
+    np.savetxt(f'{outdir}/years_maxMLDhigh.dat', yHigh, fmt='%5d', delimiter=' ')
+
+    #####
+    ##### STEP 2 #####
+    #####
+
+    # Compute monthly climatologies associated with these composites
     for im in range(1, 13):
         print(f'   climatological month: {im}')
         for var in variables:
@@ -273,17 +280,15 @@ for regionName in regions:
                varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
                 outfileLow  = f'{outdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
                 outfileHigh = f'{outdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
-                #outfileMed = f'{outdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDmed_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
             else:
                 outfileLow  = f'{outdir}/{varname}_maxMLDlow_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
                 outfileHigh = f'{outdir}/{varname}_maxMLDhigh_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
-                #outfileMed = f'{outdir}/{varname}_maxMLDmed_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
 
             if not os.path.isfile(outfileLow):
                 print(f'\nComposite file {outfileLow} does not exist. Creating it with ncea...')
                 infiles = []
-                for k in range(len(years_low)):
-                    iy = years_low[k]
+                for k in range(len(yLow)):
+                    iy = yLow[k]
                     if im > np.max(climoMonths) and iy != startSimYear:
                         iy = iy-1  # pick months *preceding* the climoMonths period of each year
                     if modelComp == 'atm':
@@ -334,8 +339,8 @@ for regionName in regions:
             if not os.path.isfile(outfileHigh):
                 print(f'\nComposite file {outfileHigh} does not exist. Creating it with ncea...')
                 infiles = []
-                for k in range(len(years_high)):
-                    iy = years_high[k]
+                for k in range(len(yHigh)):
+                    iy = yHigh[k]
                     if im > np.max(climoMonths) and iy != startSimYear:
                         iy = iy-1  # pick months *preceding* the climoMonths period of each year
                     if modelComp == 'atm':

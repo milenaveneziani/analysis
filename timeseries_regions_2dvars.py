@@ -48,8 +48,8 @@ meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 runName = 'E3SMv2.1B60to10rA02'
 runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/archive/osinski/E3SM/{runName}'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+rundir = f'/p/work/milena/{runName}'
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
@@ -90,16 +90,16 @@ regionGroups = ['Arctic Regions']
 # ice variables (2d only)
 #
 #   Ocean variables
-mpasComp = 'mpaso'
-modelComp = 'ocn'
-mpasFile = 'timeSeriesStatsMonthlyMax'
-variables = [
-             {'name': 'maxMLD',
-              'title': 'Maximum MLD',
-              'units': 'm',
-              'factor': 1,
-              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-            ]
+#mpasComp = 'mpaso'
+#modelComp = 'ocn'
+#mpasFile = 'timeSeriesStatsMonthlyMax'
+#variables = [
+#             {'name': 'maxMLD',
+#              'title': 'Maximum MLD',
+#              'units': 'm',
+#              'factor': 1,
+#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#            ]
 #
 #mpasFile = 'timeSeriesStatsMonthly'
 #variables = [
@@ -142,24 +142,24 @@ variables = [
              # 'factor': 1,
              # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
 #   Sea ice variables
-#mpasComp = 'mpassi'
-#modelComp = 'ice'
-#mpasFile = 'timeSeriesStatsMonthly'
-#variables = [
-#             {'name': 'iceArea',
-#              'title': 'Integrated Ice Area',
-#              'units': 'km$^2$',
-#              'factor': 1e-6,
-#              'mpas': 'timeMonthly_avg_iceAreaCell'},
-#             {'name': 'iceVolume',
-#              'title': 'Integrated Ice Volume',
-#              'units': 'km$^3$',
-#              'factor': 1e-9,
-#              'mpas': 'timeMonthly_avg_iceVolumeCell'}
-#            ]
+mpasComp = 'mpassi'
+modelComp = 'ice'
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
+             {'name': 'iceArea',
+              'title': 'Integrated Ice Area',
+              'units': 'km$^2$',
+              'factor': 1e-6,
+              'mpas': 'timeMonthly_avg_iceAreaCell'},
+             {'name': 'iceVolume',
+              'title': 'Integrated Ice Volume',
+              'units': 'km$^3$',
+              'factor': 1e-9,
+              'mpas': 'timeMonthly_avg_iceVolumeCell'}
+            ]
 
 if isShortTermArchive:
-    rundir = f'{rundir}/{modelComp}/hist'
+    rundir = f'{rundir}/archive/{modelComp}/hist'
 
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
