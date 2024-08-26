@@ -31,11 +31,10 @@ plt.rc('font', weight='bold')
 #startYear = [1950]
 #endYear = [2014]
 startSimYear = 1
-#startYear = [1]
-#endYear = [386]
-##startYear = [1, 245]
-startYear = [21, 245]
-endYear = [140, 386]
+startYear = [1]
+endYear = [386]
+#startYear = [21, 245]
+#endYear = [140, 386]
 years = np.arange(startYear[0], endYear[0] + 1)
 for iy in range(1, np.size(startYear)):
     years = np.append(years, np.arange(startYear[iy], endYear[iy] + 1))
@@ -102,30 +101,30 @@ modelName = 'mpaso'
 #
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             #{'name': 'velocityZonalDepthAvg',
-             # 'mpas': 'timeMonthly_avg_velocityZonal'},
-             #{'name': 'velocityMeridionalDepthAvg',
-             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
-             {'name': 'velocityZonal',
+             {'name': 'velocityZonalDepthAvg',
               'mpas': 'timeMonthly_avg_velocityZonal'},
-             {'name': 'velocityMeridional',
+             {'name': 'velocityMeridionalDepthAvg',
               'mpas': 'timeMonthly_avg_velocityMeridional'},
-             {'name': 'activeTracers_temperature',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             {'name': 'activeTracers_salinity',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             #{'name': 'activeTracers_temperatureDepthAvg',
+             #{'name': 'velocityZonal',
+             # 'mpas': 'timeMonthly_avg_velocityZonal'},
+             #{'name': 'velocityMeridional',
+             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
+             #{'name': 'activeTracers_temperature',
              # 'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             #{'name': 'activeTracers_salinityDepthAvg',
+             #{'name': 'activeTracers_salinity',
              # 'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             {'name': 'dThreshMLD',
-              'mpas': 'timeMonthly_avg_dThreshMLD'},
-             {'name': 'windStressZonal',
-              'mpas': 'timeMonthly_avg_windStressZonal'},
-             {'name': 'windStressMeridional',
-              'mpas': 'timeMonthly_avg_windStressMeridional'},
-             {'name': 'sensibleHeatFlux',
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
+             {'name': 'activeTracers_temperatureDepthAvg',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinityDepthAvg',
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'}
+             #{'name': 'dThreshMLD',
+             # 'mpas': 'timeMonthly_avg_dThreshMLD'},
+             #{'name': 'windStressZonal',
+             # 'mpas': 'timeMonthly_avg_windStressZonal'},
+             #{'name': 'windStressMeridional',
+             # 'mpas': 'timeMonthly_avg_windStressMeridional'},
+             #{'name': 'sensibleHeatFlux',
+             # 'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
              ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
@@ -166,11 +165,13 @@ if not os.path.isdir(postprocdir):
 #zmaxs = [0., -100., -600., 0.]
 #zmin = -50.
 #zmax = 0.
-zmin = -600.
-zmax = -100.
+#zmin = -600.
+#zmax = -100.
+zmin = -50.
+zmax = 0.
 # The following is only relevant for depthAvg variables
 dsMesh = xr.open_dataset(meshFile)
-z = dsMesh.refBottomDepth
+depth = dsMesh.bottomDepth
 maxLevelCell = dsMesh.maxLevelCell
 
 #####
@@ -314,7 +315,7 @@ for regionName in regions:
                     if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
                        varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
                         layerThickness = xr.open_dataset(thicknessfile).timeMonthly_avg_layerThickness
-                        zMid = compute_zmid(z, maxLevelCell, layerThickness)
+                        zMid = compute_zmid(depth, maxLevelCell, layerThickness)
                         fld = xr.open_dataset(datafile)[varmpasname]
 
                         # Depth-masked zmin-zmax layer thickness
@@ -366,7 +367,7 @@ for regionName in regions:
                     if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
                        varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
                         layerThickness = xr.open_dataset(thicknessfile).timeMonthly_avg_layerThickness
-                        zMid = compute_zmid(z, maxLevelCell, layerThickness)
+                        zMid = compute_zmid(depth, maxLevelCell, layerThickness)
                         fld = xr.open_dataset(datafile)[varmpasname]
 
                         # Depth-masked zmin-zmax layer thickness

@@ -95,30 +95,30 @@ variables = [
               'mpas': None,
               'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
               'colormap': cmocean.cm.speed_r},
-             {'name': 'windStressSpeed',
-              'title': 'Wind stress magnitude',
-              'units': 'N/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': None,
-              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
-              'colormap': cmocean.cm.speed_r},
-             {'name': 'dThreshMLD',
-              'title': 'Mean MLD',
-              'units': 'm',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_dThreshMLD',
-              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-              'colormap': plt.get_cmap('viridis')},
-             {'name': 'sensibleHeatFlux',
-              'title': 'Sensible Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
-              'colormap': cmocean.cm.solar_r},
+#             {'name': 'windStressSpeed',
+#              'title': 'Wind stress magnitude',
+#              'units': 'N/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': None,
+#              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+#              'colormap': cmocean.cm.speed_r},
+#             {'name': 'dThreshMLD',
+#              'title': 'Mean MLD',
+#              'units': 'm',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'timeMonthly_avg_dThreshMLD',
+#              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
+#              'colormap': plt.get_cmap('viridis')},
+#             {'name': 'sensibleHeatFlux',
+#              'title': 'Sensible Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
+#              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
+#              'colormap': cmocean.cm.solar_r},
              {'name': 'activeTracers_temperature',
               'title': 'Potential Temperature',
               'units': 'degC',
@@ -192,14 +192,14 @@ variables = [
 #modelComp = 'atm'
 #modelName = 'eam'
 
-plotDepthAvg = False
+plotDepthAvg = True
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
 #zmins = [-100., -600.]
 #zmaxs = [0., -100.]
-zmins = [-50.]
-zmaxs = [0.]
-#zmins = [-600.]
-#zmaxs = [-100.]
+#zmins = [-50.]
+#zmaxs = [0.]
+zmins = [-600.]
+zmaxs = [-100.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0., 500.]
 #dlevels = [50., 100.]
