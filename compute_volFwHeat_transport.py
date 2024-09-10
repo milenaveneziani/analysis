@@ -169,6 +169,8 @@ if not os.path.exists(outfile):
     salt_transport = np.zeros((nTime, nTransects)) # Sref = saltRef
     salt_transportIn = np.zeros((nTime, nTransects))
     salt_transportOut = np.zeros((nTime, nTransects))
+    temp_transect = np.zeros((nTime, nTransects))
+    salt_transect = np.zeros((nTime, nTransects))
 
     ktime = 0
     kyear = 0
@@ -262,6 +264,7 @@ if not os.path.exists(outfile):
                 else:
                     dz = dzOnEdges[start:stop, :]
                     dArea = dx2d * dz
+                area_transect = np.nansum(np.nansum(dArea))
 
                 tfreezing = Tfp[start:stop, :]
                 indVelP = np.where(normalVel>0)
@@ -284,6 +287,9 @@ if not os.path.exists(outfile):
                 salt_transportIn[ktime, i]  = vol_transportIn[ktime, i] - salt_transportIn[ktime, i]/saltRef
                 salt_transportOut[ktime, i] = np.nansum(np.nansum(salt[indVelM] * normalVel[indVelM] * dArea[indVelM]))
                 salt_transportOut[ktime, i] = vol_transportOut[ktime, i] - salt_transportOut[ktime, i]/saltRef
+                #
+                temp_transect[ktime, i]    = np.nansum(np.nansum(temp * dArea))/area_transect
+                salt_transect[ktime, i]    = np.nansum(np.nansum(salt * dArea))/area_transect
 
             ktime = ktime + 1
 
@@ -320,6 +326,8 @@ if not os.path.exists(outfile):
     salt_transportVar = ncid.createVariable('FWTransport', 'f8', ('Time', 'nTransects'))
     salt_transportInVar = ncid.createVariable('FWTransportIn', 'f8', ('Time', 'nTransects'))
     salt_transportOutVar = ncid.createVariable('FWTransportOut', 'f8', ('Time', 'nTransects'))
+    temp_transectVar = ncid.createVariable('tempTransect', 'f8', ('Time', 'nTransects'))
+    salt_transectVar = ncid.createVariable('saltTransect', 'f8', ('Time', 'nTransects'))
 
     vol_transportVar.units = 'Sv'
     vol_transportInVar.units = 'Sv'
@@ -333,6 +341,8 @@ if not os.path.exists(outfile):
     salt_transportVar.units = 'km^3/year'
     salt_transportInVar.units = 'km^3/year'
     salt_transportOutVar.units = 'km^3/year'
+    temp_transectVar.units = 'degree C'
+    salt_transectVar.units = 'psu'
 
     vol_transportVar.description = 'Net volume transport across transect'
     vol_transportInVar.description = 'Inflow volume transport across transect (in/out determined by edgeSign)'
@@ -346,6 +356,8 @@ if not os.path.exists(outfile):
     salt_transportVar.description = f'Net FW transport (wrt {saltRef:4.1f} psu) across transect'
     salt_transportInVar.description = f'Inflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)'
     salt_transportOutVar.description = f'Outflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)'
+    temp_transectVar.description = 'Mean temperature across transect'
+    salt_transectVar.description = 'Mean salinity across transect'
 
     times[:] = t
     vol_transportVar[:, :] = vol_transport
@@ -360,6 +372,8 @@ if not os.path.exists(outfile):
     salt_transportVar[:, :] = salt_transport
     salt_transportInVar[:, :] = salt_transportIn
     salt_transportOutVar[:, :] = salt_transportOut
+    temp_transectVar[:, :] = temp_transect
+    salt_transectVar[:, :] = salt_transect
 
     for i in range(nTransects):
         if platform.python_version()[0]=='3':
@@ -387,6 +401,8 @@ heat_transportTfpOut = ncid.variables['heatTransportTfpOut'][:, :]
 salt_transport = ncid.variables['FWTransport'][:, :]
 salt_transportIn = ncid.variables['FWTransportIn'][:, :]
 salt_transportOut = ncid.variables['FWTransportOut'][:, :]
+temp_transect = ncid.variables['tempTransect'][:, :]
+salt_transect = ncid.variables['saltTransect'][:, :]
 ncid.close()
 
 # Define some dictionaries for transect plotting
@@ -434,7 +450,7 @@ for i in range(nTransects):
 
     # Plot Volume Transport
     figfile = f'{figdir}/transports_{transectName_forfigfile}_{casename}.png'
-    fig, ax = plt.subplots(3, 1, figsize=figsize)
+    fig, ax = plt.subplots(3, 2, figsize=figsize)
     ax[0].plot(t, vol_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(vol_transport[:,i]):5.2f} $\pm$ {np.nanstd(vol_transport[:,i]):5.2f})')
     ax[0].plot(t, vol_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(vol_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportIn[:,i]):5.2f})')
     ax[0].plot(t, vol_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(vol_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportOut[:,i]):5.2f})')
@@ -447,35 +463,50 @@ for i in range(nTransects):
     ax[0].legend()
 
     # Plot Heat Transport wrt Tref=0
-    #ax[1].plot(t, heat_transport[:,i], 'k', linewidth=2, label='model (net)')
-    #ax[1].plot(t, heat_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
-    #ax[1].plot(t, heat_transportOut[:,i], 'b', linewidth=2, label='model (outflow)')
-    #ax[1].plot(t, np.zeros_like(t), 'k', linewidth=1)
-    #ax[1].grid(color='k', linestyle=':', linewidth = 0.5)
-    #ax[1].autoscale(enable=True, axis='x', tight=True)
-    #ax[1].set_ylabel('Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
-    #ax[1].legend()
-
-    # Plot Heat Transport wrt Tref=TfreezingPoint
-    ax[1].plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfp[:,i]):5.2f})')
-    ax[1].plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpIn[:,i]):5.2f})')
-    ax[1].plot(t, heat_transportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpOut[:,i]):5.2f})')
+    ax[1].plot(t, heat_transport[:,i], 'k', linewidth=2, label='model (net)')
+    ax[1].plot(t, heat_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
+    ax[1].plot(t, heat_transportOut[:,i], 'b', linewidth=2, label='model (outflow)')
     ax[1].plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax[1].grid(color='k', linestyle=':', linewidth = 0.5)
     ax[1].autoscale(enable=True, axis='x', tight=True)
-    ax[1].set_ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
+    ax[1].set_ylabel('Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
     ax[1].legend()
 
-    # Plot FW Transport
-    ax[2].plot(t, salt_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(salt_transport[:,i]):5.2f} $\pm$ {np.nanstd(salt_transport[:,i]):5.2f})')
-    ax[2].plot(t, salt_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(salt_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportIn[:,i]):5.2f})')
-    ax[2].plot(t, salt_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(salt_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportOut[:,i]):5.2f})')
+    # Plot Heat Transport wrt Tref=TfreezingPoint
+    ax[2].plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfp[:,i]):5.2f})')
+    ax[2].plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpIn[:,i]):5.2f})')
+    ax[2].plot(t, heat_transportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpOut[:,i]):5.2f})')
     ax[2].plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax[2].grid(color='k', linestyle=':', linewidth = 0.5)
     ax[2].autoscale(enable=True, axis='x', tight=True)
-    ax[2].set_ylabel('FW transport (km$^3$/year)', fontsize=12, fontweight='bold')
-    ax[2].set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+    ax[2].set_ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
     ax[2].legend()
+
+    # Plot transect mean temperature
+    ax[3].plot(t, temp_transect[:,i], 'k', linewidth=2, label='model temp')
+    ax[3].grid(color='k', linestyle=':', linewidth = 0.5)
+    ax[3].autoscale(enable=True, axis='x', tight=True)
+    ax[3].set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
+    ax[3].legend()
+
+    # Plot FW Transport
+    ax[4].plot(t, salt_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(salt_transport[:,i]):5.2f} $\pm$ {np.nanstd(salt_transport[:,i]):5.2f})')
+    ax[4].plot(t, salt_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(salt_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportIn[:,i]):5.2f})')
+    ax[4].plot(t, salt_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(salt_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportOut[:,i]):5.2f})')
+    ax[4].plot(t, np.zeros_like(t), 'k', linewidth=1)
+    ax[4].grid(color='k', linestyle=':', linewidth = 0.5)
+    ax[4].autoscale(enable=True, axis='x', tight=True)
+    ax[4].set_ylabel('FW transport (km$^3$/year)', fontsize=12, fontweight='bold')
+    ax[4].set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+    ax[4].legend()
+
+    # Plot transect mean salinity
+    ax[5].plot(t, salt_transect[:,i], 'k', linewidth=2, label='model salt')
+    ax[5].grid(color='k', linestyle=':', linewidth = 0.5)
+    ax[5].autoscale(enable=True, axis='x', tight=True)
+    ax[5].set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
+    ax[5].set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+    ax[5].legend()
 
     fig.tight_layout(pad=0.5)
     fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
