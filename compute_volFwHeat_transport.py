@@ -36,32 +36,35 @@ def get_mask_short_names(mask):
 
 
 # Settings for nersc
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+outfile0 = 'atlanticZonalSectionsTransports'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransports'
-#casenameFull = 'E3SM-Arcticv2.1_historical0151'
-#casename = 'E3SM-Arcticv2.1_historical0151'
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SM-Arcticv2.1_historical0101'
+casename = 'E3SM-Arcticv2.1_historical0101'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240906.nc'
-featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240906.geojson'
-outfile0 = 'atlanticZonalSectionsTransports'
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#outfile0 = 'atlanticZonalSectionsTransports'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransports'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
-modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
+##modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+#modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
-#year1 = 1950
-#year2 = 2014
-year1 = 1
-year2 = 386
+year1 = 1950
+year2 = 2014
+#year1 = 1
+#year2 = 386
 years = range(year1, year2+1)
 nTime = 12*len(years)
 
@@ -308,9 +311,9 @@ if not os.path.exists(outfile):
     heat_transportTfp    = W_to_TW * rhoRef * cp * heat_transportTfp
     heat_transportTfpIn  = W_to_TW * rhoRef * cp * heat_transportTfpIn
     heat_transportTfpOut = W_to_TW * rhoRef * cp * heat_transportTfpOut
-    salt_transport    = m3ps_to_km3py * salt_transport
-    salt_transportIn  = m3ps_to_km3py * salt_transportIn
-    salt_transportOut = m3ps_to_km3py * salt_transportOut
+    salt_transport    = m3ps_to_mSv * salt_transport
+    salt_transportIn  = m3ps_to_mSv * salt_transportIn
+    salt_transportOut = m3ps_to_mSv * salt_transportOut
 
     # Save to file
     ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
@@ -425,7 +428,7 @@ labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'a
              'Fram Strait':'framStrait', 'Robeson Channel':'robeson', 'Davis Strait':'davisStrait', 'Barents Sea Opening':'barentsSea', \
              'Nares Strait':'naresStrait', 'Denmark Strait':'denmarkStrait', 'Iceland-Faroe-Scotland':'icelandFaroeScotland'}
 
-figsize = (8, 12)
+figsize = (16, 12)
 figdpi = 300
 for i in range(nTransects):
     if platform.python_version()[0]=='3':
@@ -456,63 +459,70 @@ for i in range(nTransects):
 
     # Plot Volume Transport
     figfile = f'{figdir}/transports_{transectName_forfigfile}_{casename}.png'
-    fig, ax = plt.subplots(3, 2, figsize=figsize)
-    ax[0].plot(t, vol_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(vol_transport[:,i]):5.2f} $\pm$ {np.nanstd(vol_transport[:,i]):5.2f})')
-    ax[0].plot(t, vol_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(vol_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportIn[:,i]):5.2f})')
-    ax[0].plot(t, vol_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(vol_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportOut[:,i]):5.2f})')
+    fig = plt.figure(figsize=figsize)
+    ax1 = plt.subplot(321)
+    ax1.plot(t, vol_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(vol_transport[:,i]):5.2f} $\pm$ {np.nanstd(vol_transport[:,i]):5.2f})')
+    #ax1.plot(t, vol_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(vol_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportIn[:,i]):5.2f})')
+    #ax1.plot(t, vol_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(vol_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportOut[:,i]):5.2f})')
     if bounds is not None:
-        ax[0].fill_between(t, np.full_like(t, bounds[0]), np.full_like(t, bounds[1]), alpha=0.3, label='obs (net)')
-    ax[0].plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax[0].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[0].autoscale(enable=True, axis='x', tight=True)
-    ax[0].set_ylabel('Volume transport (Sv)', fontsize=12, fontweight='bold')
-    ax[0].legend()
+        ax1.fill_between(t, np.full_like(t, bounds[0]), np.full_like(t, bounds[1]), alpha=0.3, label='obs (net)')
+    ax1.plot(t, np.zeros_like(t), 'k', linewidth=1)
+    ax1.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax1.autoscale(enable=True, axis='x', tight=True)
+    ax1.set_ylabel('Volume transport (Sv)', fontsize=12, fontweight='bold')
+    ax1.legend()
 
     # Plot Heat Transport wrt Tref=0
-    ax[1].plot(t, heat_transport[:,i], 'k', linewidth=2, label='model (net)')
-    ax[1].plot(t, heat_transportIn[:,i], 'r', linewidth=2, label='model (inflow)')
-    ax[1].plot(t, heat_transportOut[:,i], 'b', linewidth=2, label='model (outflow)')
-    ax[1].plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax[1].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[1].autoscale(enable=True, axis='x', tight=True)
-    ax[1].set_ylabel('Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
-    ax[1].legend()
+    ax2 = plt.subplot(322)
+    ax2.plot(t, heat_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transport[:,i]):5.2f} $\pm$ {np.nanstd(heat_transport[:,i]):5.2f})')
+    #ax2.plot(t, heat_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportIn[:,i]):5.2f})')
+    #ax2.plot(t, heat_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportOut[:,i]):5.2f})')
+    ax2.plot(t, np.zeros_like(t), 'k', linewidth=1)
+    ax2.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax2.autoscale(enable=True, axis='x', tight=True)
+    ax2.set_ylabel('Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
+    ax2.legend()
 
     # Plot Heat Transport wrt Tref=TfreezingPoint
-    ax[2].plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfp[:,i]):5.2f})')
-    ax[2].plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpIn[:,i]):5.2f})')
-    ax[2].plot(t, heat_transportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpOut[:,i]):5.2f})')
-    ax[2].plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax[2].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[2].autoscale(enable=True, axis='x', tight=True)
-    ax[2].set_ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
-    ax[2].legend()
+    ax3 = plt.subplot(323)
+    ax3.plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfp[:,i]):5.2f})')
+    #ax3.plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpIn[:,i]):5.2f})')
+    #ax3.plot(t, heat_transportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpOut[:,i]):5.2f})')
+    ax3.plot(t, np.zeros_like(t), 'k', linewidth=1)
+    ax3.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax3.autoscale(enable=True, axis='x', tight=True)
+    ax3.set_ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
+    ax3.legend()
 
     # Plot transect mean temperature
-    ax[3].plot(t, temp_transect[:,i], 'k', linewidth=2, label='model temp')
-    ax[3].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[3].autoscale(enable=True, axis='x', tight=True)
-    ax[3].set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
-    ax[3].legend()
+    ax4 = plt.subplot(324)
+    ax4.plot(t, temp_transect[:,i], 'k', linewidth=2, label=f'temp ({np.nanmean(temp_transect[:,i]):5.2f} $\pm$ {np.nanstd(temp_transect[:,i]):5.2f})')
+    ax4.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax4.autoscale(enable=True, axis='x', tight=True)
+    ax4.set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
+    ax4.legend()
 
     # Plot FW Transport
-    ax[4].plot(t, salt_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(salt_transport[:,i]):5.2f} $\pm$ {np.nanstd(salt_transport[:,i]):5.2f})')
-    ax[4].plot(t, salt_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(salt_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportIn[:,i]):5.2f})')
-    ax[4].plot(t, salt_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(salt_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportOut[:,i]):5.2f})')
-    ax[4].plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax[4].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[4].autoscale(enable=True, axis='x', tight=True)
-    ax[4].set_ylabel('FW transport (km$^3$/year)', fontsize=12, fontweight='bold')
-    ax[4].set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-    ax[4].legend()
+    ax5 = plt.subplot(325)
+    ax5.plot(t, salt_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(salt_transport[:,i]):5.2f} $\pm$ {np.nanstd(salt_transport[:,i]):5.2f})')
+    #ax5.plot(t, salt_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(salt_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportIn[:,i]):5.2f})')
+    #ax5.plot(t, salt_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(salt_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportOut[:,i]):5.2f})')
+    ax5.plot(t, np.zeros_like(t), 'k', linewidth=1)
+    ax5.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax5.autoscale(enable=True, axis='x', tight=True)
+    ax5.set_ylabel('FW transport (mSv)', fontsize=12, fontweight='bold')
+    #ax5.set_ylabel('FW transport (km$^3$/year)', fontsize=12, fontweight='bold')
+    ax5.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+    ax5.legend()
 
     # Plot transect mean salinity
-    ax[5].plot(t, salt_transect[:,i], 'k', linewidth=2, label='model salt')
-    ax[5].grid(color='k', linestyle=':', linewidth = 0.5)
-    ax[5].autoscale(enable=True, axis='x', tight=True)
-    ax[5].set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
-    ax[5].set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-    ax[5].legend()
+    ax6 = plt.subplot(326)
+    ax6.plot(t, salt_transect[:,i], 'k', linewidth=2, label=f'salt ({np.nanmean(salt_transect[:,i]):5.2f} $\pm$ {np.nanstd(salt_transect[:,i]):5.2f})')
+    ax6.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax6.autoscale(enable=True, axis='x', tight=True)
+    ax6.set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
+    ax6.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+    ax6.legend()
 
     fig.tight_layout(pad=0.5)
     fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
