@@ -39,18 +39,23 @@ def get_mask_short_names(mask):
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+#outfile0 = 'arcticSectionsTransports'
 #casenameFull = 'E3SM-Arcticv2.1_historical0151'
 #casename = 'E3SM-Arcticv2.1_historical0151'
 #modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240906.nc'
+featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240906.geojson'
+outfile0 = 'atlanticZonalSectionsTransports'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
+#outfile0 = 'arcticSectionsTransports'
 casenameFull = 'E3SMv2.1B60to10rA02'
 casename = 'E3SMv2.1B60to10rA02'
 #modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
-modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
+modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
 #year1 = 1950
@@ -68,7 +73,7 @@ if not os.path.isdir(figdir):
 outdir = f'./transports_data/{casename}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-outfile = f'{outdir}/arcticSectionsTransports_{casename}_years{year1:04d}-{year2:04d}.nc'
+outfile = f'{outdir}/{outfile0}_{casename}_years{year1:04d}-{year2:04d}.nc'
 
 if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
@@ -79,6 +84,7 @@ saltRef = 34.8
 rhoRef = 1027.0 # kg/m^3
 cp = 3.987*1e3 # J/(kg*degK) 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
+m3ps_to_mSv = 1e-3 # m^3/s flux to 10^-3 Sverdrups (mSv)
 m3ps_to_km3py = 1e-9*86400*365.25  # m^3/s FW flux to km^3/year
 W_to_TW = 1e-12
 ###################################################################
