@@ -17,11 +17,10 @@ from make_plots import make_scatter_plot, make_streamline_plot
 
 #startYear = [1950]
 #endYear = [2014]
-##startYear = [1, 245]
-startYear = [21, 245]
-endYear = [140, 386]
-#startYear = [1]
-#endYear = [386]
+#startYear = [21, 245]
+#endYear = [140, 386]
+startYear = [1]
+endYear = [386]
 
 # Settings for nersc
 #meshFile = f'/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
@@ -192,14 +191,14 @@ variables = [
 #modelComp = 'atm'
 #modelName = 'eam'
 
-plotDepthAvg = True
+plotDepthAvg = False
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
-#zmins = [-100., -600.]
-#zmaxs = [0., -100.]
+zmins = [-50., -600.]
+zmaxs = [0., -100.]
 #zmins = [-50.]
 #zmaxs = [0.]
-zmins = [-600.]
-zmaxs = [-100.]
+#zmins = [-600.]
+#zmaxs = [-100.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0., 500.]
 #dlevels = [50., 100.]
@@ -215,13 +214,17 @@ lonVertex = dsMesh.lonVertex.values
 latVertex = dsMesh.latVertex.values
 lonVertex = 180/np.pi*lonVertex
 latVertex = 180/np.pi*latVertex
-z = dsMesh.refBottomDepth
-maxLevelCell = dsMesh.maxLevelCell # (relevant if plotDepthAvg = True)
 # Find model levels for each depth level (relevant if plotDepthAvg = False)
+z = dsMesh.refBottomDepth
 zlevels = np.zeros(np.shape(dlevels), dtype=np.int64)
 for id in range(len(dlevels)):
     dz = np.abs(z.values-dlevels[id])
     zlevels[id] = np.argmin(dz)
+# Make depth mask (also relevant if plotDepthAvg = False, because depth averaged fields are already masked)
+maxLevelCell = dsMesh.maxLevelCell
+nVertLevels = dsMesh.sizes['nVertLevels']
+vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
+depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
 # Plot monthly climatologies associated with previously computed composites
 for regionName in regions:
@@ -461,14 +464,16 @@ for regionName in regions:
                         figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                         if varname=='streamlines':
-                            uLow = xr.open_dataset(infileLow_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal.values
-                            vLow = xr.open_dataset(infileLow_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional.values
-                            uHigh = xr.open_dataset(infileHigh_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal.values
-                            vHigh = xr.open_dataset(infileHigh_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional.values
-                            uLow = varfactor * uLow
-                            vLow = varfactor * vLow
-                            uHigh = varfactor * uHigh
-                            vHigh = varfactor * vHigh
+                            uLow = xr.open_dataset(infileLow_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
+                            vLow = xr.open_dataset(infileLow_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional
+                            uHigh = xr.open_dataset(infileHigh_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
+                            vHigh = xr.open_dataset(infileHigh_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional
+                             
+                            uLow = varfactor * uLow.values
+                            vLow = varfactor * vLow.values
+                            uHigh = varfactor * uHigh.values
+                            vHigh = varfactor * vHigh.values
+                             
                             speedLow  = 0.5 * np.sqrt(uLow*uLow + vLow*vLow)
                             speedHigh = 0.5 * np.sqrt(uHigh*uHigh + vHigh*vHigh)
                             lon = xr.open_dataset(infileLow_u).lon.values
@@ -486,6 +491,10 @@ for regionName in regions:
                         else:
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
                             dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
+
+                            topoMask = depthMask.isel(nVertLevels=zlevels[iz])
+                            dsFieldLow  = dsFieldLow.where(topoMask, drop=False)
+                            dsFieldHigh = dsFieldHigh.where(topoMask, drop=False)
 
                             fldLow  = varfactor * dsFieldLow.values
                             fldHigh = varfactor * dsFieldHigh.values
