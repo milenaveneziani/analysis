@@ -19,7 +19,7 @@ from common_functions import timeseries_analysis_plot, add_inset, days_to_dateti
 #startYear = 1950
 #endYear = 2014
 startYear = 1
-endYear = 30
+endYear = 31
 #startYear = 65
 #endYear = 325
 calendar = 'gregorian'
@@ -34,19 +34,19 @@ calendar = 'gregorian'
 #isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
-regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
-#meshName = 'EC30to60E2r2'
-#meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/ocean.EC30to60E2r2.200908.nc'
-#runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
-#runNameShort = 'JRA_POPvertMix_noSSSrestoring'
-#rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
-#isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
-meshName = 'RRSwISC6to18E3r5'
-meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
-runName = '20240729.HRr5-test12.chrysalis'
-runNameShort = '20240729.HRr5-test12'
-rundir = '/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/20240729.HRr5-test12.chrysalis/archive'
-isShortTermArchive = True
+#regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
+##meshName = 'EC30to60E2r2'
+##meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/ocean.EC30to60E2r2.200908.nc'
+##runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
+##runNameShort = 'JRA_POPvertMix_noSSSrestoring'
+##rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+##isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
+#meshName = 'RRSwISC6to18E3r5'
+#meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
+#runName = '20240729.HRr5-test12.chrysalis'
+#runNameShort = '20240729.HRr5-test12'
+#rundir = '/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/20240729.HRr5-test12.chrysalis/archive'
+#isShortTermArchive = True
  
 # Settings for erdc.hpc.mil
 #regionMaskDir = '/p/home/milena/mpas-region_masks'
@@ -56,6 +56,15 @@ isShortTermArchive = True
 #runNameShort = 'E3SMv2.1B60to10rA02'
 #rundir = f'/p/work/milena/{runName}'
 #isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+
+# Settings for chicoma
+regionMaskDir = '/users/milena/mpas-region_masks'
+meshName = 'RRSwISC6to18E3r5'
+meshFile = f'/usr/projects/e3sm/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
+runName = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
+runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
+rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
+isShortTermArchive = False
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):

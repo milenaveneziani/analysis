@@ -12,17 +12,26 @@ import matplotlib.pyplot as plt
 import os
 
 
-runname = '20240729.HRr5-test12' # timeseries/ will be prepended to this
-mocdir = '/lcrc/group/acme/ac.jwolfe/case_output/20240626.HRr5-test11.chrysalis/timeseries/moc'
-regionalTSdir = '/home/ac.milena/analysis-MPAS/analysis-git-repo/timeseries_data/20240729.HRr5-test12'
+# Settings for lcrc
+#runname = '20240729.HRr5-test12' # timeseries/ will be prepended to this
+#mocdir = '/lcrc/group/acme/ac.jwolfe/case_output/20240626.HRr5-test11.chrysalis/timeseries/moc'
+#regionalTSdir = '/home/ac.milena/analysis-MPAS/analysis-git-repo/timeseries_data/20240729.HRr5-test12'
+
+# Settings for chicoma
+runname = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma' # timeseries/ will be prepended to this
+mocdir = '/lustre/scratch4/turquoise/milena/E3SMv3/20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma/mpas-analysis/clim_1-10_ts_1-31/timeseries/moc'
+regionalTSdir = '/users/milena/analysis-git-repo/timeseries_data/20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
+
 regionGroup = 'arctic_atlantic_budget_regions_new20240408'
+
 yearStart = 1
-yearEnd = 24
+yearEnd = 31
+
 tsvariable = 'iceArea'
 #tsvariable = 'iceVolume'
-regionName = 'Greater Arctic'
+#regionName = 'Greater Arctic'
 #regionName = 'Nordic Seas'
-#regionName = 'North Atlantic subpolar gyre'
+regionName = 'North Atlantic subpolar gyre'
 regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '')
 moclats = [26, 45, 65]
 #moccolors = ['slateblue', 'firebrick', 'salmon'] # same length as moclats
