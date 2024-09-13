@@ -37,8 +37,8 @@ def get_mask_short_names(mask):
 
 
 # Choose years
-year1 = 500
-year2 = 599
+year1 = 1
+year2 = 30
 years = range(year1, year2+1)
 
 # Settings for onyx:
@@ -57,7 +57,12 @@ years = range(year1, year2+1)
 #casenameFull = 'v2_1.LR.piControl'
 #casename = 'v2_1.LR.piControl'
 #modeldir = f'/lcrc/group/e3sm/ac.golaz/E3SMv2_1/{casenameFull}/archive/ocn/hist'
-#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/RRSwISC6to18E3r5/mpaso.RRSwISC6to18E3r5.20240327.nc'
+maskfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/RRSwISC6to18E3r5_atlanticZonal_sections20230307.nc'
+casenameFull = '20240729.HRr5-test12.chrysalis'
+casename = '20240729.HRr5-test12'
+modeldir = f'/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/{casenameFull}/archive/ocn/hist'
+featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
@@ -75,13 +80,13 @@ years = range(year1, year2+1)
 #modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/ocn/hist'
 #featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 #
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/SOwISC12to60E2r4/mpaso.SOwISC12to60E2r4.rstFromG-anvil.210203.nc'
-maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/SOwISC12to60E2r4_atlanticZonal_sections20230307.nc'
-casenameFull = '20221116.CRYO1950.ne30pg2_SOwISC12to60E2r4.N2Dependent.submeso'
-casename = 'SORRMv2.1.1950control'
-modeldir = f'/pscratch/sd/a/abarthel/data/E3SMv2.1/{casenameFull}/archive/ocn/hist'
-casenameFull = f'{casenameFull}.chrysalis'
-featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/SOwISC12to60E2r4/mpaso.SOwISC12to60E2r4.rstFromG-anvil.210203.nc'
+#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/SOwISC12to60E2r4_atlanticZonal_sections20230307.nc'
+#casenameFull = '20221116.CRYO1950.ne30pg2_SOwISC12to60E2r4.N2Dependent.submeso'
+#casename = 'SORRMv2.1.1950control'
+#modeldir = f'/pscratch/sd/a/abarthel/data/E3SMv2.1/{casenameFull}/archive/ocn/hist'
+#casenameFull = f'{casenameFull}.chrysalis'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
 #
 
 sZero = 35.0
