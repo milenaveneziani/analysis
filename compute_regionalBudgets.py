@@ -39,45 +39,46 @@ import matplotlib.ticker as mticker
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-##featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
+featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
 #casename = 'GM600_Redi600'
 #casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
 #modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+#
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_greaterArctic04082024.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions.nc'
-#casenameFull = 'E3SM-Arcticv2.1_historical0151'
-#casename = 'E3SM-Arcticv2.1_historical0151'
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SM-Arcticv2.1_historical0101'
+casename = 'E3SM-Arcticv2.1_historical0101'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_NH.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
-regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
-featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
-modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+##regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_NH.nc'
+##featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
+#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
+##modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+#modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
 
-regionNames = ['all']
-#regionNames = ['Greater Arctic']
+#regionNames = ['all']
+regionNames = ['Greater Arctic']
 #regionNames = ['North Atlantic subpolar gyre']
 #regionNames = ['North Atlantic subtropical gyre']
 
 # Choose years
-#year1 = 1950
-#year2 = 1955
+year1 = 1950
+year2 = 1952
 #year2 = 2014
-year1 = 1
+#year1 = 1
 #year2 = 5
-year2 = 386
+#year2 = 386
 years = range(year1, year2+1)
 
 referenceDate = '0001-01-01'
@@ -89,10 +90,10 @@ movingAverageMonths = 12
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
 
-figdir = f'./volBudget/{casename}'
+figdir = f'./budgets/{casename}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
-outdir = f'./volBudget_data/{casename}'
+outdir = f'./budgets_data/{casename}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 
@@ -100,8 +101,6 @@ if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
 else:
     raise IOError('No feature file found for this region group')
-
-nTime = 12*len(years)
 
 ###
 ### PART 1 -- Read/compute mesh and regional mask quantities
@@ -210,12 +209,24 @@ areaCell = dsMesh.areaCell
 #    plt.savefig(f'{figdir}/{rname}_regionMaskOpenbry.png', bbox_inches='tight')
 #    plt.close()
 
-print('\nComputing/plotting regional budgets...')
 for n in range(nRegions):
     regionName = regionNames[n]
+    print(f'\n**** Regional budgets for: {regionName} ****')
+
     rname = regionName.replace(' ', '').replace('(', '').replace(')', '')
     regionIndex = regions.index(regionName)
-    print(f'Region: {regionName}')
+
+    # Get regional mask quantities
+    dsMask = dsRegionMask.isel(nRegions=regionIndex)
+    [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
+    cellMask = dsMask.regionCellMasks == 1
+    regionArea = areaCell.where(cellMask, drop=True)
+    #regionLon = dsMesh['lonCell'].where(cellMask, drop=True)
+    regionLon = dsMesh.lonCell.where(cellMask, drop=True)
+    regionLat = dsMesh.latCell.where(cellMask, drop=True)
+    dvEdge = dsMesh.dvEdge[openBryEdges]
+    coe0 = dsMesh.cellsOnEdge.isel(TWO=0, nEdges=openBryEdges) - 1
+    coe1 = dsMesh.cellsOnEdge.isel(TWO=1, nEdges=openBryEdges) - 1
 
     fc = FeatureCollection()
     for feature in fcAll.features:
@@ -224,48 +235,43 @@ for n in range(nRegions):
             break
 
     ###
-    ### PART 2 -- Compute budget terms if outfile does not exist
-    ###           (note: could save yearly files instead)
+    ### PART 2 -- Compute yearly budget terms if outfile does not exist
     ###
-    outfile = f'{outdir}/volBudget_{rname}_years{year1:04d}-{year2:04d}.nc'
-    if not os.path.exists(outfile):
-        # Initialize volume budget terms
-        t = np.zeros(nTime)
-        volNetLateralFlux = np.zeros(nTime)
-        evapFlux = np.zeros(nTime)
-        rainFlux = np.zeros(nTime)
-        snowFlux = np.zeros(nTime)
-        riverRunoffFlux = np.zeros(nTime)
-        iceRunoffFlux = np.zeros(nTime)
-        seaIceFreshWaterFlux = np.zeros(nTime)
-        layerThick = np.zeros(nTime)
-        frazilThick = np.zeros(nTime) # this is included in layerThicknessTendency
+    kyear = 0
+    outfiles = []
+    for year in years:
+        kyear = kyear + 1
+        outfile = f'{outdir}/budgetTerms_{rname}_year{year:04d}.nc'
+        outfiles.append(outfile)
 
-        # Get regional mask quantities
-        dsMask = dsRegionMask.isel(nRegions=regionIndex)
-        [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
-        cellMask = dsMask.regionCellMasks == 1
-        regionArea = areaCell.where(cellMask, drop=True)
-        dvEdge = dsMesh.dvEdge[openBryEdges]
-        coe0 = dsMesh.cellsOnEdge.isel(TWO=0, nEdges=openBryEdges) - 1
-        coe1 = dsMesh.cellsOnEdge.isel(TWO=1, nEdges=openBryEdges) - 1
+        # Initialize quantities
+        t = np.zeros(12)
+        # Volume budget terms
+        volNetLateralFlux = np.zeros(12)
+        evapFlux = np.zeros(12)
+        rainFlux = np.zeros(12)
+        snowFlux = np.zeros(12)
+        riverRunoffFlux = np.zeros(12)
+        iceRunoffFlux = np.zeros(12)
+        seaIceFreshWaterFlux = np.zeros(12)
+        layerThick = np.zeros(12)
+        frazilThick = np.zeros(12) # this is included in layerThicknessTendency
+        # Freshwater budget terms
+        # Heat budget terms
 
-        # Compute budget terms
-        ktime = 0
-        kyear = 0
-        for year in years:
-            kyear = kyear + 1
-            print(f'Year = {year:04d} ({kyear} out of {len(years)} years total)')
+        if not os.path.exists(outfile):
+            print(f'  Compute budget terms for year = {year:04d} ({kyear} out of {len(years)} years total)')
             for month in range(1, 13):
+                im = month-1
                 print(f'  Month= {month:02d}')
                 modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
 
                 ds = xr.open_dataset(modelfile, decode_times=False)
 
-                t[ktime] = ds.Time.isel(Time=0).values
+                t[im] = ds.Time.isel(Time=0).values
 
                 # Compute net lateral fluxes
-                t0 = time.time()
+                #t0 = time.time()
                 if 'timeMonthly_avg_normalTransportVelocity' in ds.keys():
                     vel = ds.timeMonthly_avg_normalTransportVelocity.isel(Time=0, nEdges=openBryEdges)
                 elif 'timeMonthly_avg_normalVelocity' in ds.keys():
@@ -284,143 +290,141 @@ for n in range(nRegions):
                 dArea = dvEdge * dzOnEdges
                 normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
                 lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
-                volNetLateralFlux[ktime] = lateralFlux.values
-                t1 = time.time()
-                print('   Lateral flux calculation, #seconds = ', t1-t0)
+                volNetLateralFlux[im] = lateralFlux.values
+                #FWNetLaterFlux[im] = 
+                #t1 = time.time()
+                #print('   Lateral flux calculation, #seconds = ', t1-t0)
 
                 # Compute net surface fluxes
                 if 'timeMonthly_avg_evaporationFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_evaporationFlux.isel(Time=0).where(cellMask, drop=True)
-                   evapFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   evapFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no evaporation flux variable found')
                 if 'timeMonthly_avg_rainFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_rainFlux.isel(Time=0).where(cellMask, drop=True)
-                   rainFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   rainFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no rain flux variable found')
                 if 'timeMonthly_avg_snowFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_snowFlux.isel(Time=0).where(cellMask, drop=True)
-                   snowFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   snowFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no snow flux variable found')
                 if 'timeMonthly_avg_riverRunoffFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_riverRunoffFlux.isel(Time=0).where(cellMask, drop=True)
-                   riverRunoffFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   riverRunoffFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no river runoff flux variable found')
                 if 'timeMonthly_avg_iceRunoffFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_iceRunoffFlux.isel(Time=0).where(cellMask, drop=True)
-                   iceRunoffFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   iceRunoffFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                    raise KeyError('no ice runoff flux variable found')
                 if 'timeMonthly_avg_seaIceFreshWaterFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_seaIceFreshWaterFlux.isel(Time=0).where(cellMask, drop=True)
-                   seaIceFreshWaterFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   seaIceFreshWaterFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 else:
                     raise KeyError('no sea ice freshwater flux variable found')
                 if 'timeMonthly_avg_icebergFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_icebergFlux.isel(Time=0).where(cellMask, drop=True)
-                   icebergFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
+                   icebergFlux[im] = (flux * regionArea).sum(dim='nCells').values
                 if 'timeMonthly_avg_landIceFlux' in ds.keys():
                    flux = ds.timeMonthly_avg_landIceFlux.isel(Time=0).where(cellMask, drop=True)
-                   landIceFlux[ktime] = (flux * regionArea).sum(dim='nCells').values
-                t2 = time.time()
-                print('   Surface fluxes calculation, #seconds = ', t2-t1)
+                   landIceFlux[im] = (flux * regionArea).sum(dim='nCells').values
+                #t2 = time.time()
+                #print('   Surface fluxes calculation, #seconds = ', t2-t1)
 
                 # Compute layer thickness tendencies
                 if 'timeMonthly_avg_tendLayerThickness' in ds.keys():
                    layerThickTend = ds.timeMonthly_avg_tendLayerThickness.isel(Time=0).where(cellMask, drop=True)
-                   layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
-                   layerThick[ktime] = (layerThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
+                   layerThick[im] = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
+                   layerThick[im] = (layerThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
                 else:
                    raise KeyError('no layer thickness tendency variable found')
                 if 'timeMonthly_avg_frazilLayerThicknessTendency' in ds.keys():
                    frazilThickTend = ds.timeMonthly_avg_frazilLayerThicknessTendency.isel(Time=0).where(cellMask, drop=True)
-                   frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
-                   #frazilThick[ktime] = (frazilThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
+                   frazilThick[im] = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells').values
+                   #frazilThick[im] = (frazilThickTend * regionArea).sum(dim='nVertLevels').sum(dim='nCells').values
                 else:
                    raise KeyError('no frazil layer thickness tendency variable found')
-                t3 = time.time()
-                print('   Layer thickness tendencies calculation, #seconds = ', t3-t2)
+                #t3 = time.time()
+                #print('   Layer thickness tendencies calculation, #seconds = ', t3-t2)
 
-                ktime = ktime + 1
+            volNetLateralFlux = m3ps_to_Sv * volNetLateralFlux
+            evapFlux = 1/rho0 * m3ps_to_Sv * evapFlux
+            rainFlux = 1/rho0 * m3ps_to_Sv * rainFlux
+            snowFlux = 1/rho0 * m3ps_to_Sv * snowFlux
+            riverRunoffFlux = 1/rho0 * m3ps_to_Sv * riverRunoffFlux
+            iceRunoffFlux = 1/rho0 * m3ps_to_Sv * iceRunoffFlux
+            seaIceFreshWaterFlux = 1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux
+            thickTend = m3ps_to_Sv * layerThick
+            frazilTend = m3ps_to_Sv * frazilThick
 
-        volNetLateralFlux = m3ps_to_Sv * volNetLateralFlux
-        evapFlux = 1/rho0 * m3ps_to_Sv * evapFlux
-        rainFlux = 1/rho0 * m3ps_to_Sv * rainFlux
-        snowFlux = 1/rho0 * m3ps_to_Sv * snowFlux
-        riverRunoffFlux = 1/rho0 * m3ps_to_Sv * riverRunoffFlux
-        iceRunoffFlux = 1/rho0 * m3ps_to_Sv * iceRunoffFlux
-        seaIceFreshWaterFlux = 1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux
-        thickTend = m3ps_to_Sv * layerThick
-        frazilTend = m3ps_to_Sv * frazilThick
+            # Save to file
+            ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
+            ncid.createDimension('Time', None)
 
-        # Save to file
-        ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
-        ncid.createDimension('Time', None)
+            times = ncid.createVariable('Time', 'f8', 'Time')
+            volNetLateralFluxVar = ncid.createVariable('volNetLateralFlux', 'f8', ('Time'))
+            evapVar = ncid.createVariable('evapFlux', 'f8', ('Time'))
+            rainVar = ncid.createVariable('rainFlux', 'f8', ('Time'))
+            snowVar = ncid.createVariable('snowFlux', 'f8', ('Time'))
+            lrunoffVar = ncid.createVariable('riverRunoffFlux', 'f8', ('Time'))
+            srunoffVar = ncid.createVariable('iceRunoffFlux', 'f8', ('Time'))
+            icefreshVar = ncid.createVariable('seaIceFreshWaterFlux', 'f8', ('Time'))
+            thickTendVar = ncid.createVariable('thicknessTendency', 'f8', ('Time'))
+            frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
 
-        times = ncid.createVariable('Time', 'f8', 'Time')
-        volNetLateralFluxVar = ncid.createVariable('volNetLateralFlux', 'f8', ('Time'))
-        evapVar = ncid.createVariable('evapFlux', 'f8', ('Time'))
-        rainVar = ncid.createVariable('rainFlux', 'f8', ('Time'))
-        snowVar = ncid.createVariable('snowFlux', 'f8', ('Time'))
-        lrunoffVar = ncid.createVariable('riverRunoffFlux', 'f8', ('Time'))
-        srunoffVar = ncid.createVariable('iceRunoffFlux', 'f8', ('Time'))
-        icefreshVar = ncid.createVariable('seaIceFreshWaterFlux', 'f8', ('Time'))
-        thickTendVar = ncid.createVariable('thicknessTendency', 'f8', ('Time'))
-        frazilTendVar = ncid.createVariable('frazilTendency', 'f8', ('Time'))
+            volNetLateralFluxVar.units = 'Sv'
+            evapVar.units = 'Sv'
+            rainVar.units = 'Sv'
+            snowVar.units = 'Sv'
+            lrunoffVar.units = 'Sv'
+            srunoffVar.units = 'Sv'
+            icefreshVar.units = 'Sv'
+            thickTendVar.units = 'Sv'
+            frazilTendVar.units = 'Sv'
 
-        volNetLateralFluxVar.units = 'Sv'
-        evapVar.units = 'Sv'
-        rainVar.units = 'Sv'
-        snowVar.units = 'Sv'
-        lrunoffVar.units = 'Sv'
-        srunoffVar.units = 'Sv'
-        icefreshVar.units = 'Sv'
-        thickTendVar.units = 'Sv'
-        frazilTendVar.units = 'Sv'
+            volNetLateralFluxVar.description = 'Net lateral volume transport across all open boundaries'
+            evapVar.description = 'Volume change due to region integrated evaporation'
+            rainVar.description = 'Volume change due to region integrated rain precipitation'
+            snowVar.description = 'Volume change due to region integrated snow precipitation'
+            lrunoffVar.description = 'Volume change due to region integrated liquid runoff'
+            srunoffVar.description = 'Volume change due to region integrated solid runoff'
+            icefreshVar.description = 'Volume change due to region integrated sea-ice freshwater flux'
+            thickTendVar.description = 'Volume change due to total water column tendency (SSH changes)'
+            frazilTendVar.description = 'Volume change due to frazil ice formation'
 
-        volNetLateralFluxVar.description = 'Net lateral volume transport across all open boundaries'
-        evapVar.description = 'Volume change due to region integrated evaporation'
-        rainVar.description = 'Volume change due to region integrated rain precipitation'
-        snowVar.description = 'Volume change due to region integrated snow precipitation'
-        lrunoffVar.description = 'Volume change due to region integrated liquid runoff'
-        srunoffVar.description = 'Volume change due to region integrated solid runoff'
-        icefreshVar.description = 'Volume change due to region integrated sea-ice freshwater flux'
-        thickTendVar.description = 'Volume change due to total water column tendency (SSH changes)'
-        frazilTendVar.description = 'Volume change due to frazil ice formation'
-
-        times[:] = t
-        volNetLateralFluxVar[:] = volNetLateralFlux
-        evapVar[:] = evapFlux
-        rainVar[:] = rainFlux
-        snowVar[:] = snowFlux
-        lrunoffVar[:] = riverRunoffFlux
-        srunoffVar[:] = iceRunoffFlux
-        icefreshVar[:] = seaIceFreshWaterFlux
-        thickTendVar[:] = thickTend
-        frazilTendVar[:] = frazilTend
-        ncid.close()
-    else:
-        print(f'\nFile {outfile} already exists. Plotting only...\n')
+            times[:] = t
+            volNetLateralFluxVar[:] = volNetLateralFlux
+            evapVar[:] = evapFlux
+            rainVar[:] = rainFlux
+            snowVar[:] = snowFlux
+            lrunoffVar[:] = riverRunoffFlux
+            srunoffVar[:] = iceRunoffFlux
+            icefreshVar[:] = seaIceFreshWaterFlux
+            thickTendVar[:] = thickTend
+            frazilTendVar[:] = frazilTend
+            ncid.close()
+        else:
+            print(f'  File for year = {year:04d} ({kyear} out of {len(years)} years total) already exists. Moving to the next one...')
 
     ###
     ### PART 3 -- Plotting
     ###
     # Read in previously computed volume budget quantities
-    ncid = Dataset(outfile, mode='r')
-    t = ncid.variables['Time'][:]
-    volNetLateralFlux = ncid.variables['volNetLateralFlux'][:]
-    evapFlux = ncid.variables['evapFlux'][:]
-    rainFlux = ncid.variables['rainFlux'][:]
-    snowFlux = ncid.variables['snowFlux'][:]
-    riverRunoffFlux = ncid.variables['riverRunoffFlux'][:]
-    iceRunoffFlux = ncid.variables['iceRunoffFlux'][:]
-    seaIceFreshWaterFlux = ncid.variables['seaIceFreshWaterFlux'][:]
-    thickTend = ncid.variables['thicknessTendency'][:]
-    frazilTend = ncid.variables['frazilTendency'][:]
-    ncid.close()
+    dsBudgets = xr.open_mfdataset(outfiles)
+    t = dsBudgets['Time']
+    volNetLateralFlux = dsBudgets['volNetLateralFlux']
+    evapFlux = dsBudgets['evapFlux']
+    rainFlux = dsBudgets['rainFlux']
+    snowFlux = dsBudgets['snowFlux']
+    riverRunoffFlux = dsBudgets['riverRunoffFlux']
+    iceRunoffFlux = dsBudgets['iceRunoffFlux']
+    seaIceFreshWaterFlux = dsBudgets['seaIceFreshWaterFlux']
+    thickTend = dsBudgets['thicknessTendency']
+    frazilTend = dsBudgets['frazilTendency']
     tot = volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
     res = thickTend - tot
 
@@ -440,19 +444,19 @@ for n in range(nRegions):
         tot_runavg = pd.Series(tot).rolling(window, center=True).mean()
 
     # Compute long-term means
-    volNetLateralFluxMean = np.mean(volNetLateralFlux)
-    evapFluxMean = np.mean(evapFlux)
-    rainFluxMean = np.mean(rainFlux)
-    snowFluxMean = np.mean(snowFlux)
-    empMean = np.mean(evapFlux + rainFlux + snowFlux)
-    riverRunoffFluxMean = np.mean(riverRunoffFlux)
-    iceRunoffFluxMean = np.mean(iceRunoffFlux)
-    runoffMean = np.mean(riverRunoffFluxMean + iceRunoffFluxMean)
-    seaIceFreshWaterFluxMean = np.mean(seaIceFreshWaterFlux)
-    frazilTendMean = np.mean(frazilTend)
-    thickTendMean = np.mean(thickTend)
-    resMean = np.mean(res)
-    totMean = np.mean(tot)
+    volNetLateralFluxMean = volNetLateralFlux.mean().values
+    evapFluxMean = evapFlux.mean().values
+    rainFluxMean = rainFlux.mean().values
+    snowFluxMean = snowFlux.mean().values
+    empMean = (evapFlux + rainFlux + snowFlux).mean().values
+    riverRunoffFluxMean = riverRunoffFlux.mean().values
+    iceRunoffFluxMean = iceRunoffFlux.mean().values
+    runoffMean = (riverRunoffFlux + iceRunoffFlux).mean().values
+    seaIceFreshWaterFluxMean = seaIceFreshWaterFlux.mean().values
+    frazilTendMean = frazilTend.mean().values
+    thickTendMean = thickTend.mean().values
+    resMean = res.mean().values
+    totMean = tot.mean().values
 
     figdpi = 300
     figsize = (16, 16)
