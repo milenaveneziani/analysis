@@ -58,6 +58,7 @@ runName = 'E3SMv2.1B60to10rA02'
 # Directories where fields for step 2) are stored:
 #rundir = f'/p/archive/osinski/E3SM/{runName}'
 rundir = f'/p/work/milena/{runName}'
+#rundir = f'/p/cwfs/milena/{runName}'
 postprocmaindir = rundir
 # Note: the following two variables cannot be both True
 isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
@@ -105,26 +106,26 @@ variables = [
               'mpas': 'timeMonthly_avg_velocityZonal'},
              {'name': 'velocityMeridionalDepthAvg',
               'mpas': 'timeMonthly_avg_velocityMeridional'},
-             #{'name': 'velocityZonal',
-             # 'mpas': 'timeMonthly_avg_velocityZonal'},
-             #{'name': 'velocityMeridional',
-             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
-             #{'name': 'activeTracers_temperature',
-             # 'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             #{'name': 'activeTracers_salinity',
-             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'velocityZonal',
+              'mpas': 'timeMonthly_avg_velocityZonal'},
+             {'name': 'velocityMeridional',
+              'mpas': 'timeMonthly_avg_velocityMeridional'},
+             {'name': 'activeTracers_temperature',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinity',
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
              {'name': 'activeTracers_temperatureDepthAvg',
               'mpas': 'timeMonthly_avg_activeTracers_temperature'},
              {'name': 'activeTracers_salinityDepthAvg',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity'}
-             #{'name': 'dThreshMLD',
-             # 'mpas': 'timeMonthly_avg_dThreshMLD'},
-             #{'name': 'windStressZonal',
-             # 'mpas': 'timeMonthly_avg_windStressZonal'},
-             #{'name': 'windStressMeridional',
-             # 'mpas': 'timeMonthly_avg_windStressMeridional'},
-             #{'name': 'sensibleHeatFlux',
-             # 'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'dThreshMLD',
+              'mpas': 'timeMonthly_avg_dThreshMLD'},
+             {'name': 'windStressZonal',
+              'mpas': 'timeMonthly_avg_windStressZonal'},
+             {'name': 'windStressMeridional',
+              'mpas': 'timeMonthly_avg_windStressMeridional'},
+             {'name': 'sensibleHeatFlux',
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
              ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
@@ -167,8 +168,10 @@ if not os.path.isdir(postprocdir):
 #zmax = 0.
 #zmin = -600.
 #zmax = -100.
-zmin = -50.
-zmax = 0.
+zmin = -8000.
+zmax = -600.
+#zmin = -8000.
+#zmax = 0.
 # The following is only relevant for depthAvg variables
 dsMesh = xr.open_dataset(meshFile)
 depth = dsMesh.bottomDepth

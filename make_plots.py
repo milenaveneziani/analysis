@@ -104,6 +104,51 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     plt.close()
 
 
+def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTitle, figFile, contourFld=None, contourValues=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+    
+    figdpi = 150
+    figsize = [20, 20]
+
+    [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
+
+    data_crs = ccrs.PlateCarree()
+
+    plt.figure(figsize=figsize, dpi=figdpi)
+
+    if projectionName=='NorthPolarStereo':
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+    elif projectionName=='SouthPolarStereo':
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    else:
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+    ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
+    gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+    gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
+    gl.ylocator = mticker.FixedLocator(np.arange(lat0+dlat/2, lat1-dlat/2, dlat))
+    gl.n_steps = 100
+    gl.right_labels = False
+    gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
+    gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.rotate_labels = False
+
+    add_land_lakes_coastline(ax)
+
+    fldcyclic, loncyclic = add_cyclic_point(fld, lon)
+    [lon, lat] = np.meshgrid(loncyclic, lat)
+
+    cf = ax.contourf(lon, lat, fldcyclic, cmap=colormap, norm=cnorm, levels=clevels, extend='both', transform=data_crs)
+    cbar = plt.colorbar(cf, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
+    cbar.ax.tick_params(labelsize=14, labelcolor='black')
+    cbar.set_label(cbarLabel, fontsize=12, fontweight='bold')
+    if (contourFld is not None) and (contourValues is not None):
+        cs = ax.contour(lon, lat, contourFld, contourValues, colors='k', linewidths=1.5)
+        cb = plt.clabel(cs, levels=contourValues, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
+
+    ax.set_title(figTitle, y=1.04, fontsize=16)
+    plt.savefig(figFile, bbox_inches='tight')
+    plt.close()
+    
+
 def _make_discrete_colormap(colormap, colorindices, colorlevels):
     if colorindices is not None:
         colorindices0 = colorindices

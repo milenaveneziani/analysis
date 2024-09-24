@@ -12,7 +12,7 @@ import cmocean
 
 from mpas_analysis.ocean.utility import compute_zmid
 
-from make_plots import make_scatter_plot, make_streamline_plot
+from make_plots import make_scatter_plot, make_streamline_plot, make_contourf_plot
 
 
 #startYear = [1950]
@@ -86,14 +86,23 @@ modelName = 'mpaso'
 #
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'streamlines',
-              'title': 'Velocity',
+#             {'name': 'streamlines',
+#              'title': 'Velocity',
+#              'units': 'cm/s',
+#              'factor': 1e2,
+#              'isvar3d': True,
+#              'mpas': None,
+#              'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+#              'colormap': cmocean.cm.speed_r},
+             {'name': 'velSpeed',
+              'title': 'Velocity magnitude',
               'units': 'cm/s',
               'factor': 1e2,
               'isvar3d': True,
               'mpas': None,
               'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-              'colormap': cmocean.cm.speed_r},
+              'colormap': cmocean.cm.speed_r}
+#              'colormap': cmocean.cm.speed_r},
 #             {'name': 'windStressSpeed',
 #              'title': 'Wind stress magnitude',
 #              'units': 'N/m$^2$',
@@ -118,22 +127,22 @@ variables = [
 #              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
 #              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
 #              'colormap': cmocean.cm.solar_r},
-             {'name': 'activeTracers_temperature',
-              'title': 'Potential Temperature',
-              'units': 'degC',
-              'factor': 1,
-              'isvar3d': True,
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
-              'colormap': cmocean.cm.thermal},
-             {'name': 'activeTracers_salinity',
-              'title': 'Salinity',
-              'units': 'psu',
-              'factor': 1,
-              'isvar3d': True,
-              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
-              'colormap': cmocean.cm.haline}
+#             {'name': 'activeTracers_temperature',
+#              'title': 'Potential Temperature',
+#              'units': 'degC',
+#              'factor': 1,
+#              'isvar3d': True,
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+#              'colormap': cmocean.cm.thermal},
+#             {'name': 'activeTracers_salinity',
+#              'title': 'Salinity',
+#              'units': 'psu',
+#              'factor': 1,
+#              'isvar3d': True,
+#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+#              'colormap': cmocean.cm.haline}
              ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'title': 'Surface buoyancy flux',
@@ -191,14 +200,14 @@ variables = [
 #modelComp = 'atm'
 #modelName = 'eam'
 
-plotDepthAvg = False
+plotDepthAvg = True
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
-zmins = [-50., -600.]
-zmaxs = [0., -100.]
+zmins = [-50., -600., -8000.]
+zmaxs = [0., -100., 0.]
 #zmins = [-50.]
 #zmaxs = [0.]
-#zmins = [-600.]
-#zmaxs = [-100.]
+#zmins = [-8000.]
+#zmaxs = [0.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0., 500.]
 #dlevels = [50., 100.]
@@ -232,7 +241,6 @@ for regionName in regions:
     regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
     for im in range(1, 13):
-    #for im in range(1, 2):
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']
@@ -252,7 +260,7 @@ for regionName in regions:
                 x = lonCell
                 y = latCell
 
-            if varname=='streamlines':
+            if varname=='streamlines' or varname=='velSpeed':
                 # Regrid velocityZonal and velocityMeridional (if necessary)
                 if plotDepthAvg:
                     # Compute the depth average first and then regrid
@@ -413,7 +421,7 @@ for regionName in regions:
                         figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                         figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
-                        if varname=='streamlines':
+                        if varname=='streamlines' or varname=='velSpeed':
                             uLow  = xr.open_dataset(infileLow_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
                             vLow  = xr.open_dataset(infileLow_v).isel(Time=0).timeMonthly_avg_velocityMeridional.values
                             uHigh  = xr.open_dataset(infileHigh_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
@@ -427,15 +435,23 @@ for regionName in regions:
                             lon = xr.open_dataset(infileLow_u).lon.values
                             lat = xr.open_dataset(infileLow_u).lat.values
 
-                            streamlineDensity = 4
-                            make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
-                                                 colormap, clevels, colorIndices, varunits,
-                                                 'NorthPolarStereo', figtitleLow, figfileLow,
-                                                 lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                            make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
-                                                 colormap, clevels, colorIndices, varunits,
-                                                 'NorthPolarStereo', figtitleHigh, figfileHigh,
-                                                 lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            if varname=='streamlines':
+                                streamlineDensity = 4
+                                make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
+                                                     colormap, clevels, colorIndices, varunits,
+                                                     'NorthPolarStereo', figtitleLow, figfileLow,
+                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                                make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
+                                                     colormap, clevels, colorIndices, varunits,
+                                                     'NorthPolarStereo', figtitleHigh, figfileHigh,
+                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            else:
+                                make_contourf_plot(lon, lat, speedLow, colormap, clevels, colorIndices, varunits,
+                                                   figtitleLow, figfileLow, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
+                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                                make_contourf_plot(lon, lat, speedHigh, colormap, clevels, colorIndices, varunits,
+                                                   figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
+                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
                             infileLow = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileLow):
@@ -463,7 +479,7 @@ for regionName in regions:
                         figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                         figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
-                        if varname=='streamlines':
+                        if varname=='streamlines' or varname=='velSpeed':
                             uLow = xr.open_dataset(infileLow_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
                             vLow = xr.open_dataset(infileLow_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional
                             uHigh = xr.open_dataset(infileHigh_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
@@ -479,15 +495,23 @@ for regionName in regions:
                             lon = xr.open_dataset(infileLow_u).lon.values
                             lat = xr.open_dataset(infileLow_u).lat.values
 
-                            streamlineDensity = 4
-                            make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
-                                                 colormap, clevels, colorIndices, varunits,
-                                                 'NorthPolarStereo', figtitleLow, figfileLow,
-                                                 lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                            make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
-                                                 colormap, clevels, colorIndices, varunits,
-                                                 'NorthPolarStereo', figtitleHigh, figfileHigh,
-                                                 lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            if varname=='streamlines':
+                                streamlineDensity = 4
+                                make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
+                                                     colormap, clevels, colorIndices, varunits,
+                                                     'NorthPolarStereo', figtitleLow, figfileLow,
+                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                                make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
+                                                     colormap, clevels, colorIndices, varunits,
+                                                     'NorthPolarStereo', figtitleHigh, figfileHigh,
+                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            else:
+                                make_contourf_plot(lon, lat, speedLow, colormap, clevels, colorIndices, varunits,
+                                                   figtitleLow, figfileLow, contourFld=None, contourValues=None, projectionName='NorthPolarStereo', 
+                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                                make_contourf_plot(lon, lat, speedHigh, colormap, clevels, colorIndices, varunits,
+                                                   figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo', 
+                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
                             dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
