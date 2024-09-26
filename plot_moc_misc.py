@@ -16,9 +16,9 @@ import os
 #runname = '20240729.HRr5-test12' # timeseries/ will be prepended to this
 #mocdir = '/lcrc/group/acme/ac.jwolfe/case_output/20240626.HRr5-test11.chrysalis/timeseries/moc'
 #regionalTSdir = '/home/ac.milena/analysis-MPAS/analysis-git-repo/timeseries_data/20240729.HRr5-test12'
-runname = '20240519_icos30_JRAp5_wISC30E3r5' # timeseries/ will be prepended to this
-mocdir = '/lcrc/group/e3sm/ac.fspereira/scratch/anvil/diagnostics/20240519_icos30_JRAp5_wISC30E3r5_001_189/timeseries/moc'
-regionalTSdir = ''
+#runname = '20240519_icos30_JRAp5_wISC30E3r5' # timeseries/ will be prepended to this
+#mocdir = '/lcrc/group/e3sm/ac.fspereira/scratch/anvil/diagnostics/20240519_icos30_JRAp5_wISC30E3r5_001_189/timeseries/moc'
+#regionalTSdir = ''
 
 # Settings for chicoma
 #runname = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma' # timeseries/ will be prepended to this
@@ -26,14 +26,14 @@ regionalTSdir = ''
 #regionalTSdir = '/users/milena/analysis-git-repo/timeseries_data/20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
 
 # Settings for nersc
-#runname = 'E3SMv2.1B60to10rA02' # timeseries/ will be prepended to this
-#mocdir = '/global/cfs/cdirs/m1199/e3sm-arrm-simulations/E3SMv2.1B60to10rA02/mpas-analysis/timeseries/moc'
-#regionalTSdir = '/global/cfs/cdirs/e3sm/milena/analysis-MPAS/analysis-git-repo/timeseries_data/E3SMv2.1B60to10rA02'
+runname = 'E3SMv2.1B60to10rA02' # timeseries/ will be prepended to this
+mocdir = '/global/cfs/cdirs/m1199/e3sm-arrm-simulations/E3SMv2.1B60to10rA02/mpas-analysis/timeseries/moc'
+regionalTSdir = '/global/cfs/cdirs/e3sm/milena/analysis-MPAS/analysis-git-repo/timeseries_data/E3SMv2.1B60to10rA02'
 
 regionGroup = 'arctic_atlantic_budget_regions_new20240408'
 
 yearStart = 1
-yearEnd = 189
+yearEnd = 386
 
 #tsvariable = 'iceArea'
 tsvariable = 'iceVolume'
@@ -127,8 +127,8 @@ if npanelsToPlot==1:
 ax.set_ylabel('max MOC (Sv)', fontsize=fontsize_labels, fontweight='bold')
 ax.set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
 ax.autoscale(enable=True, axis='x', tight=True)
-#ax.set_xlim(0, yearEnd)
-ax.set_xlim(0, 30)
+ax.set_xlim(0, yearEnd)
+#ax.set_xlim(0, 30)
 
 if npanelsToPlot>1:
 #### PANEL 2: max MOC time series for various latitudes plus ice time series ####
