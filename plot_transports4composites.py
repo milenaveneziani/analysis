@@ -85,7 +85,6 @@ for n in range(nTransects):
                feature['properties']['name']=='Denmark Strait' or \
                feature['properties']['name']=='Iceland Norway 65N':
                 fc.add_feature(feature)
-                #break
         transectIndex = transects.index('Davis Strait South')
         dsTransect1 = ds.isel(nTransects=transectIndex)
         transectIndex = transects.index('Denmark Strait')
@@ -100,7 +99,6 @@ for n in range(nTransects):
         for feature in fcAll.features:
             if feature['properties']['name']==transectToPlot:
                 fc.add_feature(feature)
-                break
         transectIndex = transects.index(transectToPlot)
         dsTransect = ds.isel(nTransects=transectIndex)
         volTransport = dsTransect.volTransport
