@@ -126,8 +126,6 @@ dvEdge = dsMesh.dvEdge.sel(nEdges=edgesToRead)
 coe0 = dsMesh.cellsOnEdge.isel(TWO=0, nEdges=edgesToRead)
 coe1 = dsMesh.cellsOnEdge.isel(TWO=1, nEdges=edgesToRead)
 # Build land-sea mask and topomask for the two cells surrounding each edge of the transect 
-#landmask1 = coe0.values==0
-#landmask2 = coe1.values==0
 landmask1 = ~(coe0==0)
 landmask2 = ~(coe1==0)
 # convert to python indexing
@@ -141,8 +139,6 @@ vertIndex = xr.DataArray(data=np.arange(nVertLevels), dims=('nVertLevels',))
 depthmask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 depthmask1 = depthmask.isel(nCells=coe0)
 depthmask2 = depthmask.isel(nCells=coe1)
-#kmaxOnCells1 = dsMesh.maxLevelCell.isel(nCells=coe0).values
-#kmaxOnCells2 = dsMesh.maxLevelCell.isel(nCells=coe1).values
 #
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for i in range(nTransects):
@@ -153,7 +149,6 @@ for i in range(nTransects):
     if transectNames[i]!='Bering Strait' and transectNames[i]!='Hudson Bay-Labrador Sea':
         edgeSigns[i, :] = -edgeSigns[i, :]
 edgeSigns = xr.DataArray(data=edgeSigns, dims=('nTransect', 'nEdges'))
-#edgeSigns = xr.DataArray.from_dict({'dims': ('nTransect', 'nEdges'), 'data': edgeSigns})
 refBottom = dsMesh.refBottomDepth
 latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()
 lonmean = 180.0/np.pi * dsMesh.lonEdge.sel(nEdges=edgesToRead).mean()
@@ -196,21 +191,11 @@ for year in years:
             saltOnCells2 = dsIn.timeMonthly_avg_activeTracers_salinity.isel(Time=0, nCells=coe1)
 
             # Mask values that fall on land
-            #tempOnCells1[landmask1, :] = np.nan
-            #tempOnCells2[landmask2, :] = np.nan
-            #saltOnCells1[landmask1, :] = np.nan
-            #saltOnCells2[landmask2, :] = np.nan
             tempOnCells1 = tempOnCells1.where(landmask1, drop=False)
             tempOnCells2 = tempOnCells2.where(landmask2, drop=False)
             saltOnCells1 = saltOnCells1.where(landmask1, drop=False)
             saltOnCells2 = saltOnCells2.where(landmask2, drop=False)
             # Mask values that fall onto topography
-            #for k in range(len(kmaxOnCells1)):
-            #    tempOnCells1[k, kmaxOnCells1[k]:] = np.nan
-            #    saltOnCells1[k, kmaxOnCells1[k]:] = np.nan
-            #for k in range(len(kmaxOnCells2)):
-            #    tempOnCells2[k, kmaxOnCells2[k]:] = np.nan
-            #    saltOnCells2[k, kmaxOnCells2[k]:] = np.nan
             tempOnCells1 = tempOnCells1.where(depthmask1, drop=False)
             tempOnCells2 = tempOnCells2.where(depthmask2, drop=False)
             saltOnCells1 = saltOnCells1.where(depthmask1, drop=False)
@@ -230,12 +215,6 @@ for year in years:
                 dzOnCells2 = dzOnCells2.where(landmask2, drop=False)
                 dzOnCells1 = dzOnCells1.where(depthmask1, drop=False)
                 dzOnCells2 = dzOnCells2.where(depthmask2, drop=False)
-                #dzOnCells1[landmask1, :] = np.nan
-                #dzOnCells2[landmask2, :] = np.nan
-                #for k in range(len(kmaxOnCells1)):
-                #    dzOnCells1[k, kmaxOnCells1[k]:] = np.nan
-                #for k in range(len(kmaxOnCells2)):
-                #    dzOnCells2[k, kmaxOnCells2[k]:] = np.nan
 
             # Interpolate values onto edges
             tempOnEdges = np.nanmean(np.array([tempOnCells1.values, tempOnCells2.values]), axis=0)
