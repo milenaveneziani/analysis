@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import cmocean
 
-from mpas_analysis.ocean.utility import compute_zmid
-
 from make_plots import make_scatter_plot, make_streamline_plot, make_contourf_plot
 
 

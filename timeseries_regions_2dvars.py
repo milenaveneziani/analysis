@@ -10,7 +10,6 @@ import netCDF4
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
 #from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
-from mpas_analysis.ocean.utility import compute_zmid
 
 from geometric_features import FeatureCollection, read_feature_collection
 

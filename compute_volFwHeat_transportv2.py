@@ -16,6 +16,8 @@ mpl.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+from netCDF4 import Dataset
+import platform
 import gsw
 
 from common_functions import add_inset
@@ -61,8 +63,7 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archiv
 
 # Choose years
 year1 = 1950
-year2 = 1950
-#year2 = 2014
+year2 = 2014
 #year1 = 1
 #year2 = 386
 years = range(year1, year2+1)
@@ -75,7 +76,6 @@ if not os.path.isdir(figdir):
 outdir = f'./transports_data/{casename}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-outfile = f'{outdir}/{outfile0}_{casename}_years{year1:04d}-{year2:04d}.nc'
 
 if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
@@ -91,13 +91,20 @@ m3ps_to_km3py = 1e-9*86400*365.25  # m^3/s FW flux to km^3/year
 W_to_TW = 1e-12
 ###################################################################
 
+transectName = 'all'
 # Read in transect information
 dsMask = get_mask_short_names(xr.open_dataset(maskfile))
-transectNames = decode_strings(dsMask.transectNames)
-transectList = dsMask.shortNames.values
+
+if transectName=='all' or transectName=='StandardTransportSectionsRegionsGroup':
+    transectList = dsMask.shortNames[:].values
+else:
+    transectList = transectName.split(',')
+    if platform.python_version()[0]=='3':
+        for i in range(len(transectList)):
+            transectList[i] = "b'" + transectList[i]
 nTransects = len(transectList)
 maxEdges = dsMask.dims['maxEdgesInTransect']
-print(f'\nComputing/plotting time series for these transects: {transectNames}\n')
+print(f'\nComputing/plotting time series for these transects: {transectList}\n')
 
 # Create a list of edges and total edges in each transect
 nEdgesInTransect = np.zeros(nTransects)
@@ -122,25 +129,22 @@ for i in range(1, nTransects+1):
 
 # Read in relevant mesh information
 dsMesh = xr.open_dataset(meshfile)
-dvEdge = dsMesh.dvEdge.sel(nEdges=edgesToRead)
+dvEdge = dsMesh.dvEdge.sel(nEdges=edgesToRead).values
 coe0 = dsMesh.cellsOnEdge.isel(TWO=0, nEdges=edgesToRead)
 coe1 = dsMesh.cellsOnEdge.isel(TWO=1, nEdges=edgesToRead)
 # Build land-sea mask and topomask for the two cells surrounding each edge of the transect 
-landmask1 = ~(coe0==0)
-landmask2 = ~(coe1==0)
+landmask1 = coe0.values==0
+landmask2 = coe1.values==0
 # convert to python indexing
 coe0 = coe0 - 1
 coe1 = coe1 - 1
-#
-maxLevelCell = dsMesh.maxLevelCell
+kmaxOnCells1 = dsMesh.maxLevelCell.isel(nCells=coe0).values
+kmaxOnCells2 = dsMesh.maxLevelCell.isel(nCells=coe1).values
 nVertLevels = dsMesh.sizes['nVertLevels']
-vertIndex = xr.DataArray(data=np.arange(nVertLevels), dims=('nVertLevels',))
-#vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
-depthmask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
-depthmask1 = depthmask.isel(nCells=coe0)
-depthmask2 = depthmask.isel(nCells=coe1)
-#
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
+# Note to self: when I have some time, I need to make the script
+# use transectNames everywhere.
+transectNames = decode_strings(dsMask.transectNames)
 for i in range(nTransects):
     edgeSigns[i, :] = dsMask.sel(nEdges=edgesToRead, shortNames=transectList[i]).squeeze().transectEdgeMaskSigns.values
     # WARNING: The following is a quick hack valid only for the arcticSections mask file!
@@ -148,13 +152,12 @@ for i in range(nTransects):
     # or west to east, so that I can have the correct edgeSigns for all of them.
     if transectNames[i]!='Bering Strait' and transectNames[i]!='Hudson Bay-Labrador Sea':
         edgeSigns[i, :] = -edgeSigns[i, :]
-edgeSigns = xr.DataArray(data=edgeSigns, dims=('nTransect', 'nEdges'))
-refBottom = dsMesh.refBottomDepth
-latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()
-lonmean = 180.0/np.pi * dsMesh.lonEdge.sel(nEdges=edgesToRead).mean()
+refBottom = dsMesh.refBottomDepth.values
+latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean().values
+lonmean = 180.0/np.pi * dsMesh.lonEdge.sel(nEdges=edgesToRead).mean().values
 pressure = gsw.p_from_z(-refBottom, latmean)
 if use_fixeddz:
-    dz = xr.concat([refBottom.isel(nVertLevels=0), refBottom.diff('nVertLevels')], dim='nVertLevels')
+    dz = xr.concat([refBottom.isel(nVertLevels=0), refBottom.diff('nVertLevels')], dim='nVertLevels').values
 
 kyear = 0
 for year in years:
@@ -173,62 +176,58 @@ for year in years:
             dsOutMonthly = xr.Dataset()
 
             if 'timeMonthly_avg_normalTransportVelocity' in dsIn.keys():
-                vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(Time=0, nEdges=edgesToRead)
+                vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(Time=0, nEdges=edgesToRead).values
             elif 'timeMonthly_avg_normalVelocity' in dsIn.keys():
-                vel = dsIn.timeMonthly_avg_normalVelocity.isel(Time=0, nEdges=edgesToRead)
+                vel = dsIn.timeMonthly_avg_normalVelocity.isel(Time=0, nEdges=edgesToRead).values
                 if 'timeMonthly_avg_normalGMBolusVelocity' in dsIn.keys():
-                    vel = vel + dsIn.timeMonthly_avg_normalGMBolusVelocity.isel(Time=0, nEdges=edgesToRead)
+                    vel = vel + dsIn.timeMonthly_avg_normalGMBolusVelocity.isel(Time=0, nEdges=edgesToRead).values
                 if 'timeMonthly_avg_normalMLEvelocity' in dsIn.keys():
-                    vel = vel + dsIn.timeMonthly_avg_normalMLEvelocity.isel(Time=0, nEdges=edgesToRead)
+                    vel = vel + dsIn.timeMonthly_avg_normalMLEvelocity.isel(Time=0, nEdges=edgesToRead).values
             else:
                 raise KeyError('no appropriate normalVelocity variable found')
             # Note that the following is incorrect when coe is zero (cell straddling the
             # transect edge is on land), but that is OK because the value will be masked
             # during land-sea masking below
-            tempOnCells1 = dsIn.timeMonthly_avg_activeTracers_temperature.isel(Time=0, nCells=coe0)
-            tempOnCells2 = dsIn.timeMonthly_avg_activeTracers_temperature.isel(Time=0, nCells=coe1)
-            saltOnCells1 = dsIn.timeMonthly_avg_activeTracers_salinity.isel(Time=0, nCells=coe0)
-            saltOnCells2 = dsIn.timeMonthly_avg_activeTracers_salinity.isel(Time=0, nCells=coe1)
+            tempOnCells1 = dsIn.timeMonthly_avg_activeTracers_temperature.isel(Time=0, nCells=coe0).values
+            tempOnCells2 = dsIn.timeMonthly_avg_activeTracers_temperature.isel(Time=0, nCells=coe1).values
+            saltOnCells1 = dsIn.timeMonthly_avg_activeTracers_salinity.isel(Time=0, nCells=coe0).values
+            saltOnCells2 = dsIn.timeMonthly_avg_activeTracers_salinity.isel(Time=0, nCells=coe1).values
 
             # Mask values that fall on land
-            tempOnCells1 = tempOnCells1.where(landmask1, drop=False)
-            tempOnCells2 = tempOnCells2.where(landmask2, drop=False)
-            saltOnCells1 = saltOnCells1.where(landmask1, drop=False)
-            saltOnCells2 = saltOnCells2.where(landmask2, drop=False)
+            tempOnCells1[landmask1, :] = np.nan
+            tempOnCells2[landmask2, :] = np.nan
+            saltOnCells1[landmask1, :] = np.nan
+            saltOnCells2[landmask2, :] = np.nan
             # Mask values that fall onto topography
-            tempOnCells1 = tempOnCells1.where(depthmask1, drop=False)
-            tempOnCells2 = tempOnCells2.where(depthmask2, drop=False)
-            saltOnCells1 = saltOnCells1.where(depthmask1, drop=False)
-            saltOnCells2 = saltOnCells2.where(depthmask2, drop=False)
+            for k in range(len(kmaxOnCells1)):
+                tempOnCells1[k, kmaxOnCells1[k]:] = np.nan
+                saltOnCells1[k, kmaxOnCells1[k]:] = np.nan
+            for k in range(len(kmaxOnCells2)):
+                tempOnCells2[k, kmaxOnCells2[k]:] = np.nan
+                saltOnCells2[k, kmaxOnCells2[k]:] = np.nan
             # The following should *not* happen at this point:
-            #if np.any(tempOnCells1[np.logical_or(tempOnCells1> 1e15, tempOnCells1<-1e15)]) or \
-            #   np.any(tempOnCells2[np.logical_or(tempOnCells2> 1e15, tempOnCells2<-1e15)]):
-            #    print('WARNING: something is wrong with land and/or topography masking!')
-            #if np.any(saltOnCells1[np.logical_or(saltOnCells1> 1e15, saltOnCells1<-1e15)]) or \
-            #   np.any(saltOnCells2[np.logical_or(saltOnCells2> 1e15, saltOnCells2<-1e15)]):
-            #    print('WARNING: something is wrong with land and/or topography masking!')
+            if np.any(tempOnCells1[np.logical_or(tempOnCells1> 1e15, tempOnCells1<-1e15)]) or \
+               np.any(tempOnCells2[np.logical_or(tempOnCells2> 1e15, tempOnCells2<-1e15)]):
+                print('WARNING: something is wrong with land and/or topography masking!')
+            if np.any(saltOnCells1[np.logical_or(saltOnCells1> 1e15, saltOnCells1<-1e15)]) or \
+               np.any(saltOnCells2[np.logical_or(saltOnCells2> 1e15, saltOnCells2<-1e15)]):
+                print('WARNING: something is wrong with land and/or topography masking!')
 
             if not use_fixeddz:
-                dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
-                dzOnCells2 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
-                dzOnCells1 = dzOnCells1.where(landmask1, drop=False)
-                dzOnCells2 = dzOnCells2.where(landmask2, drop=False)
-                dzOnCells1 = dzOnCells1.where(depthmask1, drop=False)
-                dzOnCells2 = dzOnCells2.where(depthmask2, drop=False)
+                dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0).values
+                dzOnCells2 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1).values
+                dzOnCells1[landmask1, :] = np.nan
+                dzOnCells2[landmask2, :] = np.nan
+                for k in range(len(kmaxOnCells1)):
+                    dzOnCells1[k, kmaxOnCells1[k]:] = np.nan
+                for k in range(len(kmaxOnCells2)):
+                    dzOnCells2[k, kmaxOnCells2[k]:] = np.nan
 
             # Interpolate values onto edges
-            tempOnEdges = np.nanmean(np.array([tempOnCells1.values, tempOnCells2.values]), axis=0)
-            saltOnEdges = np.nanmean(np.array([saltOnCells1.values, saltOnCells2.values]), axis=0)
-            # The following doesn't do a proper nansum.. (and couldn't find anything online
-            # about nansumming two *separate* xarray datasets):
-            #tempOnEdges = 0.5 * (tempOnCells1 + tempOnCells2)
-            #saltOnEdges = 0.5 * (saltOnCells1 + saltOnCells2)
+            tempOnEdges = np.nanmean(np.array([tempOnCells1, tempOnCells2]), axis=0)
+            saltOnEdges = np.nanmean(np.array([saltOnCells1, saltOnCells2]), axis=0)
             if not use_fixeddz:
-                dzOnEdges = np.nanmean(np.array([dzOnCells1.values, dzOnCells2.values]), axis=0)
-                #dzOnEdges = 0.5 * (dzOnCells1 + dzOnCells2)
-            tempOnEdges = xr.DataArray(data=tempOnEdges, dims=('nEdges', 'nVertLevels'), name='tempOnEdges')
-            saltOnEdges = xr.DataArray(data=saltOnEdges, dims=('nEdges', 'nVertLevels'), name='saltOnEdges')
-            dzOnEdges = xr.DataArray(data=dzOnEdges, dims=('nEdges', 'nVertLevels'), name='dzOnEdges')
+                dzOnEdges = np.nanmean(np.array([dzOnCells1, dzOnCells2]), axis=0)
 
             # Compute freezing temperature
             SA = gsw.SA_from_SP(saltOnEdges, pressure, lonmean, latmean)
@@ -254,40 +253,44 @@ for year in years:
                 start = int(nTransectStartStop[i])
                 stop = int(nTransectStartStop[i+1])
 
-                normalVel = vel.isel(nEdges=range(start, stop)) * edgeSigns.isel(nTransect=i, nEdges=range(start, stop))
-                temp = tempOnEdges.isel(nEdges=range(start, stop))
-                salt = saltOnEdges.isel(nEdges=range(start, stop))
-                maskOnEdges = salt.notnull()
-                normalVel = normalVel.where(maskOnEdges, drop=False)
+                normalVel = vel[start:stop, :] * edgeSigns[i, start:stop, np.newaxis]
+                temp = tempOnEdges[start:stop, :]
+                salt = saltOnEdges[start:stop, :]
+                maskOnEdges = np.isnan(salt)
+                normalVel[maskOnEdges] = np.nan
 
+                dx = dvEdge[start:stop]
+                dx2d = np.transpose(np.tile(dx, (nVertLevels, 1)))
+                dx2d[maskOnEdges] = np.nan
                 if use_fixeddz:
-                    dArea = dvEdge.isel(nEdges=range(start, stop)) * dz
+                    dArea = dx2d * dz[np.newaxis, :]
                 else:
-                    dArea = dvEdge.isel(nEdges=range(start, stop)) * dzOnEdges.isel(nEdges=range(start, stop))
-                area_transect = dArea.sum(dim='nEdges').sum(dim='nVertLevels')
+                    dz = dzOnEdges[start:stop, :]
+                    dArea = dx2d * dz
+                area_transect = np.nansum(np.nansum(dArea))
 
-                tfreezing = Tfp.isel(nEdges=range(start, stop))
+                tfreezing = Tfp[start:stop, :]
                 indVelP = normalVel>0
                 indVelM = normalVel<0
                 #
-                vol_transport[i]    = (normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                vol_transportIn[i]  = (normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                vol_transportOut[i] = (normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
+                vol_transport[i]    = np.nansum(np.nansum(normalVel * dArea))
+                vol_transportIn[i]  = np.nansum(np.nansum(normalVel[indVelP] * dArea[indVelP]))
+                vol_transportOut[i] = np.nansum(np.nansum(normalVel[indVelM] * dArea[indVelM]))
                 #
-                heat_transport[i]    = (temp * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportIn[i]  = (temp.where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportOut[i] = (temp.where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
+                heat_transport[i]    = np.nansum(np.nansum(temp * normalVel * dArea))
+                heat_transportIn[i]  = np.nansum(np.nansum(temp[indVelP] * normalVel[indVelP] * dArea[indVelP]))
+                heat_transportOut[i] = np.nansum(np.nansum(temp[indVelM] * normalVel[indVelM] * dArea[indVelM]))
                 #
-                heat_transportTfp[i]    = ((temp-tfreezing) * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportTfpIn[i]  = ((temp-tfreezing).where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportTfpOut[i] = ((temp-tfreezing).where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
+                heat_transportTfp[i]    = np.nansum(np.nansum((temp - tfreezing) * normalVel * dArea))
+                heat_transportTfpIn[i]  = np.nansum(np.nansum((temp[indVelP] - tfreezing[indVelP]) * normalVel[indVelP] * dArea[indVelP]))
+                heat_transportTfpOut[i] = np.nansum(np.nansum((temp[indVelM] - tfreezing[indVelM]) * normalVel[indVelM] * dArea[indVelM]))
                 #
-                salt_transport[i]    = vol_transport[i] - (salt * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
-                salt_transportIn[i]  = vol_transportIn[i] - (salt.where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
-                salt_transportOut[i] = vol_transportOut[i] - (salt.where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
+                salt_transport[i]    = vol_transport[i]    - np.nansum(np.nansum(salt * normalVel * dArea))/saltRef
+                salt_transportIn[i]  = vol_transportIn[i]  - np.nansum(np.nansum(salt[indVelP] * normalVel[indVelP] * dArea[indVelP]))/saltRef
+                salt_transportOut[i] = vol_transportOut[i] - np.nansum(np.nansum(salt[indVelM] * normalVel[indVelM] * dArea[indVelM]))/saltRef
                 #
-                temp_transect[i] = (temp * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
-                salt_transect[i] = (salt * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+                temp_transect[i] = np.nansum(np.nansum(temp * dArea))/area_transect
+                salt_transect[i] = np.nansum(np.nansum(salt * dArea))/area_transect
 
             dsOutMonthly['volTransport'] = xr.DataArray(
                     data=m3ps_to_Sv * vol_transport,
@@ -334,20 +337,20 @@ for year in years:
                     dims=('nTransects', ),
                     attrs=dict(description='Outflow heat transport (wrt freezing point) across transect (in/out determined by edgeSign)', units='TW', )
                     )
-            dsOutMonthly['FWTransportSref'] = xr.DataArray(
+            dsOutMonthly['saltTransport'] = xr.DataArray(
                     data=m3ps_to_mSv * salt_transport,
                     dims=('nTransects', ),
-                    attrs=dict(description='Net FW transport (wrt {saltRef:4.1f} psu) across transect', units='mSv', )
+                    attrs=dict(description=f'Net FW transport (wrt {saltRef:4.1f} psu) across transect', units='mSv', )
                     )
-            dsOutMonthly['FWTransportSrefIn'] = xr.DataArray(
+            dsOutMonthly['saltTransportIn'] = xr.DataArray(
                     data=m3ps_to_mSv * salt_transportIn,
                     dims=('nTransects', ),
-                    attrs=dict(description='Inflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
+                    attrs=dict(description=f'Inflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
                     )
-            dsOutMonthly['FWTransportSrefOut'] = xr.DataArray(
+            dsOutMonthly['saltTransportOut'] = xr.DataArray(
                     data=m3ps_to_mSv * salt_transportOut,
                     dims=('nTransects', ),
-                    attrs=dict(description='Outflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
+                    attrs=dict(description=f'Outflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
                     )
             dsOutMonthly['tempTransect'] = xr.DataArray(
                     data=temp_transect,
@@ -377,29 +380,59 @@ for year in years:
         dsOut = xr.concat(dsOut, dim='Time')
         write_netcdf_with_fill(dsOut, outfile)
     else:
-        print(f'  Outfile for year {year} already exists. Proceed...')
+        print(f'  Outfile for year {year} already exists. Proceed to the next one...')
+    boh
 
-print(f'\nPlotting...')
+#    # Save to file
+#    ncid = Dataset(outfile, mode='w', clobber=True, format='NETCDF3_CLASSIC')
+#    ncid.createDimension('Time', None)
+#    ncid.createDimension('nTransects', nTransects)
+#    ncid.createDimension('StrLen', 64)
+#
+#    times = ncid.createVariable('Time', 'f8', 'Time')
+#    transectNames = ncid.createVariable('transectNames', 'c', ('nTransects', 'StrLen'))
+#    vol_transportVar = ncid.createVariable('volTransport', 'f8', ('Time', 'nTransects'))
+#    vol_transportInVar = ncid.createVariable('volTransportIn', 'f8', ('Time', 'nTransects'))
+#    vol_transportOutVar = ncid.createVariable('volTransportOut', 'f8', ('Time', 'nTransects'))
+#    heat_transportVar = ncid.createVariable('heatTransport', 'f8', ('Time', 'nTransects'))
+#    heat_transportInVar = ncid.createVariable('heatTransportIn', 'f8', ('Time', 'nTransects'))
+#    heat_transportOutVar = ncid.createVariable('heatTransportOut', 'f8', ('Time', 'nTransects'))
+#    heat_transportTfpVar = ncid.createVariable('heatTransportTfp', 'f8', ('Time', 'nTransects'))
+#    heat_transportTfpInVar = ncid.createVariable('heatTransportTfpIn', 'f8', ('Time', 'nTransects'))
+#    heat_transportTfpOutVar = ncid.createVariable('heatTransportTfpOut', 'f8', ('Time', 'nTransects'))
+#    salt_transportVar = ncid.createVariable('FWTransport', 'f8', ('Time', 'nTransects'))
+#    salt_transportInVar = ncid.createVariable('FWTransportIn', 'f8', ('Time', 'nTransects'))
+#    salt_transportOutVar = ncid.createVariable('FWTransportOut', 'f8', ('Time', 'nTransects'))
+#    temp_transectVar = ncid.createVariable('tempTransect', 'f8', ('Time', 'nTransects'))
+#    salt_transectVar = ncid.createVariable('saltTransect', 'f8', ('Time', 'nTransects'))
+#
+#    for i in range(nTransects):
+#        if platform.python_version()[0]=='3':
+#            searchString = transectList[i][2:]
+#        else:
+#            searchString = transectList[i]
+#        nLetters = len(searchString)
+#        transectNames[i, :nLetters] = searchString
+#    ncid.close()
+
 # Read in previously computed transport quantities
-infiles = []
-for year in years:
-    infiles.append(f'{outdir}/{outfile0}_{casename}_year{year:04d}.nc')
-dsIn = xr.open_mfdataset(infiles)
-t = dsIn['Time']
-volTransport = dsIn['volTransport']
-volTransportIn = dsIn['volTransportIn']
-volTransportOut = dsIn['volTransportOut']
-heatTransport = dsIn['heatTransport']
-heatTransportIn = dsIn['heatTransportIn']
-heatTransportOut = dsIn['heatTransportOut']
-heatTransportTfp = dsIn['heatTransportTfp']
-heatTransportTfpIn = dsIn['heatTransportTfpIn']
-heatTransportTfpOut = dsIn['heatTransportTfpOut']
-saltTransport = dsIn['FWTransportSref']
-saltTransportIn = dsIn['FWTransportSrefIn']
-saltTransportOut = dsIn['FWTransportSrefOut']
-tempTransect = dsIn['tempTransect']
-saltTransect = dsIn['saltTransect']
+ncid = Dataset(outfile, mode='r')
+t = ncid.variables['Time'][:]
+vol_transport = ncid.variables['volTransport'][:, :]
+vol_transportIn = ncid.variables['volTransportIn'][:, :]
+vol_transportOut = ncid.variables['volTransportOut'][:, :]
+heat_transport = ncid.variables['heatTransport'][:, :]
+heat_transportIn = ncid.variables['heatTransportIn'][:, :]
+heat_transportOut = ncid.variables['heatTransportOut'][:, :]
+heat_transportTfp = ncid.variables['heatTransportTfp'][:, :]
+heat_transportTfpIn = ncid.variables['heatTransportTfpIn'][:, :]
+heat_transportTfpOut = ncid.variables['heatTransportTfpOut'][:, :]
+salt_transport = ncid.variables['FWTransport'][:, :]
+salt_transportIn = ncid.variables['FWTransportIn'][:, :]
+salt_transportOut = ncid.variables['FWTransportOut'][:, :]
+temp_transect = ncid.variables['tempTransect'][:, :]
+salt_transect = ncid.variables['saltTransect'][:, :]
+ncid.close()
 
 # Define some dictionaries for transect plotting
 obsDict = {'Drake Passage':[120, 175], 'Tasmania-Ant':[147, 167], 'Africa-Ant':None, 'Antilles Inflow':[-23.1, -13.7], \
@@ -418,35 +451,39 @@ labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'a
 figsize = (16, 12)
 figdpi = 300
 for i in range(nTransects):
-    transectName = transectNames[i]
+    if platform.python_version()[0]=='3':
+        searchString = transectList[i][2:]
+    else:
+        searchString = transectList[i]
 
     fc = FeatureCollection()
     for feature in fcAll.features:
-        if feature['properties']['name'] == transectName:
+        if feature['properties']['name'] == searchString:
             fc.add_feature(feature)
+            break
 
-    if transectName in labelDict:
-        transectName_forfigfile = labelDict[transectName]
+    if searchString in labelDict:
+        transectName_forfigfile = labelDict[searchString]
     else:
-        transectName_forfigfile = transectName.replace(" ", "")
+        transectName_forfigfile = searchString.replace(" ", "")
 
-    if transectName in obsDict:
-        bounds = obsDict[transectName]
+    if searchString in obsDict:
+        bounds = obsDict[searchString]
     else:
         bounds = None
 
-    #vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 12, center=True).mean()
-    #heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 12, center=True).mean()
-    #heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, i]), 12, center=True).mean()
-    #salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransport[:, i]), 12, center=True).mean()
+    #vol_runavg = pd.Series.rolling(pd.DataFrame(vol_transport[:, i]), 12, center=True).mean()
+    #heat_runavg = pd.Series.rolling(pd.DataFrame(heat_transport[:, i]), 12, center=True).mean()
+    #heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heat_transportTfp[:, i]), 12, center=True).mean()
+    #salt_runavg = pd.Series.rolling(pd.DataFrame(salt_transport[:, i]), 12, center=True).mean()
 
     # Plot Volume Transport
     figfile = f'{figdir}/transports_{transectName_forfigfile}_{casename}.png'
     fig = plt.figure(figsize=figsize)
     ax1 = plt.subplot(321)
-    ax1.plot(t, volTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
-    #ax1.plot(t, volTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(volTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(volTransportIn[:,i]):5.2f})')
-    #ax1.plot(t, volTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(volTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(volTransportOut[:,i]):5.2f})')
+    ax1.plot(t, vol_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(vol_transport[:,i]):5.2f} $\pm$ {np.nanstd(vol_transport[:,i]):5.2f})')
+    #ax1.plot(t, vol_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(vol_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportIn[:,i]):5.2f})')
+    #ax1.plot(t, vol_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(vol_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(vol_transportOut[:,i]):5.2f})')
     if bounds is not None:
         ax1.fill_between(t, np.full_like(t, bounds[0]), np.full_like(t, bounds[1]), alpha=0.3, label='obs (net)')
     ax1.plot(t, np.zeros_like(t), 'k', linewidth=1)
@@ -457,9 +494,9 @@ for i in range(nTransects):
 
     # Plot Heat Transport wrt Tref=0
     ax2 = plt.subplot(322)
-    ax2.plot(t, heatTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransport[:,i]):5.2f} $\pm$ {np.nanstd(heatTransport[:,i]):5.2f})')
-    #ax2.plot(t, heatTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportIn[:,i]):5.2f})')
-    #ax2.plot(t, heatTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportOut[:,i]):5.2f})')
+    ax2.plot(t, heat_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transport[:,i]):5.2f} $\pm$ {np.nanstd(heat_transport[:,i]):5.2f})')
+    #ax2.plot(t, heat_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportIn[:,i]):5.2f})')
+    #ax2.plot(t, heat_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportOut[:,i]):5.2f})')
     ax2.plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax2.grid(color='k', linestyle=':', linewidth = 0.5)
     ax2.autoscale(enable=True, axis='x', tight=True)
@@ -468,9 +505,9 @@ for i in range(nTransects):
 
     # Plot Heat Transport wrt Tref=TfreezingPoint
     ax3 = plt.subplot(323)
-    ax3.plot(t, heatTransportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:,i]):5.2f})')
-    #ax3.plot(t, heatTransportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpIn[:,i]):5.2f})')
-    #ax3.plot(t, heatTransportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpOut[:,i]):5.2f})')
+    ax3.plot(t, heat_transportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heat_transportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfp[:,i]):5.2f})')
+    #ax3.plot(t, heat_transportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heat_transportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpIn[:,i]):5.2f})')
+    #ax3.plot(t, heat_transportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heat_transportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heat_transportTfpOut[:,i]):5.2f})')
     ax3.plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax3.grid(color='k', linestyle=':', linewidth = 0.5)
     ax3.autoscale(enable=True, axis='x', tight=True)
@@ -479,7 +516,7 @@ for i in range(nTransects):
 
     # Plot transect mean temperature
     ax4 = plt.subplot(324)
-    ax4.plot(t, tempTransect[:,i], 'k', linewidth=2, label=f'temp ({np.nanmean(tempTransect[:,i]):5.2f} $\pm$ {np.nanstd(tempTransect[:,i]):5.2f})')
+    ax4.plot(t, temp_transect[:,i], 'k', linewidth=2, label=f'temp ({np.nanmean(temp_transect[:,i]):5.2f} $\pm$ {np.nanstd(temp_transect[:,i]):5.2f})')
     ax4.grid(color='k', linestyle=':', linewidth = 0.5)
     ax4.autoscale(enable=True, axis='x', tight=True)
     ax4.set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
@@ -487,9 +524,9 @@ for i in range(nTransects):
 
     # Plot FW Transport
     ax5 = plt.subplot(325)
-    ax5.plot(t, saltTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(saltTransport[:,i]):5.2f} $\pm$ {np.nanstd(saltTransport[:,i]):5.2f})')
-    #ax5.plot(t, saltTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(saltTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(saltTransportIn[:,i]):5.2f})')
-    #ax5.plot(t, saltTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(saltTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(saltTransportOut[:,i]):5.2f})')
+    ax5.plot(t, salt_transport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(salt_transport[:,i]):5.2f} $\pm$ {np.nanstd(salt_transport[:,i]):5.2f})')
+    #ax5.plot(t, salt_transportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(salt_transportIn[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportIn[:,i]):5.2f})')
+    #ax5.plot(t, salt_transportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(salt_transportOut[:,i]):5.2f} $\pm$ {np.nanstd(salt_transportOut[:,i]):5.2f})')
     ax5.plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax5.grid(color='k', linestyle=':', linewidth = 0.5)
     ax5.autoscale(enable=True, axis='x', tight=True)
@@ -500,7 +537,7 @@ for i in range(nTransects):
 
     # Plot transect mean salinity
     ax6 = plt.subplot(326)
-    ax6.plot(t, saltTransect[:,i], 'k', linewidth=2, label=f'salt ({np.nanmean(saltTransect[:,i]):5.2f} $\pm$ {np.nanstd(saltTransect[:,i]):5.2f})')
+    ax6.plot(t, salt_transect[:,i], 'k', linewidth=2, label=f'salt ({np.nanmean(salt_transect[:,i]):5.2f} $\pm$ {np.nanstd(salt_transect[:,i]):5.2f})')
     ax6.grid(color='k', linestyle=':', linewidth = 0.5)
     ax6.autoscale(enable=True, axis='x', tight=True)
     ax6.set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
@@ -508,7 +545,7 @@ for i in range(nTransects):
     ax6.legend()
 
     fig.tight_layout(pad=0.5)
-    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
+    fig.suptitle(f'Transect = {searchString}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1.65)
 
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')

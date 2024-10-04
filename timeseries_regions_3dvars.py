@@ -67,7 +67,7 @@ else:
     openOceanMask = None
 areaCell = dsMesh.areaCell
 globalArea = areaCell.sum()
-refBottomDepth = dsMesh.refBottomDepth
+depth = dsMesh.bottomDepth
 maxLevelCell = dsMesh.maxLevelCell
 
 regionGroups = ['Arctic Regions']
@@ -185,7 +185,7 @@ for regionGroup in regionGroups:
 
         if mpasFile=='timeSeriesStatsMonthly': # monthly averages 
             layerThickness = dsIn.timeMonthly_avg_layerThickness
-            zMid = compute_zmid(refBottomDepth, maxLevelCell, layerThickness)
+            zMid = compute_zmid(depth, maxLevelCell, layerThickness)
 
             # Compute regional averages one depth range at a time
             for k in range(len(zmins)):

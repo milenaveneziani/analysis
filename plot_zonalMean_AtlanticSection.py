@@ -17,7 +17,6 @@ from cm_xml_to_matplotlib import make_cmap
 
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
 from mpas_analysis.shared.io.utility import decode_strings
-from mpas_analysis.ocean.utility import compute_zmid
 
 from geometric_features import FeatureCollection, read_feature_collection
 
