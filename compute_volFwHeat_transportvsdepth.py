@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import gsw
+import cmocean
 
 from common_functions import add_inset
 from geometric_features import FeatureCollection, read_feature_collection
@@ -38,10 +39,10 @@ def get_mask_short_names(mask):
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-outfile0 = 'atlanticZonalSectionsTransports'
+outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-#outfile0 = 'arcticSectionsTransports'
+#outfile0 = 'arcticSectionsTransportsvsdepth'
 casenameFull = 'E3SM-Arcticv2.1_historical0101'
 casename = 'E3SM-Arcticv2.1_historical0101'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
@@ -61,12 +62,11 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archiv
 
 # Choose years
 year1 = 1950
+#year2 = 1950
 year2 = 2014
 #year1 = 1
 #year2 = 386
 years = range(year1, year2+1)
-
-use_fixeddz = False
 
 figdir = f'./transports/{casename}'
 if not os.path.isdir(figdir):
@@ -74,7 +74,6 @@ if not os.path.isdir(figdir):
 outdir = f'./transports_data/{casename}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-outfile = f'{outdir}/{outfile0}_{casename}_years{year1:04d}-{year2:04d}.nc'
 
 if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
@@ -152,8 +151,6 @@ refBottom = dsMesh.refBottomDepth
 latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()
 lonmean = 180.0/np.pi * dsMesh.lonEdge.sel(nEdges=edgesToRead).mean()
 pressure = gsw.p_from_z(-refBottom, latmean)
-if use_fixeddz:
-    dz = xr.concat([refBottom.isel(nVertLevels=0), refBottom.diff('nVertLevels')], dim='nVertLevels')
 
 kyear = 0
 for year in years:
@@ -207,24 +204,22 @@ for year in years:
                np.any(saltOnCells2.values[np.logical_or(saltOnCells2.values> 1e15, saltOnCells2.values<-1e15)]):
                 print('WARNING: something is wrong with land and/or topography masking!')
 
-            if not use_fixeddz:
-                dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
-                dzOnCells2 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
-                dzOnCells1 = dzOnCells1.where(landmask1, drop=False)
-                dzOnCells2 = dzOnCells2.where(landmask2, drop=False)
-                dzOnCells1 = dzOnCells1.where(depthmask1, drop=False)
-                dzOnCells2 = dzOnCells2.where(depthmask2, drop=False)
+            dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe0)
+            dzOnCells2 = dsIn.timeMonthly_avg_layerThickness.isel(Time=0, nCells=coe1)
+            dzOnCells1 = dzOnCells1.where(landmask1, drop=False)
+            dzOnCells2 = dzOnCells2.where(landmask2, drop=False)
+            dzOnCells1 = dzOnCells1.where(depthmask1, drop=False)
+            dzOnCells2 = dzOnCells2.where(depthmask2, drop=False)
 
             # Interpolate values onto edges
             tempOnEdges = np.nanmean(np.array([tempOnCells1.values, tempOnCells2.values]), axis=0)
             saltOnEdges = np.nanmean(np.array([saltOnCells1.values, saltOnCells2.values]), axis=0)
+            dzOnEdges = np.nanmean(np.array([dzOnCells1.values, dzOnCells2.values]), axis=0)
             # The following doesn't do a proper nansum.. (and couldn't find anything online
             # about nansumming two *separate* xarray datasets):
             #tempOnEdges = 0.5 * (tempOnCells1 + tempOnCells2)
             #saltOnEdges = 0.5 * (saltOnCells1 + saltOnCells2)
-            if not use_fixeddz:
-                dzOnEdges = np.nanmean(np.array([dzOnCells1.values, dzOnCells2.values]), axis=0)
-                #dzOnEdges = 0.5 * (dzOnCells1 + dzOnCells2)
+            #dzOnEdges = 0.5 * (dzOnCells1 + dzOnCells2)
             tempOnEdges = xr.DataArray(data=tempOnEdges, dims=('nEdges', 'nVertLevels'), name='tempOnEdges')
             saltOnEdges = xr.DataArray(data=saltOnEdges, dims=('nEdges', 'nVertLevels'), name='saltOnEdges')
             dzOnEdges = xr.DataArray(data=dzOnEdges, dims=('nEdges', 'nVertLevels'), name='dzOnEdges')
@@ -235,23 +230,14 @@ for year in years:
             Tfp = gsw.pt_from_CT(SA, CTfp)
 
             # Compute transports for each transect
-            vol_transport = np.zeros(nTransects)
-            vol_transportIn = np.zeros(nTransects)
-            vol_transportOut = np.zeros(nTransects)
-            heat_transport = np.zeros(nTransects) # Tref = 0degC
-            heat_transportIn = np.zeros(nTransects)
-            heat_transportOut = np.zeros(nTransects)
-            heat_transportTfp = np.zeros(nTransects) # Tref = T freezing point computed below (Tfp)
-            heat_transportTfpIn = np.zeros(nTransects)
-            heat_transportTfpOut = np.zeros(nTransects)
-            FW_transport = np.zeros(nTransects) # uses absolute salinity (FW=(1-1e-3*Sabs))
-            FW_transportIn = np.zeros(nTransects)
-            FW_transportOut = np.zeros(nTransects)
-            FW_transportSref = np.zeros(nTransects) # Sref = saltRef
-            FW_transportSrefIn = np.zeros(nTransects)
-            FW_transportSrefOut = np.zeros(nTransects)
-            temp_transect = np.zeros(nTransects)
-            salt_transect = np.zeros(nTransects)
+            vol_transport = np.empty((nTransects, nVertLevels))
+            heat_transport = np.empty((nTransects, nVertLevels)) # Tref = 0degC
+            heat_transportTfp = np.empty((nTransects, nVertLevels)) # Tref = T freezing point computed below (Tfp)
+            FW_transport = np.empty((nTransects, nVertLevels)) # uses absolute salinity (FW=(1-1e-3*Sabs))
+            FW_transportSref = np.empty((nTransects, nVertLevels)) # Sref = saltRef
+            temp_transect = np.empty((nTransects, nVertLevels))
+            salt_transect = np.empty((nTransects, nVertLevels))
+            depth_transect = np.empty(nTransects)
             for i in range(nTransects):
                 start = int(nTransectStartStop[i])
                 stop = int(nTransectStartStop[i+1])
@@ -263,125 +249,61 @@ for year in years:
                 maskOnEdges = salt.notnull()
                 normalVel = normalVel.where(maskOnEdges, drop=False)
 
-                if use_fixeddz:
-                    dArea = dvEdge.isel(nEdges=range(start, stop)) * dz
-                else:
-                    dArea = dvEdge.isel(nEdges=range(start, stop)) * dzOnEdges.isel(nEdges=range(start, stop))
+                dx = dvEdge.isel(nEdges=range(start, stop)).expand_dims({'nVertLevels':nVertLevels}, axis=1)
+                dx = dx.where(maskOnEdges, drop=False)
+                dz = dzOnEdges.isel(nEdges=range(start, stop))
+                dArea = dx * dz
                 area_transect = dArea.sum(dim='nEdges').sum(dim='nVertLevels')
+                length_transect = dx.sum(dim='nEdges')
 
                 tfreezing = Tfp.isel(nEdges=range(start, stop))
-                indVelP = normalVel>0
-                indVelM = normalVel<0
-                #
-                vol_transport[i]    = (normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                vol_transportIn[i]  = (normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                vol_transportOut[i] = (normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
-                #
-                heat_transport[i]    = (temp * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportIn[i]  = (temp.where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportOut[i] = (temp.where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
-                #
-                heat_transportTfp[i]    = ((temp-tfreezing) * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportTfpIn[i]  = ((temp-tfreezing).where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                heat_transportTfpOut[i] = ((temp-tfreezing).where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
-                #
-                FW_transportSref[i]    = vol_transport[i] - (salt * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
-                FW_transportSrefIn[i]  = vol_transportIn[i] - (salt.where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
-                FW_transportSrefOut[i] = vol_transportOut[i] - (salt.where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')/saltRef
-                #
-                FW_transport[i]    = (0.001*Sabs * normalVel * dArea).sum(dim='nEdges').sum(dim='nVertLevels')
-                FW_transportIn[i]  = (0.001*Sabs.where(indVelP) * normalVel.where(indVelP) * dArea.where(indVelP)).sum(dim='nEdges').sum(dim='nVertLevels')
-                FW_transportOut[i] = (0.001*Sabs.where(indVelM) * normalVel.where(indVelM) * dArea.where(indVelM)).sum(dim='nEdges').sum(dim='nVertLevels')
-                #
-                temp_transect[i] = (temp * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
-                salt_transect[i] = (salt * dArea).sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+
+                vol_transport[i, :] = (normalVel * dArea).sum(dim='nEdges')
+                heat_transport[i, :] = (temp * normalVel * dArea).sum(dim='nEdges')
+                heat_transportTfp[i, :] = ((temp-tfreezing) * normalVel * dArea).sum(dim='nEdges')
+                FW_transportSref[i, :] = vol_transport[i] - (salt * normalVel * dArea).sum(dim='nEdges')/saltRef
+                FW_transport[i, :] = (0.001*Sabs * normalVel * dArea).sum(dim='nEdges')
+                temp_transect[i, :] = (temp * dx).sum(dim='nEdges')/length_transect
+                salt_transect[i, :] = (salt * dx).sum(dim='nEdges')/length_transect
+                depth_transect[i] = dz.sum(dim='nVertLevels').mean()
 
             dsOutMonthly['volTransport'] = xr.DataArray(
                     data=m3ps_to_Sv * vol_transport,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Net volume transport across transect', units='Sv', )
-                    )
-            dsOutMonthly['volTransportIn'] = xr.DataArray(
-                    data=m3ps_to_Sv * vol_transportIn,
-                    dims=('nTransects', ), 
-                    attrs=dict(description='Inflow volume transport across transect (in/out determined by edgeSign)', units='Sv', )
-                    )
-            dsOutMonthly['volTransportOut'] = xr.DataArray(
-                    data=m3ps_to_Sv * vol_transportOut,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Outflow volume transport across transect (in/out determined by edgeSign)', units='Sv', )
                     )
             dsOutMonthly['heatTransport'] = xr.DataArray(
                     data=W_to_TW * rhoRef * cp * heat_transport,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Net heat transport (wrt 0degC) across transect', units='TW', )
-                    )
-            dsOutMonthly['heatTransportIn'] = xr.DataArray(
-                    data=W_to_TW * rhoRef * cp * heat_transportIn,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Inflow heat transport (wrt 0degC) across transect (in/out determined by edgeSign)', units='TW', )
-                    )
-            dsOutMonthly['heatTransportOut'] = xr.DataArray(
-                    data=W_to_TW * rhoRef * cp * heat_transportOut,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Outflow heat transport (wrt 0degC) across transect (in/out determined by edgeSign)', units='TW', )
                     )
             dsOutMonthly['heatTransportTfp'] = xr.DataArray(
                     data=W_to_TW * rhoRef * cp * heat_transportTfp,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Net heat transport (wrt freezing point) across transect', units='TW', )
-                    )
-            dsOutMonthly['heatTransportTfpIn'] = xr.DataArray(
-                    data=W_to_TW * rhoRef * cp * heat_transportTfpIn,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Inflow heat transport (wrt freezing point) across transect (in/out determined by edgeSign)', units='TW', )
-                    )
-            dsOutMonthly['heatTransportTfpOut'] = xr.DataArray(
-                    data=W_to_TW * rhoRef * cp * heat_transportTfpOut,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Outflow heat transport (wrt freezing point) across transect (in/out determined by edgeSign)', units='TW', )
                     )
             dsOutMonthly['FWTransportSref'] = xr.DataArray(
                     data=m3ps_to_mSv * FW_transportSref,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description=f'Net FW transport (wrt {saltRef:4.1f} psu) across transect', units='mSv', )
-                    )
-            dsOutMonthly['FWTransportSrefIn'] = xr.DataArray(
-                    data=m3ps_to_mSv * FW_transportSrefIn,
-                    dims=('nTransects', ),
-                    attrs=dict(description=f'Inflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
-                    )
-            dsOutMonthly['FWTransportSrefOut'] = xr.DataArray(
-                    data=m3ps_to_mSv * FW_transportSrefOut,
-                    dims=('nTransects', ),
-                    attrs=dict(description=f'Outflow FW transport (wrt {saltRef:4.1f} psu) across transect (in/out determined by edgeSign)', units='mSv', )
                     )
             dsOutMonthly['FWTransport'] = xr.DataArray(
                     data=m3ps_to_mSv * FW_transport,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Net FW transport (FW=(1 - 1e-3*Sabs)) across transect', units='mSv', )
-                    )
-            dsOutMonthly['FWTransportIn'] = xr.DataArray(
-                    data=m3ps_to_mSv * FW_transportIn,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Inflow FW transport (FW=(1 - 1e-3*Sabs)) across transect (in/out determined by edgeSign)', units='mSv', )
-                    )
-            dsOutMonthly['FWTransportOut'] = xr.DataArray(
-                    data=m3ps_to_mSv * FW_transportOut,
-                    dims=('nTransects', ),
-                    attrs=dict(description='Outflow FW transport (FW=(1 - 1e-3*Sabs)) across transect (in/out determined by edgeSign)', units='mSv', )
                     )
             dsOutMonthly['tempTransect'] = xr.DataArray(
                     data=temp_transect,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Mean temperature across transect', units='degree C', )
                     )
             dsOutMonthly['saltTransect'] = xr.DataArray(
                     data=salt_transect,
-                    dims=('nTransects', ),
+                    dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Mean salinity across transect', units='psu', )
                     )
             dsOutMonthly['transectNames'] = xr.DataArray(data=transectNames, dims=('nTransects', ))
+            dsOutMonthly['depthTransect'] = xr.DataArray(data=depth_transect, dims=('nTransects', ))
             dsOutMonthly['Time'] = xr.DataArray(
                     data=[dsIn.timeMonthly_avg_daysSinceStartOfSim.isel(Time=0)/365.], 
                     dims=('Time', ), 
@@ -397,42 +319,45 @@ for year in years:
             dsOut.append(dsOutMonthly)
 
         dsOut = xr.concat(dsOut, dim='Time')
+        dsOut['refBottomDepth'] = refBottom
         write_netcdf_with_fill(dsOut, outfile)
     else:
         print(f'  Outfile for year {year} already exists. Proceed...')
 
 print(f'\nPlotting...')
 # Read in previously computed transport quantities
+nyears = len(years)
 infiles = []
 for year in years:
     infiles.append(f'{outdir}/{outfile0}_{casename}_year{year:04d}.nc')
 dsIn = xr.open_mfdataset(infiles, decode_times=False)
-t = dsIn['Time'].values
-volTransport = dsIn['volTransport'].values
-volTransportIn = dsIn['volTransportIn'].values
-volTransportOut = dsIn['volTransportOut'].values
-heatTransport = dsIn['heatTransport'].values
-heatTransportIn = dsIn['heatTransportIn'].values
-heatTransportOut = dsIn['heatTransportOut'].values
-heatTransportTfp = dsIn['heatTransportTfp'].values
-heatTransportTfpIn = dsIn['heatTransportTfpIn'].values
-heatTransportTfpOut = dsIn['heatTransportTfpOut'].values
-FWTransportSref = dsIn['FWTransportSref'].values
-FWTransportSrefIn = dsIn['FWTransportSrefIn'].values
-FWTransportSrefOut = dsIn['FWTransportSrefOut'].values
-FWTransport = dsIn['FWTransport'].values
-FWTransportIn = dsIn['FWTransportIn'].values
-FWTransportOut = dsIn['FWTransportOut'].values
-tempTransect = dsIn['tempTransect'].values
-saltTransect = dsIn['saltTransect'].values
+t = dsIn['Time']
+#z = dsIn['refBottomDepth']
+z = dsIn['refBottomDepth'].isel(Time=0)
+volTransport = dsIn['volTransport']
+heatTransport = dsIn['heatTransport']
+heatTransportTfp = dsIn['heatTransportTfp']
+FWTransportSref = dsIn['FWTransportSref']
+FWTransport = dsIn['FWTransport']
+tempTransect = dsIn['tempTransect']
+saltTransect = dsIn['saltTransect']
+#depthTransect = dsIn['depthTransect']
+depthTransect = dsIn['depthTransect'].isel(Time=0)
+t_annual = t.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+volTransport_annual = volTransport.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+heatTransport_annual = heatTransport.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+heatTransportTfp_annual = heatTransportTfp.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+FWTransportSref_annual = FWTransportSref.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+FWTransport_annual = FWTransport.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+tempTransect_annual = tempTransect.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+saltTransect_annual = saltTransect.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+
+#[x, y] = np.meshgrid(t.values, z.values)
+[x, y] = np.meshgrid(t_annual.values, z.values)
+x = x.T
+y = y.T
 
 # Define some dictionaries for transect plotting
-obsDict = {'Drake Passage':[120, 175], 'Tasmania-Ant':[147, 167], 'Africa-Ant':None, 'Antilles Inflow':[-23.1, -13.7], \
-           'Mona Passage':[-3.8, -1.4],'Windward Passage':[-7.2, -6.8], 'Florida-Cuba':[30, 33], 'Florida-Bahamas':[30, 33], \
-           'Indonesian Throughflow':[-21, -11], 'Agulhas':[-90, -50], 'Mozambique Channel':[-20, -8], \
-           'Bering Strait':[0.6, 1.0], 'Lancaster Sound':[-1.0, -0.5], 'Fram Strait':[-4.7, 0.7], \
-           'Robeson Channel':None, 'Davis Strait':[-1.6, -3.6], 'Barents Sea Opening':[1.4, 2.6], \
-           'Nares Strait':[-1.8, 0.2], 'Denmark Strait':None, 'Iceland-Faroe-Scotland':None}
 labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'africaAnt', 'Antilles Inflow':'antilles', \
              'Mona Passage':'monaPassage', 'Windward Passage':'windwardPassage', 'Florida-Cuba':'floridaCuba', \
              'Florida-Bahamas':'floridaBahamas', 'Indonesian Throughflow':'indonesia', 'Agulhas':'agulhas', \
@@ -444,6 +369,7 @@ figsize = (16, 16)
 figdpi = 300
 for i in range(nTransects):
     transectName = transectNames[i]
+    zmax = depthTransect.isel(nTransects=i).max().values
 
     fc = FeatureCollection()
     for feature in fcAll.features:
@@ -455,97 +381,107 @@ for i in range(nTransects):
     else:
         transectName_forfigfile = transectName.replace(" ", "")
 
-    if transectName in obsDict:
-        bounds = obsDict[transectName]
-    else:
-        bounds = None
-
     #vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 12, center=True).mean()
     #heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 12, center=True).mean()
     #heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, i]), 12, center=True).mean()
     #salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransport[:, i]), 12, center=True).mean()
 
     # Plot Volume Transport
-    figfile = f'{figdir}/transports_{transectName_forfigfile}_{casename}.png'
+    figfile = f'{figdir}/transportsvsdepth_{transectName_forfigfile}_{casename}.png'
     fig = plt.figure(figsize=figsize)
     ax1 = plt.subplot(421)
-    ax1.plot(t, volTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
-    #ax1.plot(t, volTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(volTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(volTransportIn[:,i]):5.2f})')
-    #ax1.plot(t, volTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(volTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(volTransportOut[:,i]):5.2f})')
-    if bounds is not None:
-        ax1.fill_between(t, np.full_like(t, bounds[0]), np.full_like(t, bounds[1]), alpha=0.3, label='obs (net)')
-    ax1.plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax1.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax1.autoscale(enable=True, axis='x', tight=True)
-    ax1.set_ylabel('Volume transport (Sv)', fontsize=12, fontweight='bold')
-    ax1.legend()
+    fld = np.squeeze(volTransport_annual.values[:, i, :])
+    colormap = cmocean.cm.balance
+    cf = ax1.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label('Volume transport (Sv)', fontsize=10, fontweight='bold')
+    #ax1.autoscale(enable=True, axis='x', tight=True)
+    ax1.set_ylim(0, zmax)
+    ax1.invert_yaxis()
+    ax1.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
 
     # Plot Heat Transport wrt Tref=0
     ax2 = plt.subplot(422)
-    ax2.plot(t, heatTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransport[:,i]):5.2f} $\pm$ {np.nanstd(heatTransport[:,i]):5.2f})')
-    #ax2.plot(t, heatTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportIn[:,i]):5.2f})')
-    #ax2.plot(t, heatTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportOut[:,i]):5.2f})')
-    ax2.plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax2.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax2.autoscale(enable=True, axis='x', tight=True)
-    ax2.set_ylabel('Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
-    ax2.legend()
+    fld = np.squeeze(heatTransport_annual.values[:, i, :])
+    cf = ax2.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label('Heat transport (0$^\circ$C; TW)', fontsize=10, fontweight='bold')
+    #ax2.autoscale(enable=True, axis='x', tight=True)
+    ax2.set_ylim(0, zmax)
+    ax2.invert_yaxis()
+    ax2.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
 
     # Plot Heat Transport wrt Tref=TfreezingPoint
     ax3 = plt.subplot(423)
-    ax3.plot(t, heatTransportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:,i]):5.2f})')
-    #ax3.plot(t, heatTransportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpIn[:,i]):5.2f})')
-    #ax3.plot(t, heatTransportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpOut[:,i]):5.2f})')
-    ax3.plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax3.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax3.autoscale(enable=True, axis='x', tight=True)
-    ax3.set_ylabel('Heat transport wrt freezing point (TW)', fontsize=12, fontweight='bold')
-    ax3.legend()
+    fld = np.squeeze(heatTransportTfp_annual.values[:, i, :])
+    cf = ax3.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label('Heat transport (Tfp; TW)', fontsize=10, fontweight='bold')
+    #ax3.autoscale(enable=True, axis='x', tight=True)
+    ax3.set_ylim(0, zmax)
+    ax3.invert_yaxis()
+    ax3.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
 
     # Plot transect mean temperature
     ax4 = plt.subplot(424)
-    ax4.plot(t, tempTransect[:,i], 'k', linewidth=2, label=f'temp ({np.nanmean(tempTransect[:,i]):5.2f} $\pm$ {np.nanstd(tempTransect[:,i]):5.2f})')
-    ax4.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax4.autoscale(enable=True, axis='x', tight=True)
-    ax4.set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
-    ax4.legend()
+    fld = np.squeeze(tempTransect_annual.values[:, i, :])
+    colormap = cmocean.cm.thermal
+    cf = ax4.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label('Temperature ($^\circ$C)', fontsize=10, fontweight='bold')
+    #ax4.autoscale(enable=True, axis='x', tight=True)
+    ax4.set_ylim(0, zmax)
+    ax4.invert_yaxis()
+    ax4.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
 
     # Plot FW Transport wrt Sref
     ax5 = plt.subplot(425)
-    ax5.plot(t, FWTransportSref[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(FWTransportSref[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:,i]):5.2f})')
-    #ax5.plot(t, FWTransportSrefIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(FWTransportSrefIn[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSrefIn[:,i]):5.2f})')
-    #ax5.plot(t, FWTransportSrefOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(FWTransportSrefOut[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSrefOut[:,i]):5.2f})')
-    ax5.plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax5.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax5.autoscale(enable=True, axis='x', tight=True)
-    ax5.set_ylabel(f'FW transport wrt {saltRef:4.1f} (mSv)', fontsize=12, fontweight='bold')
-    #ax5.set_ylabel('FW transport wrt {saltRef:4.1f} (km$^3$/year)', fontsize=12, fontweight='bold')
-    #ax5.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-    ax5.legend()
+    fld = np.squeeze(FWTransportSref_annual.values[:, i, :])
+    colormap = cmocean.cm.balance
+    cf = ax5.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    #cbar.set_label(f'FW transport wrt {saltRef:4.1f} (mSv)', fontsize=10, fontweight='bold')
+    cbar.set_label(f'FW transport (Sref; mSv)', fontsize=10, fontweight='bold')
+    #ax5.autoscale(enable=True, axis='x', tight=True)
+    ax5.set_ylim(0, zmax)
+    ax5.invert_yaxis()
+    ax5.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
 
     # Plot FW Transport using absolute salinity
     ax6 = plt.subplot(426)
-    ax6.plot(t, FWTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(FWTransport[:,i]):5.2f} $\pm$ {np.nanstd(FWTransport[:,i]):5.2f})')
-    #ax6.plot(t, FWTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(FWTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportIn[:,i]):5.2f})')
-    #ax6.plot(t, FWTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(FWTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportOut[:,i]):5.2f})')
-    ax6.plot(t, np.zeros_like(t), 'k', linewidth=1)
-    ax6.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax6.autoscale(enable=True, axis='x', tight=True)
-    ax6.set_ylabel('FW transport wrt Sabs (mSv)', fontsize=12, fontweight='bold')
-    ax6.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-    ax6.legend()
+    fld = np.squeeze(FWTransport_annual.values[:, i, :])
+    colormap = cmocean.cm.balance
+    cf = ax6.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label(f'FW transport (Sabs; mSv)', fontsize=10, fontweight='bold')
+    #ax6.autoscale(enable=True, axis='x', tight=True)
+    ax6.set_ylim(0, zmax)
+    ax6.invert_yaxis()
+    ax6.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
+    ax6.set_xlabel('Time (Years)', fontsize=10, fontweight='bold')
 
     # Plot transect mean salinity
     ax7 = plt.subplot(427)
-    ax7.plot(t, saltTransect[:,i], 'k', linewidth=2, label=f'salt ({np.nanmean(saltTransect[:,i]):5.2f} $\pm$ {np.nanstd(saltTransect[:,i]):5.2f})')
-    ax7.grid(color='k', linestyle=':', linewidth = 0.5)
-    ax7.autoscale(enable=True, axis='x', tight=True)
-    ax7.set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
-    ax7.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-    ax7.legend()
+    fld = np.squeeze(saltTransect_annual.values[:, i, :])
+    colormap = cmocean.cm.haline
+    cf = ax7.contourf(x, y, fld, cmap=colormap, extend='both')
+    cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=10, labelcolor='black')
+    cbar.set_label(f'Salinity (psu)', fontsize=10, fontweight='bold')
+    #ax7.autoscale(enable=True, axis='x', tight=True)
+    ax7.set_ylim(0, zmax)
+    ax7.invert_yaxis()
+    ax7.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
+    ax7.set_xlabel('Time (Years)', fontsize=10, fontweight='bold')
 
-    fig.tight_layout(pad=0.5)
-    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
-    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1.65)
+    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}', fontsize=12, fontweight='bold', y=0.93)
+    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=0.8)
+    #fig.tight_layout(pad=0.5)
 
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
