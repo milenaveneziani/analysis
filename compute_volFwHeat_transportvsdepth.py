@@ -36,36 +36,35 @@ def get_mask_short_names(mask):
 
 
 # Settings for nersc
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-#outfile0 = 'arcticSectionsTransportsvsdepth'
-casenameFull = 'E3SM-Arcticv2.1_historical0101'
-casename = 'E3SM-Arcticv2.1_historical0101'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
+##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+##featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+##outfile0 = 'arcticSectionsTransportsvsdepth'
+#casenameFull = 'E3SM-Arcticv2.1_historical0101'
+#casename = 'E3SM-Arcticv2.1_historical0101'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-#outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
-##maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-##featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
-##outfile0 = 'arcticSectionsTransportsvsdepth'
-#casenameFull = 'E3SMv2.1B60to10rA02'
-#casename = 'E3SMv2.1B60to10rA02'
-##modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
-#modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
+#outfile0 = 'arcticSectionsTransportsvsdepth'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
-year1 = 1950
-#year2 = 1950
-year2 = 2014
-#year1 = 1
-#year2 = 386
+#year1 = 1950
+#year2 = 2014
+year1 = 1
+year2 = 386
 years = range(year1, year2+1)
 
 figdir = f'./transports/{casename}'
@@ -230,14 +229,15 @@ for year in years:
             Tfp = gsw.pt_from_CT(SA, CTfp)
 
             # Compute transports for each transect
-            vol_transport = np.empty((nTransects, nVertLevels))
-            heat_transport = np.empty((nTransects, nVertLevels)) # Tref = 0degC
-            heat_transportTfp = np.empty((nTransects, nVertLevels)) # Tref = T freezing point computed below (Tfp)
-            FW_transport = np.empty((nTransects, nVertLevels)) # uses absolute salinity (FW=(1-1e-3*Sabs))
-            FW_transportSref = np.empty((nTransects, nVertLevels)) # Sref = saltRef
-            temp_transect = np.empty((nTransects, nVertLevels))
-            salt_transect = np.empty((nTransects, nVertLevels))
-            depth_transect = np.empty(nTransects)
+            #  Initialize to nan's (note that np.empty does *not* work properly)
+            vol_transport = np.nan*np.ones((nTransects, nVertLevels))
+            heat_transport = np.nan*np.ones((nTransects, nVertLevels)) # Tref = 0degC
+            heat_transportTfp = np.nan*np.ones((nTransects, nVertLevels)) # Tref = T freezing point computed below (Tfp)
+            FW_transport = np.nan*np.ones((nTransects, nVertLevels)) # uses absolute salinity (FW=(1-1e-3*Sabs))
+            FW_transportSref = np.nan*np.ones((nTransects, nVertLevels)) # Sref = saltRef
+            temp_transect = np.nan*np.ones((nTransects, nVertLevels))
+            salt_transect = np.nan*np.ones((nTransects, nVertLevels))
+            depth_transect = np.nan*np.ones((nTransects, len(edgesToRead)))
             for i in range(nTransects):
                 start = int(nTransectStartStop[i])
                 stop = int(nTransectStartStop[i+1])
@@ -265,7 +265,7 @@ for year in years:
                 FW_transport[i, :] = (0.001*Sabs * normalVel * dArea).sum(dim='nEdges')
                 temp_transect[i, :] = (temp * dx).sum(dim='nEdges')/length_transect
                 salt_transect[i, :] = (salt * dx).sum(dim='nEdges')/length_transect
-                depth_transect[i] = dz.sum(dim='nVertLevels').mean()
+                depth_transect[i, start:stop] = dz.sum(dim='nVertLevels')
 
             dsOutMonthly['volTransport'] = xr.DataArray(
                     data=m3ps_to_Sv * vol_transport,
@@ -302,8 +302,12 @@ for year in years:
                     dims=('nTransects', 'nVertLevels', ),
                     attrs=dict(description='Mean salinity across transect', units='psu', )
                     )
+            dsOutMonthly['depthTransect'] = xr.DataArray(
+                    data=depth_transect,
+                    dims=('nTransects', 'nEdges', ),
+                    attrs=dict(description='Depth along transect', units='m', )
+                    )
             dsOutMonthly['transectNames'] = xr.DataArray(data=transectNames, dims=('nTransects', ))
-            dsOutMonthly['depthTransect'] = xr.DataArray(data=depth_transect, dims=('nTransects', ))
             dsOutMonthly['Time'] = xr.DataArray(
                     data=[dsIn.timeMonthly_avg_daysSinceStartOfSim.isel(Time=0)/365.], 
                     dims=('Time', ), 
@@ -369,7 +373,10 @@ figsize = (16, 16)
 figdpi = 300
 for i in range(nTransects):
     transectName = transectNames[i]
+    print(transectName)
     zmax = depthTransect.isel(nTransects=i).max().values
+    zmin = depthTransect.isel(nTransects=i).min().values
+    print('zmin, zmax = ', zmin, zmax)
 
     fc = FeatureCollection()
     for feature in fcAll.features:
@@ -481,7 +488,7 @@ for i in range(nTransects):
     ax7.set_xlabel('Time (Years)', fontsize=10, fontweight='bold')
 
     fig.suptitle(f'Transect = {transectName}\nrunname = {casename}', fontsize=12, fontweight='bold', y=0.93)
-    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=0.8)
+    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=0.0)
     #fig.tight_layout(pad=0.5)
 
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
