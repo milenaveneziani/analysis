@@ -16,41 +16,53 @@ import cartopy.feature as cfeature
 import matplotlib.ticker as mticker
 import cmocean
 
-from common_functions import add_land_lakes_coastline
+from make_plots import make_scatter_plot
 
 
+# Settings for nersc
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
 #casename = '20210914.WCYCL1950.ne30pg2_oARRM60to10.hybrid.cori-knl'
 #runname = '20210914.WCYCL1950.ne30pg2_oARRM60to10.hybrid'
-#modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/{}/run'.format(casename)
-
-meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#modeldir = f'/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/{casename}/run'
+#
+#meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #casename = '20220810.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl'
 #runname = 'arcticx4v1pg2_ARRM10to60E2r1.baseline_bdvslat'
 #casename = '20220810.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline_bdvslat.cori-knl'
 #runname = 'ne30pg2_ARRM10to60E2r1.baseline_bdvslat'
-#modeldir = '/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{}/run'.format(casename)
-#
-#casename = '20220808.WCYCL1950.arcticx4v1pg2_ARRM10to60E2r1.baseline.cori-knl'
-#runname = 'arcticx4v1pg2_ARRM10to60E2r1.baseline'
-casename = '20220803.WCYCL1950.ne30pg2_ARRM10to60E2r1.baseline.cori-knl'
-runname = 'ne30pg2_ARRM10to60E2r1.baseline'
-modeldir = '/global/cscratch1/sd/dcomeau/e3sm_scratch/cori-knl/{}/run'.format(casename)
+#modeldir = f'/global/cscratch1/sd/milena/e3sm_scratch/cori-knl/{casename}/run'
 
-figdir = './seaice_native/{}'.format(runname)
+# Settings for lcrc
+meshfile = '/lcrc/group/e3sm/public_html/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+casename = '20241030.EC30to60_test.anvil'
+runname = '20241030.EC30to60_test.anvil'
+modeldir = f'/lcrc/group/e3sm/ac.vanroekel/scratch/anvil/{casename}/run'
+
+figdir = f'./seaice_native/{runname}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
 varname = 'iceAreaCell' # ice concentration in fraction units (0-1)
-varname = 'iceVolumeCell' # ice thickness in m
+#varname = 'iceVolumeCell' # ice thickness in m
 
-years = [25]
-months = [2, 9]
+mpasFile = 'highFrequencyOutput'
+mpasFileDayformat = '01'
+mpasvarname = varname
+#timeIndex = 48 # 1 day
+timeIndex = 336 # 7 days
+
+#mpasFile = 'timeSeriesStatsMonthly'
+#mpasFileDayformat = '01'
+#mpasvarname = f'timeMonthly_avg_{varname}'
+#timeIndex = 0
+
+years = [1]
+months = [1]
 
 pi2deg = 180/np.pi
 
 if varname=='iceAreaCell':
-    figtext = 'Sea-ice concentration ({})'.format(runname)
+    figtext = f'Sea-ice concentration ({runname})'
     units = 'ice fraction'
     clevels_obs = [0.15, 0.80]
     #clevels_obs = [0.15, 0.80, 0.95]
@@ -58,12 +70,13 @@ if varname=='iceAreaCell':
     #colormap = cmocean.cm.ice
     #colorIndices = [0, 40, 80, 120, 160, 180, 200, 240, 255]
     #colormap = cols.ListedColormap(colormap(colorIndices))
+    colorIndices = None
     colormap = cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
                                     (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
                                     (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])
     clevels = [0.15, 0.3, 0.45, 0.6, 0.8, 0.9, 0.95, 0.98, 0.99, 1]
 elif varname=='iceVolumeCell':
-    figtext = 'Sea-ice thickness ({})'.format(runname)
+    figtext = f'Sea-ice thickness ({runname})'
     units = 'meters'
     #clevels_obs = [2, 3.5]
     clevels_obs = [2]
@@ -73,6 +86,7 @@ elif varname=='iceVolumeCell':
     colormap = plt.get_cmap('YlGnBu_r')
     colorIndices = [0, 40, 80, 120, 160, 180, 200, 240, 255]
     colormap = cols.ListedColormap(colormap(colorIndices))
+    #colorIndices = None
     #colormap = cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
     #                                (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
     #                                (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])
@@ -80,7 +94,7 @@ elif varname=='iceVolumeCell':
     clevels = [0., 0.2, 1.0, 1.5, 2.0, 2.5, 3., 3.5, 4., 5.]
 
 else:
-    raise SystemExit('varname {} not supported'.format(varname))
+    raise SystemExit(f'varname {varname} not supported')
 cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
 
 # Info about MPAS mesh
@@ -96,46 +110,30 @@ figdpi = 150
 
 for year in years:
     for month in months:
-        modelfile = '{}/{}.mpassi.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc'.format(modeldir,\
-                    casename, year, month)
-        print(modelfile)
+        modelfile = f'{modeldir}/{casename}.mpassi.hist.am.{mpasFile}.{year:04d}-{month:02d}-{mpasFileDayformat}.nc'
         f = netcdf_dataset(modelfile, mode='r')
-        fld = f.variables['timeMonthly_avg_{}'.format(varname)][:, :]
+        fld = f.variables[mpasvarname][timeIndex, :]
         f.close()
         fld = np.squeeze(fld)
         #if varname!='iceAreaCell':
-        #    iceFrac = f.variables['timeMonthly_avg_iceAreaCell'][:, :]
+        #    iceFrac = f.variables['timeMonthly_avg_iceAreaCell'][timeIndex, :]
         #    fld = ma.masked_less(iceFrac, 0.15)
         #else:
         #    fld = ma.masked_less(fld, 0.15)
         ##fld = ma.masked_less(fld, 0.1)
 
-        plt.figure(figsize=figsize, dpi=figdpi)
-        figtitle = '{}, Year={:04d}, Month={:02d}'.format(figtext, year, month)
+        figtitle = f'{figtext}, Year={year:04d}, Month={month:02d}'
 
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-        #ax = plt.axes(projection=ccrs.Miller(central_longitude=143))
+        figfile = f'{figdir}/{varname}NH_{runname}_{year:04d}-{month:02d}timeIndex{timeIndex:02d}.png'
+        #dotSize = 5.0 # this should go up as resolution decreases # for ARRM
+        #dotSize = 0.2
+        dotSize = 25.0 # this should go up as resolution decreases # for LR
+        make_scatter_plot(lon, lat, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
+          lon0=-180, lon1=180, dlon=20.0, lat0=50, lat1=90, dlat=10.0,
+          fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=units)
 
-        add_land_lakes_coastline(ax)
-
-        data_crs = ccrs.PlateCarree()
-        ax.set_extent([-180, 180, 50, 90], crs=data_crs)
-        #ax.set_extent([132.0, 154.0, 70., 85.], crs=data_crs)
-        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6)
-        # This will work with cartopy 0.18:
-        #gl.xlocator = mticker.FixedLocator(np.arange(132., 154., 2.))
-        #gl.ylocator = mticker.FixedLocator(np.arange(75., 84., 1.))
-
-        # Plot model field
-        sc = ax.scatter(lon, lat, s=0.2, c=fld, cmap=colormap, norm=cnorm,
-        #sc = ax.scatter(lon, lat, s=100, c=fld, cmap=colormap, norm=cnorm,
-                        marker='o', transform=data_crs)
-        cax, kwc = mpl.colorbar.make_axes(ax, location='bottom', pad=0.05, shrink=0.7)
-        cbar = plt.colorbar(sc, cax=cax, ticks=clevels, boundaries=clevels, extend='max', **kwc)
-        cbar.ax.tick_params(labelsize=22, labelcolor='black')
-        cbar.set_label(units, fontsize=20, fontweight='bold')
-
-        ax.set_title(figtitle, y=1.04, fontsize=22, fontweight='bold')
-        figfile = '{}/{}NH_{}_{:04d}-{:02d}.png'.format(figdir, varname, runname, year, month)
-        plt.savefig(figfile, bbox_inches='tight')
-        plt.close()
+        figfile = f'{figdir}/{varname}SH_{runname}_{year:04d}-{month:02d}timeIndex{timeIndex:02d}.png'
+        dotSize = 25.0 # this should go up as resolution decreases # for LR
+        make_scatter_plot(lon, lat, dotSize, figtitle, figfile, projectionName='SouthPolarStereo',
+          lon0=-180, lon1=180, dlon=20.0, lat0=-55, lat1=-90, dlat=10.0,
+          fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=units)
