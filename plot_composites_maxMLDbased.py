@@ -18,7 +18,9 @@ from make_plots import make_scatter_plot, make_streamline_plot, make_contourf_pl
 #startYear = [21, 245]
 #endYear = [140, 386]
 startYear = [1]
-endYear = [386]
+endYear = [140]
+#startYear = [141]
+#endYear = [386]
 
 # Settings for nersc
 #meshFile = f'/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
@@ -47,6 +49,8 @@ indir = f'{indir0}/{indir}'
 figdir = f'{figdir0}/{figdir}'
 #indir = indir0
 #figdir = figdir0
+#indir = f'{indir0}/Years1-386_combiningYears1-140andYears141-386'
+#figdir = f'{figdir0}/Years1-386_combiningYears1-140andYears141-386'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
@@ -99,48 +103,48 @@ variables = [
               'isvar3d': True,
               'mpas': None,
               'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-              'colormap': cmocean.cm.speed_r}
-#              'colormap': cmocean.cm.speed_r},
-#             {'name': 'windStressSpeed',
-#              'title': 'Wind stress magnitude',
-#              'units': 'N/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': None,
-#              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
-#              'colormap': cmocean.cm.speed_r},
-#             {'name': 'dThreshMLD',
-#              'title': 'Mean MLD',
-#              'units': 'm',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_dThreshMLD',
-#              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-#              'colormap': plt.get_cmap('viridis')},
-#             {'name': 'sensibleHeatFlux',
-#              'title': 'Sensible Heat Flux',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-#              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
-#              'colormap': cmocean.cm.solar_r},
-#             {'name': 'activeTracers_temperature',
-#              'title': 'Potential Temperature',
-#              'units': 'degC',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
-#              'colormap': cmocean.cm.thermal},
-#             {'name': 'activeTracers_salinity',
-#              'title': 'Salinity',
-#              'units': 'psu',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
-#              'colormap': cmocean.cm.haline}
+#              'colormap': cmocean.cm.speed_r}
+              'colormap': cmocean.cm.speed_r},
+             {'name': 'windStressSpeed',
+              'title': 'Wind stress magnitude',
+              'units': 'N/m$^2$',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': None,
+              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+              'colormap': cmocean.cm.speed_r},
+             {'name': 'dThreshMLD',
+              'title': 'Mean MLD',
+              'units': 'm',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_dThreshMLD',
+              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
+              'colormap': plt.get_cmap('viridis')},
+             {'name': 'sensibleHeatFlux',
+              'title': 'Sensible Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
+              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
+              'colormap': cmocean.cm.solar_r},
+             {'name': 'activeTracers_temperature',
+              'title': 'Potential Temperature',
+              'units': 'degC',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+              'colormap': cmocean.cm.thermal},
+             {'name': 'activeTracers_salinity',
+              'title': 'Salinity',
+              'units': 'psu',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+              'colormap': cmocean.cm.haline}
              ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'title': 'Surface buoyancy flux',
@@ -202,10 +206,10 @@ plotDepthAvg = True
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
 zmins = [-50., -600., -8000.]
 zmaxs = [0., -100., 0.]
-#zmins = [-50.]
-#zmaxs = [0.]
-#zmins = [-8000.]
-#zmaxs = [0.]
+zmins = [-50.]
+zmaxs = [0.]
+#zmins = [-600.]
+#zmaxs = [-100.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0., 500.]
 #dlevels = [50., 100.]

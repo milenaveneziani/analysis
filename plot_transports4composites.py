@@ -19,7 +19,6 @@ mpl.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
-from netCDF4 import Dataset
 
 from common_functions import add_inset
 from geometric_features import FeatureCollection, read_feature_collection
