@@ -55,16 +55,19 @@ outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransportsvsdepth'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
+#modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SMv2.1B60to10rA07'
+casename = 'E3SMv2.1B60to10rA07'
 modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
 #year1 = 1950
 #year2 = 2014
 year1 = 1
-year2 = 386
+#year2 = 386 # rA02
+year2 = 246 # rA07
 years = range(year1, year2+1)
 
 figdir = f'./transports/{casename}'
