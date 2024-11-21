@@ -17,19 +17,31 @@ from mpas_analysis.shared.io.utility import decode_strings
 
 
 # Settings for erdc.hpc.mil
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-transportfile0 = './transports_data/E3SMv2.1B60to10rA02/atlanticZonalSectionsTransportsvsdepth_E3SMv2.1B60to10rA02'
+#ensemble = ''
+#casename = 'E3SMv2.1B60to10rA02'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#transportfile0 = './transports_data/{casename}/atlanticZonalSectionsTransportsvsdepth_{casename}'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
-#transportfile0 = './transports_data/E3SMv2.1B60to10rA02/arcticSectionsTransportsvsdepth_E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
-years_maxMLDhighFile = './composites_maxMLDbased_data/E3SMv2.1B60to10rA02/Years1-386/years_maxMLDhigh.dat'
-years_maxMLDlowFile = './composites_maxMLDbased_data/E3SMv2.1B60to10rA02/Years1-386/years_maxMLDlow.dat'
+#transportfile0 = './transports_data/{casename}/arcticSectionsTransportsvsdepth_{casename}'
+#years_maxMLDhighFile = './composites_maxMLDbased_data/{casename}/Years1-386/years_maxMLDhigh.dat'
+#years_maxMLDlowFile = './composites_maxMLDbased_data/{casename}/Years1-386/years_maxMLDlow.dat'
+
+# Settings for nersc
+ensemble = '0201'
+casename = 'E3SM-Arcticv2.1_historical'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+transportfile0 = f'./transports_data/{casename}{ensemble}/atlanticZonalSectionsTransportsvsdepth_{casename}{ensemble}'
+years_maxMLDhighFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDhigh_{ensemble}.dat'
+years_maxMLDlowFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDlow_{ensemble}.dat'
 
 # Choose years
-year1 = 1
-year2 = 386
+year1 = 1950
+year2 = 2014
+#year1 = 1
+#year2 = 386
 years = range(year1, year2+1)
 nyears = len(years)
 
@@ -52,8 +64,8 @@ figdpi = 300
 years_maxMLDhigh = np.loadtxt(years_maxMLDhighFile)
 years_maxMLDlow = np.loadtxt(years_maxMLDlowFile)
 # remove year 1, if in there
-years_maxMLDhigh = years_maxMLDhigh[years_maxMLDhigh>1]
-years_maxMLDlow = years_maxMLDlow[years_maxMLDlow>1]
+years_maxMLDhigh = years_maxMLDhigh[years_maxMLDhigh>year1]
+years_maxMLDlow = years_maxMLDlow[years_maxMLDlow>year1]
 # for monthly data:
 #years = np.array([year*np.ones(12) for year in range(year1, year2+1)]).flatten()
 # for yearly data:
@@ -124,7 +136,7 @@ for i in range(nTransects):
     zmax = depthTransect.max()
 
     # Plot Volume Transport
-    figfile = f'{figdir}/transportsvsdepth4composites_{transectName}_{casename}.png'
+    figfile = f'{figdir}/transportsvsdepth4composites_{transectName}_{casename}{ensemble}.png'
     fig = plt.figure(figsize=figsize)
     ax1 = plt.subplot(321)
     fld = volTransport_annual.values
@@ -222,7 +234,7 @@ for i in range(nTransects):
     ax6.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
     ax6.set_xlabel('Time (Years)', fontsize=10, fontweight='bold')
 
-    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}', fontsize=12, fontweight='bold', y=1)
+    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}{ensemble}', fontsize=12, fontweight='bold', y=1)
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=-0.7)
     #fig.tight_layout(pad=0.5)
 

@@ -26,15 +26,27 @@ from mpas_analysis.shared.io.utility import decode_strings
 
 
 # Settings for erdc.hpc.mil
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-casename = 'E3SMv2.1B60to10rA02'
-transportfile = './transports_data/E3SMv2.1B60to10rA02/atlanticZonalSectionsTransports_E3SMv2.1B60to10rA02_years0001-0386.nc'
-years_maxMLDhighFile = './composites_maxMLDbased_data/E3SMv2.1B60to10rA02/Years1-386/years_maxMLDhigh.dat'
-years_maxMLDlowFile = './composites_maxMLDbased_data/E3SMv2.1B60to10rA02/Years1-386/years_maxMLDlow.dat'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#ensemble = ''
+#casename = 'E3SMv2.1B60to10rA02'
+#transportdir = f'./transports_data/{casename}'
+#years_maxMLDhighFile = f'./composites_maxMLDbased_data/{casename}/Years1-386/years_maxMLDhigh.dat'
+#years_maxMLDlowFile = f'./composites_maxMLDbased_data/{casename}/Years1-386/years_maxMLDlow.dat'
 
-year1 = 1
-year2 = 386
+# Settings for nersc
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+ensemble = '0301'
+casename = 'E3SM-Arcticv2.1_historical'
+transportdir = f'./transports_data/{casename}{ensemble}'
+years_maxMLDhighFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDhigh_{ensemble}.dat'
+years_maxMLDlowFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDlow_{ensemble}.dat'
+
+#year1 = 1
+#year2 = 386
+year1 = 1950
+year2 = 2014
 nyears = year2-year1+1
 
 transectsToPlot = ['Atlantic zonal 27.2N', 'Atlantic zonal 45N', 'Atlantic zonal OSNAP East', 'Atlantic zonal 65N']
@@ -54,18 +66,25 @@ figdpi = 300
 
 years_maxMLDhigh = np.loadtxt(years_maxMLDhighFile)
 years_maxMLDlow = np.loadtxt(years_maxMLDlowFile)
-# remove year 1, if in there
-years_maxMLDhigh = years_maxMLDhigh[years_maxMLDhigh>1]
-years_maxMLDlow = years_maxMLDlow[years_maxMLDlow>1]
+# remove first year, if in there
+years_maxMLDhigh = years_maxMLDhigh[years_maxMLDhigh>year1]
+years_maxMLDlow = years_maxMLDlow[years_maxMLDlow>year1]
 # for monthly data:
 #allyears = np.array([year*np.ones(12) for year in range(year1, year2+1)]).flatten()
 # for yearly data:
 allyears = np.arange(year1, year2+1)
 indYears_preMLDhigh = np.array([np.where(allyears==year-1) for year in years_maxMLDhigh]).flatten()
 indYears_preMLDlow = np.array([np.where(allyears==year-1) for year in years_maxMLDlow]).flatten()
+print(years_maxMLDhigh)
+print(allyears[indYears_preMLDhigh])
+print(years_maxMLDlow)
+print(allyears[indYears_preMLDlow])
 
-ds = xr.open_dataset(transportfile)
-transects = decode_strings(ds.transectNames)
+transportfiles = []
+for year in range(year1, year2+1):
+    transportfiles.append(f'{transportdir}/atlanticZonalSectionsTransports_{casename}{ensemble}_year{year:04d}.nc')
+ds = xr.open_mfdataset(transportfiles, decode_times=False)
+transects = decode_strings(ds.transectNames.isel(Time=0))
 t = ds.Time
 tannual = t.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
 
@@ -159,7 +178,7 @@ for n in range(nTransects):
     ax4.set_ylabel('FW transport (mSv)', fontsize=12, fontweight='bold')
 
     fig.tight_layout(pad=0.5)
-    fig.suptitle(f'Transect = {transectToPlot}\nrunname = {casename}', fontsize=14, fontweight='bold', y=1.045)
+    fig.suptitle(f'Transect = {transectToPlot}\nrunname = {casename}{ensemble}', fontsize=14, fontweight='bold', y=1.045)
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1.65)
-    figfile = f'{figdir}/transports4composites_{transectName}_{casename}.png'
+    figfile = f'{figdir}/transports4composites_{transectName}_{casename}{ensemble}.png'
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
