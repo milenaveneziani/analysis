@@ -29,11 +29,14 @@ from mpas_analysis.shared.io.utility import decode_strings
 #years_maxMLDlowFile = './composites_maxMLDbased_data/{casename}/Years1-386/years_maxMLDlow.dat'
 
 # Settings for nersc
-ensemble = '0201'
+ensemble = '0301'
 casename = 'E3SM-Arcticv2.1_historical'
 maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
 transportfile0 = f'./transports_data/{casename}{ensemble}/atlanticZonalSectionsTransportsvsdepth_{casename}{ensemble}'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+#transportfile0 = f'./transports_data/{casename}{ensemble}/arcticSectionsTransportsvsdepth_{casename}{ensemble}'
 years_maxMLDhighFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDhigh_{ensemble}.dat'
 years_maxMLDlowFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDlow_{ensemble}.dat'
 
@@ -143,9 +146,9 @@ for i in range(nTransects):
     colormap = cmocean.cm.balance
     cf = ax1.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax1.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax1.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax1.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax1.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     cbar.set_label('Volume transport (Sv)', fontsize=10, fontweight='bold')
@@ -158,9 +161,9 @@ for i in range(nTransects):
     fld = heatTransport_annual.values
     cf = ax2.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax2.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax2.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax2.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax2.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     cbar.set_label('Heat transport (0$^\circ$C; TW)', fontsize=10, fontweight='bold')
@@ -173,9 +176,9 @@ for i in range(nTransects):
     fld = heatTransportTfp_annual.values
     cf = ax3.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax3.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax3.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax3.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax3.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     cbar.set_label('Heat transport (Tfp; TW)', fontsize=10, fontweight='bold')
@@ -189,9 +192,9 @@ for i in range(nTransects):
     colormap = cmocean.cm.thermal
     cf = ax4.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax4.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax4.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax4.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax4.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     cbar.set_label('Temperature ($^\circ$C)', fontsize=10, fontweight='bold')
@@ -205,9 +208,9 @@ for i in range(nTransects):
     colormap = cmocean.cm.balance
     cf = ax5.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax5.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax5.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax5.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax5.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     #cbar.set_label(f'FW transport wrt {saltRef:4.1f} (mSv)', fontsize=10, fontweight='bold')
@@ -223,9 +226,9 @@ for i in range(nTransects):
     colormap = cmocean.cm.haline
     cf = ax6.contourf(x, y, fld, cmap=colormap, extend='both')
     for k in indYears_preMLDhigh:
-        ax6.axvline(x=t_annual.isel(Time=k), linewidth=1, color='seagreen', alpha=0.3)
+        ax6.axvline(x=t_annual.isel(Time=k), linewidth=1, color='white', alpha=0.6)
     for k in indYears_preMLDlow:
-        ax6.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.3)
+        ax6.axvline(x=t_annual.isel(Time=k), linewidth=1, color='black', alpha=0.4)
     cbar = plt.colorbar(cf, location='right', pad=0.05, shrink=0.9, extend='both')
     cbar.ax.tick_params(labelsize=10, labelcolor='black')
     cbar.set_label(f'Salinity (psu)', fontsize=10, fontweight='bold')
@@ -234,7 +237,7 @@ for i in range(nTransects):
     ax6.set_ylabel('Depth (m)', fontsize=10, fontweight='bold')
     ax6.set_xlabel('Time (Years)', fontsize=10, fontweight='bold')
 
-    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}{ensemble}', fontsize=12, fontweight='bold', y=1)
+    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}{ensemble}\n years preceding HC (white) and LC (black)', fontsize=12, fontweight='bold', y=1)
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=-0.7)
     #fig.tight_layout(pad=0.5)
 

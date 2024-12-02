@@ -17,6 +17,7 @@ from subprocess import call
 import xarray as xr
 import numpy as np
 import netCDF4
+import gsw
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
@@ -67,20 +68,20 @@ titleClimoMonths = 'JFMA'
 # ice variables (2d only)
 #
 #   Ocean variables
-#modelComp = 'ocn'
-#modelName = 'mpaso'
-##mpasFile = 'timeSeriesStatsMonthlyMax'
-##variables = [
-##             {'name': 'maxMLD',
-##              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-##            ]
-##
-#mpasFile = 'timeSeriesStatsMonthly'
+modelComp = 'ocn'
+modelName = 'mpaso'
+#mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
-#             #{'name': 'velocityZonalDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_velocityZonal'},
-#             #{'name': 'velocityMeridionalDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_velocityMeridional'},
+#             {'name': 'maxMLD',
+#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#            ]
+#
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
+#             {'name': 'velocityZonalDepthAvg',
+#              'mpas': 'timeMonthly_avg_velocityZonal'},
+#             {'name': 'velocityMeridionalDepthAvg',
+#              'mpas': 'timeMonthly_avg_velocityMeridional'},
 #             {'name': 'velocityZonal',
 #              'mpas': 'timeMonthly_avg_velocityZonal'},
 #             {'name': 'velocityMeridional',
@@ -89,10 +90,11 @@ titleClimoMonths = 'JFMA'
 #              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
 #             {'name': 'activeTracers_salinity',
 #              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-#             #{'name': 'activeTracers_temperatureDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-#             #{'name': 'activeTracers_salinityDepthAvg',
-#             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+#             {'name': 'activeTracers_temperatureDepthAvg',
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+#             {'name': 'activeTracers_salinityDepthAvg',
+#              'mpas': 'timeMonthly_avg_activeTracers_salinity'}
+              #'mpas': 'timeMonthly_avg_activeTracers_salinity'},
 #             {'name': 'dThreshMLD',
 #              'mpas': 'timeMonthly_avg_dThreshMLD'},
 #             {'name': 'windStressZonal',
@@ -100,44 +102,50 @@ titleClimoMonths = 'JFMA'
 #             {'name': 'windStressMeridional',
 #              'mpas': 'timeMonthly_avg_windStressMeridional'},
 #             {'name': 'sensibleHeatFlux',
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'}
-#             ]
+#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+             {'name': 'spiciness',
+              'mpas': None}
+             ]
 #             #{'name': 'surfaceBuoyancyForcing',
 #             # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
 #             #{'name': 'latentHeatFlux',
 #             # 'mpas': 'timeMonthly_avg_latentHeatFlux'}
 #   Sea ice variables
-modelComp = 'ice'
-modelName = 'mpassi'
-mpasFile = 'timeSeriesStatsMonthly'
-variables = [
-             {'name': 'iceArea',
-              'mpas': 'timeMonthly_avg_iceAreaCell'},
-             {'name': 'iceVolume',
-              'mpas': 'timeMonthly_avg_iceVolumeCell'},
-             {'name': 'iceDivergence',
-              'mpas': 'timeMonthly_avg_divergence'},
-             {'name': 'uVelocityGeo',
-              'mpas': 'timeMonthly_avg_uVelocityGeo'},
-             {'name': 'vVelocityGeo',
-              'mpas': 'timeMonthly_avg_vVelocityGeo'}
-            ]
+#modelComp = 'ice'
+#modelName = 'mpassi'
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
+#             {'name': 'iceArea',
+#              'mpas': 'timeMonthly_avg_iceAreaCell'},
+#             {'name': 'iceVolume',
+#              'mpas': 'timeMonthly_avg_iceVolumeCell'},
+#             {'name': 'iceDivergence',
+#              'mpas': 'timeMonthly_avg_divergence'},
+#             {'name': 'uVelocityGeo',
+#              'mpas': 'timeMonthly_avg_uVelocityGeo'},
+#             {'name': 'vVelocityGeo',
+#              'mpas': 'timeMonthly_avg_vVelocityGeo'}
+#            ]
 #   Atmosphere variables
 #modelComp = 'atm'
 #modelName = 'eam'
 
 # For depthAvg variables, choose zmin,zmax values over which to average
 # Note: for now, it is easier to do this for each depth range
-#zmins = [-100., -600., -8000., -8000.]
-#zmaxs = [0., -100., -600., 0.]
 #zmin = -50.
 #zmax = 0.
 zmin = -600.
 zmax = -100.
+#zmin = -600.
+#zmax = 0.
 # The following is only relevant for depthAvg variables
+# and for gsw-derived variables
 dsMesh = xr.open_dataset(meshFile)
 z = dsMesh.refBottomDepth
+lat = 180.0/np.pi*dsMesh.latCell
+lon = 180.0/np.pi*dsMesh.lonCell
 maxLevelCell = dsMesh.maxLevelCell
+pressure = gsw.p_from_z(-z, lat)
 
 #####
 ##### STEP 1 #####
@@ -303,7 +311,6 @@ for im in range(1, 13):
                 if np.size(yLow)!=0:
                     for k in range(len(yLow)):
                         iy = yLow[k]
-                        print(nEns, iy)
                         if im > np.max(climoMonths) and iy != startSimYear:
                             iy = iy-1  # pick months *preceding* the climoMonths period of each year
                         if modelComp == 'atm':
@@ -334,9 +341,40 @@ for im in range(1, 13):
                             dsOut = xr.Dataset()
                             dsOut[varmpasname] = fld
                             dsOut.to_netcdf(datafile)
+                        elif varname=='spiciness':
+                            temp = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_temperature']
+                            salt = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_salinity']
+                            SA = gsw.SA_from_SP(salt, pressure, lon, lat)
+                            CT = gsw.CT_from_pt(SA, temp)
+                            spiciness0 = gsw.spiciness0(SA, CT)
+                            #spiciness1 = gsw.spiciness1(SA, CT)
+                            #spiciness2 = gsw.spiciness2(SA, CT)
+
+                            # Write to post-processed datafile
+                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            print(f'*** LR composite, datafile={datafile}')
+                            dsOut = xr.Dataset()
+                            dsOut['spiciness0'] = spiciness0
+                            dsOut['spiciness0'].attrs['long_name'] = 'Spiciness computed wrt sea level pressure through gsw package'
+                            dsOut['spiciness0'].attrs['units'] = 'kg/m^3'
+                            dsOut.to_netcdf(datafile)
+                            #dsOut = xr.Dataset()
+                            #dsOut['spiciness1'] = spiciness1
+                            #dsOut['spiciness1'].attrs['long_name'] = 'Spiciness computed wrt 1000 dbar pressure through gsw package'
+                            #dsOut['spiciness1'].attrs['units'] = 'kg/m^3'
+                            #dsOut.to_netcdf(datafile, mode='a')
+                            #dsOut = xr.Dataset()
+                            #dsOut['spiciness2'] = spiciness2
+                            #dsOut['spiciness2'].attrs['long_name'] = 'Spiciness computed wrt 2000 dbar pressure through gsw package'
+                            #dsOut['spiciness2'].attrs['units'] = 'kg/m^3'
+                            #dsOut.to_netcdf(datafile, mode='a')
 
                         infiles.append(datafile)
-            args = ['ncea', '-O', '-v', varmpasname]
+            if varname=='spiciness':
+                args = ['ncea', '-O', '-v', 'spiciness0']
+                #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
+            else:
+                args = ['ncea', '-O', '-v', varmpasname]
             args.extend(infiles)
             args.append(outfileLow)
             subprocess.check_call(args)
@@ -360,7 +398,6 @@ for im in range(1, 13):
                 if np.size(yHigh)!=0:
                     for k in range(len(yHigh)):
                         iy = yHigh[k]
-                        print(nEns, iy)
                         if im > np.max(climoMonths) and iy != startSimYear:
                             iy = iy-1  # pick months *preceding* the climoMonths period of each year
                         if modelComp == 'atm':
@@ -390,9 +427,40 @@ for im in range(1, 13):
                             dsOut = xr.Dataset()
                             dsOut[varmpasname] = fld
                             dsOut.to_netcdf(datafile)
+                        elif varname=='spiciness':
+                            temp = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_temperature']
+                            salt = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_salinity']
+                            SA = gsw.SA_from_SP(salt, pressure, lon, lat)
+                            CT = gsw.CT_from_pt(SA, temp)
+                            spiciness0 = gsw.spiciness0(SA, CT)
+                            #spiciness1 = gsw.spiciness1(SA, CT)
+                            #spiciness2 = gsw.spiciness2(SA, CT)
+
+                            # Write to post-processed datafile
+                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            print(f'*** HR composite, datafile={datafile}')
+                            dsOut = xr.Dataset()
+                            dsOut['spiciness0'] = spiciness0
+                            dsOut['spiciness0'].attrs['long_name'] = 'Spiciness computed wrt sea level pressure through gsw package'
+                            dsOut['spiciness0'].attrs['units'] = 'kg/m^3'
+                            dsOut.to_netcdf(datafile)
+                            #dsOut = xr.Dataset()
+                            #dsOut['spiciness1'] = spiciness1
+                            #dsOut['spiciness1'].attrs['long_name'] = 'Spiciness computed wrt 1000 dbar pressure through gsw package'
+                            #dsOut['spiciness1'].attrs['units'] = 'kg/m^3'
+                            #dsOut.to_netcdf(datafile, mode='a')
+                            #dsOut = xr.Dataset()
+                            #dsOut['spiciness2'] = spiciness2
+                            #dsOut['spiciness2'].attrs['long_name'] = 'Spiciness computed wrt 2000 dbar pressure through gsw package'
+                            #dsOut['spiciness2'].attrs['units'] = 'kg/m^3'
+                            #dsOut.to_netcdf(datafile, mode='a')
 
                         infiles.append(datafile)
-            args = ['ncea', '-O', '-v', varmpasname]
+            if varname=='spiciness':
+                args = ['ncea', '-O', '-v', 'spiciness0']
+                #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
+            else:
+                args = ['ncea', '-O', '-v', varmpasname]
             args.extend(infiles)
             args.append(outfileHigh)
             subprocess.check_call(args)
