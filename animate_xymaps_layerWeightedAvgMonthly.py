@@ -251,10 +251,10 @@ else:
     figtitle0 = ''
 
 figfile = '{}/{}{}_depths{:04d}-{:04d}_{}.mp4'.format(figdir, varname, 
-          figtitle0, np.abs(np.int(zmax)), np.abs(np.int(zmin)), runname)
+          figtitle0, np.abs(np.int32(zmax)), np.abs(np.int32(zmin)), runname)
 figtitle0 = '{} {} (z={:d}-{:d} m)'.format(vartitle, figtitle0,
-                                           np.abs(np.int(zmax)),
-                                           np.abs(np.int(zmin)))
+                                           np.abs(np.int32(zmax)),
+                                           np.abs(np.int32(zmin)))
 
 tic = time.perf_counter()
 

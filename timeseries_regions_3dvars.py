@@ -197,7 +197,7 @@ for regionGroup in regionGroups:
                 layerVol = areaCell*layerThickness.where(depthMask, drop=False)
                 globalLayerVol = layerVol.sum(dim='nVertLevels').sum(dim='nCells')
 
-                timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int(zmax)):04d}-{np.abs(np.int(zmin)):04d}_year{year:04d}.nc'
+                timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
 
                 if not os.path.exists(timeSeriesFile):
                     print(f'Computing regional time series for year={year}, depth range= {zmax}, {zmin}')
@@ -342,7 +342,7 @@ for regionGroup in regionGroups:
             zmax = zmaxs[k]
             timeSeriesFiles = []
             for year in years:
-                timeSeriesFile = '{outdir}/{groupName}_z{np.abs(np.int(zmax)):04d}-{np.abs(np.int(zmin)):04d}_year{year:04d}.nc'
+                timeSeriesFile = '{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
                 timeSeriesFiles.append(timeSeriesFile)
             print('********************', timeSeriesFile)
 
@@ -374,7 +374,7 @@ for regionGroup in regionGroups:
                     lineWidths = [2.5]
                     legendText = [runNameShort]
                     title = f'Volume-Mean {title} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {units})'
-                    figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int(zmax)):04d}-{np.abs(np.int(zmin)):04d}_{varName}_years{years[0]}-{years[-1]}.png'
+                    figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varName}_years{years[0]}-{years[-1]}.png'
 
                     fig = timeseries_analysis_plot(field, movingAverageMonths,
                                                    title, xLabel, yLabel,

@@ -77,7 +77,6 @@ if not os.path.isdir(figdir):
 outdir = f'./transports_data/{casename}'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-outfile = f'{outdir}/{outfile0}_{casename}_years{year1:04d}-{year2:04d}.nc'
 
 if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
