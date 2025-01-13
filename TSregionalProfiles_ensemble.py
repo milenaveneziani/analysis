@@ -15,7 +15,7 @@ from mpas_analysis.shared.io.utility import decode_strings
 import gsw
 
 plotClimos = True
-plotMonthly = False
+plotMonthly = False # not ready for prime time
 if plotClimos==plotMonthly:
     raise ValueError('Variables plotClimos and plotMonthly cannot be identical')
 plotPHCWOA = True # only works for monthly seasons for now (one season at a  time)
@@ -41,15 +41,15 @@ climoyearEnd = 2014
 #climoyearEnd = 1970
 # seasons options: '01'-'12', 'ANN', 'JFM', 'JAS', 'MAJ', 'OND'
 # (depending on what was set in mpas-analysis)
-seasons = ['02', '08']
+seasons = ['03', '09']
 #seasons = ['ANN']
 #seasons = ['JFM', 'JAS']
-modelClimodir1 = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{ensembleName}'
+modelClimodir1 = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{ensembleName}'
 modelClimodir2 = f'mpas-analysis/Years{climoyearStart}-{climoyearEnd}/clim/mpas/avg/unmasked_ARRM10to60E2r1'
 
 # relevant if plotMonthly=True
 years = [1950]
-months = [9]
+months = [3, 9]
 modeldir1 = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{ensembleName}'
 modeldir2 = f'archive/ocn/hist'
 

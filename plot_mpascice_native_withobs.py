@@ -5,7 +5,7 @@ import glob
 from netCDF4 import Dataset as netcdf_dataset
 import numpy as np
 import numpy.ma as ma
-from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import gaussian_filter
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols
@@ -20,19 +20,22 @@ import cmocean
 from common_functions import add_land_lakes_coastline
 
 
-#meshname = '60to10'
+#runnameShort = '60to10'
 #runname = '20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl'
 #modeldir = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/run'
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-meshname = 'E3SM-Arcticv2.1_historical0151'
-runname = 'E3SM-Arcticv2.1_historical0151'
-modeldir = '/global/cfs/cdirs/m1199/e3sm-arrm-simulations/E3SM-Arcticv2.1_historical0151/archive/ice/hist'
+runnameShort = 'E3SM-Arcticv2.1_historical0301'
+runname = 'E3SM-Arcticv2.1_historical0301'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/archive/ice/hist'
+#runnameShort = 'E3SM-Arcticv2.1_historical0201noclassnuc'
+#runname = 'E3SM-Arcticv2.1_historical0201noclassnuc'
+#modeldir = f'/pscratch/sd/m/milena/e3sm_scratch/pm-cpu/{runname}/run'
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 projdir = '/global/cfs/cdirs/e3sm'
 
-figdir = './seaice_native'
+figdir = f'./seaice_native/{runname}'
 if not os.path.isdir(figdir):
-    os.mkdir(figdir)
+    os.makedirs(figdir)
 
 #varname = 'iceAreaCell' # ice concentration in fraction units (0-1)
 varname = 'iceVolumeCell' # ice thickness in m
@@ -48,7 +51,8 @@ varname = 'iceVolumeCell' # ice thickness in m
 #months = [3, 9, 10] # Sep (Oct) best for ice concentration (thickness)
 #years = [1989, 1990, 1994]
 #years = [1993]
-years = [2011]
+years = [1954, 2011]
+years = [2011, 2014]
 months = [3, 10] # Sep (Oct) best for ice concentration (thickness)
 
 isRunJRA = False
@@ -69,7 +73,7 @@ yobs = np.arange(+5850000, -5350000, -dy)
 kw = dict(central_latitude=90, central_longitude=-45, true_scale_latitude=70)
 
 if varname=='iceAreaCell':
-    figtext = f'Sea-ice concentration ({meshname})'
+    figtext = f'Sea-ice concentration ({runnameShort})'
     units = 'ice fraction'
     clevels_obs = [0.15, 0.80]
     #clevels_obs = [0.15, 0.80, 0.95]
@@ -82,7 +86,7 @@ if varname=='iceAreaCell':
                                     (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])
     clevels_mod = [0.15, 0.3, 0.45, 0.6, 0.8, 0.9, 0.95, 0.98, 0.99, 1]
 elif varname=='iceVolumeCell':
-    figtext = f'Sea-ice thickness ({meshname})'
+    figtext = f'Sea-ice thickness ({runnameShort})'
     units = 'meters'
     #clevels_obs = [2, 3.5]
     clevels_obs = [1, 2, 3.5]
@@ -115,7 +119,7 @@ figdpi = 150
 
 for year in years:
     if isRunJRA is True:
-        if meshname=='60to10':
+        if runnameShort=='60to10':
             modelYear = year - JRAyear1 + 1 + (modelJRAcycle-1)*cycleYears
         else:
             modelYear = year + (modelJRAcycle-1)*cycleYears

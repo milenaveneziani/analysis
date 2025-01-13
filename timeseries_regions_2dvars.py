@@ -15,22 +15,20 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset, days_to_datetime
 
-#startYear = 1950
-#endYear = 2014
-startYear = 1
-endYear = 31
-#startYear = 65
-#endYear = 325
+startYear = 1950
+endYear = 2014
+#startYear = 1
+#endYear = 386
 calendar = 'gregorian'
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0101'
-#runNameShort = 'E3SMv2.1-Arctic-historical0101'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0301'
+runNameShort = 'E3SMv2.1-Arctic-historical0301'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -57,13 +55,13 @@ calendar = 'gregorian'
 #isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
-regionMaskDir = '/users/milena/mpas-region_masks'
-meshName = 'RRSwISC6to18E3r5'
-meshFile = f'/usr/projects/e3sm/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
-runName = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
-runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
-rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
-isShortTermArchive = False
+#regionMaskDir = '/users/milena/mpas-region_masks'
+#meshName = 'RRSwISC6to18E3r5'
+#meshFile = f'/usr/projects/e3sm/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
+#runName = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
+#runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
+#rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
+#isShortTermArchive = False
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
@@ -96,8 +94,8 @@ monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 lat
 titleMonthsToPlot = 'JFMA'
 
 # region mask file will be $meshname_$regionGroups.nc
-regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-#regionGroups = ['Arctic Regions']
+#regionGroups = ['arctic_atlantic_budget_regions_new20240408']
+regionGroups = ['Arctic Regions']
 #regionGroups = ['OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
 

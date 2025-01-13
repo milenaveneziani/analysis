@@ -5,7 +5,6 @@ import glob
 from netCDF4 import Dataset as netcdf_dataset
 import numpy as np
 import numpy.ma as ma
-from scipy.ndimage.filters import gaussian_filter
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols

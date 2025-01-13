@@ -38,8 +38,13 @@ remapFile = f'/global/cfs/cdirs/m1199/diagnostics/maps/map_ARRM10to60E2r1_to_{re
 #remap = 'cmip6_720x1440_aave.20240401'
 #remapFile = f'/p/home/milena/diagnostics/maps/map_ARRM10to60E2r1_to_{remap}.nc'
 
-indir0 = f'./composites_maxMLDbased_data/{runName}'
-figdir0 = f'./composites_maxMLDbased/{runName}'
+
+# variable name with respect to which composites were computed
+varRef = 'maxMLD'
+#varRef = 'iceArea'
+
+indir0 = f'./composites_{varRef}based_data/{runName}'
+figdir0 = f'./composites_{varRef}based/{runName}'
 # For 1950-control
 #indir = f'Years{startYear[0]}-{endYear[0]}'
 #figdir = f'Years{startYear[0]}-{endYear[0]}'
@@ -90,6 +95,16 @@ modelName = 'mpaso'
 #
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
+             {'name': 'barotropicStreamfunction',
+              'title': 'Barotropic streamfunction',
+              'units': 'Sv',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'barotropicStreamfunction',
+              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
+              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
+              'colormap': cmocean.cm.curl},
+              #'colormap': cmocean.cm.tarn}
 #             {'name': 'streamlines',
 #              'title': 'Velocity',
 #              'units': 'cm/s',
@@ -98,38 +113,38 @@ variables = [
 #              'mpas': None,
 #              'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
 #              'colormap': cmocean.cm.speed_r},
-#             {'name': 'velSpeed',
-#              'title': 'Velocity magnitude',
-#              'units': 'cm/s',
-#              'factor': 1e2,
-#              'isvar3d': True,
-#              'mpas': None,
-#              'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-#              'colormap': cmocean.cm.speed_r},
-#             {'name': 'windStressSpeed',
-#              'title': 'Wind stress magnitude',
-#              'units': 'N/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': None,
-#              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
-#              'colormap': cmocean.cm.speed_r},
-#             {'name': 'dThreshMLD',
-#              'title': 'Mean MLD',
-#              'units': 'm',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_dThreshMLD',
-#              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-#              'colormap': plt.get_cmap('viridis')},
-#             {'name': 'sensibleHeatFlux',
-#              'title': 'Sensible Heat Flux',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-#              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
-#              'colormap': cmocean.cm.solar_r},
+             {'name': 'velSpeed',
+              'title': 'Velocity magnitude',
+              'units': 'cm/s',
+              'factor': 1e2,
+              'isvar3d': True,
+              'mpas': None,
+              'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+              'colormap': cmocean.cm.speed_r},
+             {'name': 'windStressSpeed',
+              'title': 'Wind stress magnitude',
+              'units': 'N/m$^2$',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': None,
+              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+              'colormap': cmocean.cm.speed_r},
+             {'name': 'dThreshMLD',
+              'title': 'Mean MLD',
+              'units': 'm',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_dThreshMLD',
+              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
+              'colormap': plt.get_cmap('viridis')},
+             {'name': 'sensibleHeatFlux',
+              'title': 'Sensible Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
+              'clevels': [-250, -200, -150, -120, -100, -80, -60, -40, -20, -10, 0, 10, 20],
+              'colormap': cmocean.cm.solar_r},
              {'name': 'spiciness',
               'title': 'Spiciness0',
               'units': '',
@@ -137,23 +152,23 @@ variables = [
               'isvar3d': True,
               'mpas': 'spiciness0',
               'clevels': [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
-              'colormap': cmocean.cm.balance}
-#             {'name': 'activeTracers_temperature',
-#              'title': 'Potential Temperature',
-#              'units': 'degC',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
-#              'colormap': cmocean.cm.thermal},
-#             {'name': 'activeTracers_salinity',
-#              'title': 'Salinity',
-#              'units': 'psu',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
-#              'colormap': cmocean.cm.haline}
+              'colormap': cmocean.cm.balance},
+             {'name': 'activeTracers_temperature',
+              'title': 'Potential Temperature',
+             'units': 'degC',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+              'colormap': cmocean.cm.thermal},
+             {'name': 'activeTracers_salinity',
+              'title': 'Salinity',
+              'units': 'psu',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+              'colormap': cmocean.cm.haline}
              ]
              #{'name': 'surfaceBuoyancyForcing',
              # 'title': 'Surface buoyancy flux',
@@ -215,18 +230,18 @@ plotDepthAvg = False
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
 #zmins = [-50., -600., -8000.]
 #zmaxs = [0., -100., 0.]
-#zmins = [-50.]
-#zmaxs = [0.]
+zmins = [-50.]
+zmaxs = [0.]
 #zmins = [-50., -600.]
 #zmaxs = [0., -100.]
-zmins = [-600.]
-zmaxs = [0.]
+#zmins = [-600.]
+#zmaxs = [0.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0., 500.]
 #dlevels = [50., 100.]
-#dlevels = [0., 100.]
+dlevels = [0.]
 #dlevels = [0., 50., 100.]
-dlevels = [300.]
+#dlevels = [300.]
 
 # Info about MPAS mesh
 dsMesh = xr.open_dataset(meshFile)
@@ -252,10 +267,11 @@ depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
 # Plot monthly climatologies associated with previously computed composites
 for regionName in regions:
-    print(f'\nPlot low/high convection composites based on maxMLD for region: {regionName}')
+    print(f'\nPlot composites based on {varRef} for region: {regionName}')
     regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
-    for im in range(1, 13):
+    #for im in range(1, 13):
+    for im in range(1, 6):
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']
@@ -268,7 +284,7 @@ for regionName in regions:
             colormap = var['colormap']
             clevels = var['clevels']
 
-            if varname=='iceSpeed':
+            if varname=='iceSpeed' or varname=='barotropicStreamfunction':
                 x = lonVertex
                 y = latVertex
             else:
@@ -284,52 +300,52 @@ for regionName in regions:
                         zmax = zmaxs[iz]
 
                         # Check if regridded uLow file exists
-                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileLow_u  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileLow_u):
                             print(f'\nRegridded file {infileLow_u} does not exist. Creating it with ncremap...')
                             infileLow_uNative = f'{indir}/{fileHead}.nc'
                             if not os.path.isfile(infileLow_uNative):
-                                raise IOError(f'Native file {infileLow_uNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                                raise IOError(f'Native file {infileLow_uNative} does not exist. Need to create it with compute_composites')
                             else:
                                 args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                                 args.append(infileLow_uNative)
                                 args.append(infileLow_u)
                                 subprocess.check_call(args)
                         # Check if regridded vLow file exists
-                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileLow_v  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileLow_v):
                             print(f'\nRegridded file {infileLow_v} does not exist. Creating it with ncremap...')
                             infileLow_vNative = f'{indir}/{fileHead}.nc'
                             if not os.path.isfile(infileLow_vNative):
-                                raise IOError(f'Native file {infileLow_vNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                                raise IOError(f'Native file {infileLow_vNative} does not exist. Need to create it with compute_composites')
                             else:
                                 args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                                 args.append(infileLow_vNative)
                                 args.append(infileLow_v)
                                 subprocess.check_call(args)
                         # Check if regridded uHigh file exists
-                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileHigh_u  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileHigh_u):
                             print(f'\nRegridded file {infileHigh_u} does not exist. Creating it with ncremap...')
                             infileHigh_uNative = f'{indir}/{fileHead}.nc'
                             if not os.path.isfile(infileHigh_uNative):
-                                raise IOError(f'Native file {infileHigh_uNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                                raise IOError(f'Native file {infileHigh_uNative} does not exist. Need to create it with compute_composites')
                             else:
                                 args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                                 args.append(infileHigh_uNative)
                                 args.append(infileHigh_u)
                                 subprocess.check_call(args)
                         # Check if regridded vHigh file exists
-                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileHigh_v  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileHigh_v):
                             print(f'\nRegridded file {infileHigh_v} does not exist. Creating it with ncremap...')
                             infileHigh_vNative = f'{indir}/{fileHead}.nc'
                             if not os.path.isfile(infileHigh_vNative):
-                                raise IOError(f'Native file {infileHigh_vNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                                raise IOError(f'Native file {infileHigh_vNative} does not exist. Need to create it with compute_composites')
                             else:
                                 args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                                 args.append(infileHigh_vNative)
@@ -340,90 +356,90 @@ for regionName in regions:
                     # Regrid the 3d fields
 
                     # Check if regridded uLow file exists
-                    fileHead = f'velocityZonal_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}'
+                    fileHead = f'velocityZonal_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                     infileLow_u  = f'{indir}/{fileHead}_{remap}.nc'
                     if not os.path.isfile(infileLow_u):
                         print(f'\nRegridded file {infileLow_u} does not exist. Creating it with ncremap...')
                         infileLow_uNative = f'{indir}/{fileHead}.nc'
                         if not os.path.isfile(infileLow_uNative):
-                            raise IOError(f'Native file {infileLow_uNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                            raise IOError(f'Native file {infileLow_uNative} does not exist. Need to create it with compute_composites')
                         else:
                             args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                             args.append(infileLow_uNative)
                             args.append(infileLow_u)
                             subprocess.check_call(args)
                     # Check if regridded vLow file exists
-                    fileHead = f'velocityMeridional_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}'
+                    fileHead = f'velocityMeridional_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                     infileLow_v  = f'{indir}/{fileHead}_{remap}.nc'
                     if not os.path.isfile(infileLow_v):
                         print(f'\nRegridded file {infileLow_v} does not exist. Creating it with ncremap...')
                         infileLow_vNative = f'{indir}/{fileHead}.nc'
                         if not os.path.isfile(infileLow_vNative):
-                            raise IOError(f'Native file {infileLow_vNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                            raise IOError(f'Native file {infileLow_vNative} does not exist. Need to create it with compute_composites')
                         else:
                             args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                             args.append(infileLow_vNative)
                             args.append(infileLow_v)
                             subprocess.check_call(args)
                     # Check if regridded uHigh file exists
-                    fileHead = f'velocityZonal_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}'
+                    fileHead = f'velocityZonal_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                     infileHigh_u  = f'{indir}/{fileHead}_{remap}.nc'
                     if not os.path.isfile(infileHigh_u):
                         print(f'\nRegridded file {infileHigh_u} does not exist. Creating it with ncremap...')
                         infileHigh_uNative = f'{indir}/{fileHead}.nc'
                         if not os.path.isfile(infileHigh_uNative):
-                            raise IOError(f'Native file {infileHigh_uNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                            raise IOError(f'Native file {infileHigh_uNative} does not exist. Need to create it with compute_composites')
                         else:
                             args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                             args.append(infileHigh_uNative)
                             args.append(infileHigh_u)
                             subprocess.check_call(args)
                     # Check if regridded vHigh file exists
-                    fileHead = f'velocityMeridional_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}'
+                    fileHead = f'velocityMeridional_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                     infileHigh_v  = f'{indir}/{fileHead}_{remap}.nc'
                     if not os.path.isfile(infileHigh_v):
                         print(f'\nRegridded file {infileHigh_v} does not exist. Creating it with ncremap...')
                         infileHigh_vNative = f'{indir}/{fileHead}.nc'
                         if not os.path.isfile(infileHigh_vNative):
-                            raise IOError(f'Native file {infileHigh_vNative} does not exist. Need to create it with compute_composites_maxMLDbased')
+                            raise IOError(f'Native file {infileHigh_vNative} does not exist. Need to create it with compute_composites')
                         else:
                             args = ['ncremap', '-a', 'trbilin', '-m', remapFile, '-P', 'mpaso']
                             args.append(infileHigh_vNative)
                             args.append(infileHigh_v)
                             subprocess.check_call(args)
             elif varname=='windStressSpeed':
-                infileLow_u  = f'{indir}/windStressZonal_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                infileLow_u  = f'{indir}/windStressZonal_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow_u):
-                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileLow_v  = f'{indir}/windStressMeridional_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
+                infileLow_v  = f'{indir}/windStressMeridional_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow_v):
-                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileHigh_u  = f'{indir}/windStressZonal_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
+                infileHigh_u  = f'{indir}/windStressZonal_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh_u):
-                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileHigh_v  = f'{indir}/windStressMeridional_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
+                infileHigh_v  = f'{indir}/windStressMeridional_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh_v):
-                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites_maxMLDbased')
+                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
             elif varname=='iceSpeed':
-                infileLow_u  = f'{indir}/uVelocityGeo_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                infileLow_u  = f'{indir}/uVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow_u):
-                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileLow_v  = f'{indir}/vVelocityGeo_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
+                infileLow_v  = f'{indir}/vVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow_v):
-                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileHigh_u  = f'{indir}/uVelocityGeo_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
+                infileHigh_u  = f'{indir}/uVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh_u):
-                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileHigh_v  = f'{indir}/vVelocityGeo_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
+                infileHigh_v  = f'{indir}/vVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh_v):
-                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites_maxMLDbased')
+                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
             else: # other variables
-                infileLow  = f'{indir}/{varname}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                infileLow  = f'{indir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow):
-                    raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites_maxMLDbased')
-                infileHigh = f'{indir}/{varname}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites')
+                infileHigh = f'{indir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh):
-                    raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites_maxMLDbased')
+                    raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites')
 
             if isvar3d:
                 if plotDepthAvg:
@@ -431,10 +447,10 @@ for regionName in regions:
                         zmin = zmins[iz]
                         zmax = zmaxs[iz]
 
-                        figtitleLow   = f'Composite for low maxMLD ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figtitleHigh  = f'Composite for high maxMLD ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                        figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
+                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
+                        figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                         if varname=='streamlines' or varname=='velSpeed':
                             uLow  = xr.open_dataset(infileLow_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
@@ -468,12 +484,12 @@ for regionName in regions:
                                                    figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
                                                    lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
-                            infileLow = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                            infileLow = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileLow):
-                                raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites_maxMLDbased')
-                            infileHigh = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                                raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites')
+                            infileHigh = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileHigh):
-                                raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites_maxMLDbased')
+                                raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites')
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0)[varmpasname]
                             dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0)[varmpasname]
 
@@ -489,10 +505,10 @@ for regionName in regions:
                                               fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
                 else:
                     for iz in range(len(dlevels)):
-                        figtitleLow   = f'Composite for low maxMLD ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        figtitleHigh  = f'Composite for high maxMLD ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                        figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
+                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
+                        figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                         if varname=='streamlines' or varname=='velSpeed':
                             uLow = xr.open_dataset(infileLow_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
@@ -546,10 +562,10 @@ for regionName in regions:
                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
                                               fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
             else:
-                figtitleLow   = f'Composite for low maxMLD ({regionName})\nmonth={im}, {vartitle}'
-                figtitleHigh  = f'Composite for high maxMLD ({regionName})\nmonth={im}, {vartitle}'
-                figfileLow  = f'{figdir}/{varname}_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                figfileHigh = f'{figdir}/{varname}_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}'
+                figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}'
+                figfileLow  = f'{figdir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                figfileHigh = f'{figdir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                 if varname=='windStressSpeed':
                     dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
@@ -565,6 +581,11 @@ for regionName in regions:
                     dsFieldHigh_v = xr.open_dataset(infileHigh_v).isel(Time=0)['timeMonthly_avg_vVelocityGeo']
                     fldLow  = varfactor * 0.5 * np.sqrt(dsFieldLow_u.values**2  + dsFieldLow_v.values**2)
                     fldHigh = varfactor * 0.5 * np.sqrt(dsFieldHigh_u.values**2 + dsFieldHigh_v.values**2)
+                elif varname=='barotropicStreamfunction':
+                   dsFieldLow  = xr.open_dataset(infileLow)[varmpasname]
+                   dsFieldHigh = xr.open_dataset(infileHigh)[varmpasname]
+                   fldLow  = varfactor * dsFieldLow.values
+                   fldHigh = varfactor * dsFieldHigh.values
                 else:
                    dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0)[varmpasname]
                    dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0)[varmpasname]
@@ -573,14 +594,14 @@ for regionName in regions:
 
                 if varname=='iceVolume' or varname=='iceDivergence':
                     # Mask fields where ice concentration < 15%
-                    infile  = f'{indir}/iceArea_maxMLDlow_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    infile  = f'{indir}/iceArea_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
-                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites_maxMLDbased')
+                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
                     fldLow[np.where(iceArea<0.15)]   = np.nan
-                    infile = f'{indir}/iceArea_maxMLDhigh_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                    infile = f'{indir}/iceArea_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
-                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites_maxMLDbased')
+                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
                     fldHigh[np.where(iceArea<0.15)]   = np.nan
 
