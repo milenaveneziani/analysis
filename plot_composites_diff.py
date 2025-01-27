@@ -64,11 +64,11 @@ if not os.path.isdir(figdir):
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 regions = ['Greenland Sea']
-#regions = ['Greenland Sea', 'Norwegian Sea']
+#regions = ['Norwegian Sea']
 
 climoMonths = 'JFMA' # should be consistent with composites calculation
 
-colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
+colorIndices = [0, 10, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 lon0 = -50.0
 lon1 = 50.0
 dlon = 10.0
@@ -85,26 +85,15 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'barotropicStreamfunction',
-              'title': 'Barotropic streamfunction',
-              'units': 'Sv',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'barotropicStreamfunction',
-              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
-              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.curl},
-              #'colormap': cmocean.cm.tarn}
-             #{'name': 'streamlines',
-             # 'title': 'Velocity',
-             # 'units': 'cm/s',
-             # 'factor': 1e2,
-             # 'isvar3d': True,
-             # 'mpas': None,
-             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+             #{'name': 'barotropicStreamfunction',
+             # 'title': 'Barotropic streamfunction',
+             # 'units': 'Sv',
+             # 'factor': 1,
+             # 'isvar3d': False,
+             # 'mpas': 'barotropicStreamfunction',
+             # 'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
              # 'cIndices': colorIndices,
-             # 'colormap': cmocean.cm.speed_r},
+             # 'colormap': cmocean.cm.balance},
              #{'name': 'velSpeed',
              # 'title': 'Velocity magnitude',
              # 'units': 'cm/s',
@@ -113,52 +102,43 @@ variables = [
              # 'mpas': None,
              # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
              # 'cIndices': colorIndices,
-             # 'colormap': cmocean.cm.speed_r},
+             # 'colormap': cmocean.cm.balance},
              {'name': 'windStressSpeed',
               'title': 'Wind stress magnitude',
               'units': 'N/m$^2$',
               'factor': 1,
               'isvar3d': False,
               'mpas': None,
-              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+              'clevels': [-0.03, -0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03],
               'cIndices': colorIndices,
-              'colormap': cmocean.cm.speed_r},
-             {'name': 'dThreshMLD',
-              'title': 'Mean MLD',
-              'units': 'm',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_dThreshMLD',
-              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-              'cIndices': colorIndices,
-              'colormap': plt.get_cmap('viridis')},
+              'colormap': cmocean.cm.balance},
              {'name': 'spiciness',
               'title': 'Spiciness0',
               'units': '',
               'factor': 1,
               'isvar3d': True,
               'mpas': 'spiciness0',
-              'clevels': [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+              'clevels': [-0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75],
               'cIndices': colorIndices,
               'colormap': cmocean.cm.balance},
              {'name': 'activeTracers_temperature',
               'title': 'Potential Temperature',
-             'units': 'degC',
+              'units': 'degC',
               'factor': 1,
               'isvar3d': True,
               'mpas': 'timeMonthly_avg_activeTracers_temperature',
-              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+              'clevels': [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2., 2.5, 3.],
               'cIndices': colorIndices,
-              'colormap': cmocean.cm.thermal},
+              'colormap': cmocean.cm.balance},
              {'name': 'activeTracers_salinity',
               'title': 'Salinity',
               'units': 'psu',
               'factor': 1,
               'isvar3d': True,
               'mpas': 'timeMonthly_avg_activeTracers_salinity',
-              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+              'clevels': [-0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
               'cIndices': colorIndices,
-              'colormap': cmocean.cm.haline},
+              'colormap': cmocean.cm.balance},
              {'name': 'surfaceBuoyancyForcing',
               'title': 'Surface buoyancy flux',
               'units': '10$^{-8}$ m$^2$ s$^{-3}$',
@@ -167,51 +147,34 @@ variables = [
               'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing',
               'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
               'cIndices': colorIndices,
-             # 'cIndices': [0, 14, 28, 57, 80, 113, 125, 155, 170, 198, 227, 242, 255],
-              'colormap': plt.get_cmap('RdYlBu_r')},
-             # 'cIndices': None,
-             # 'colormap': cols.ListedColormap([(37/255,  52/255,  148/255), (44/255,  127/255, 184/255),     \
-             #                                  (65/255,  182/255, 196/255), (127/255, 205/255, 187/255),     \
-             #                                  (199/255, 233/255, 180/255), (1, 1, 204/255), (1, 1, 217/255),\
-             #                                  (254/255, 240/255, 217/255), (253/255, 212/255, 158/255),     \
-             #                                  (253/255, 187/255, 132/255), (252/255, 141/255, 89/255),      \
-             #                                  (227/255, 74/255,  51/255),  (179/255, 0,   0)])},
+              'colormap': cmocean.cm.balance},
              {'name': 'sensibleHeatFlux',
               'title': 'Sensible Heat Flux',
               'units': 'W/m$^2$',
               'factor': 1,
               'isvar3d': False,
               'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
+              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.balance},
              {'name': 'latentHeatFlux',
               'title': 'Latent Heat Flux',
               'units': 'W/m$^2$',
               'factor': 1,
               'isvar3d': False,
               'mpas': 'timeMonthly_avg_latentHeatFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
+              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.balance},
              {'name': 'totalHeatFlux',
-              'title': 'Total Heat (sensible+latent+netLR+netSR) Flux',
+              'title': 'Total Heat Flux',
               'units': 'W/m$^2$',
               'factor': 1,
               'isvar3d': False,
               'mpas': None,
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
-             {'name': 'seaIceFreshWaterFlux',
-              'title': 'Sea ice FW flux',
-              'units': '10$^{-6}$ kg m$^-2$ s$^-1$',
-              'factor': 1e6,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r}
+              'clevels': [-180, -150, -120, -90, -60, -30, 0.0, 30, 60, 90, 120, 150, 180],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.balance}
              ]
 #
 #mpasFile = 'timeSeriesStatsMonthlyMax'
@@ -222,9 +185,9 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD',
-#              'clevels': [50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800, 1000, 1200],
+#              'clevels': [-1200, -1000, -800, -600, -400, -200, 0, 200, 400, 600, 800, 1000, 1200],
 #              'cIndices': colorIndices,
-#              'colormap': plt.get_cmap('viridis')},
+#              'colormap': cmocean.cm.balance},
 #            ]
 #   Sea ice variables
 #modelComp = 'ice'
@@ -237,28 +200,17 @@ variables = [
 #              'factor': 100,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_iceAreaCell',
-#              'clevels': [0.15, 0.3, 0.5, 0.8, 0.9, 0.95, 0.97, 0.98, 0.99, 1.0],
+#              'clevels': [-90, -75, -60, -45, -30, -15, 0.0, 15, 30, 45, 60, 75, 90],
 #              'cIndices': colorIndices,
-#              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
-#                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
-#                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])},
+#              'colormap': cmocean.cm.balance},
 #             {'name': 'iceVolume',
 #              'title': 'Sea Ice Thickness',
 #              'units': 'm',
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_iceVolumeCell',
-#              'clevels': [0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5],
+#              'clevels': [-1.5, -1.25, -1, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1, 1.25, 1.5],
 #              'cIndices': colorIndices,
-#              'colormap': plt.get_cmap('YlGnBu_r')},
-#             {'name': 'iceDivergence',
-#              'title': 'Sea Ice divergence',
-#              'units': '%/day',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_divergence',
-#              'cIndices': colorIndices,
-#              'clevels': [-10.0, -8.0, -6.0, -4.0, -2.0, -0.5, 0.0, 0.5, 2.0, 4.0, 6.0, 8.0, 10.0],
 #              'colormap': cmocean.cm.balance},
 #             {'name': 'iceSpeed',
 #              'title': 'Sea Ice speed',
@@ -266,13 +218,10 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': None,
-#              'clevels': [0.04, 0.08, 0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6],
+#              'clevels': [-0.15, -0.125, -0.1, -0.075, -0.05, -0.025, 0.0, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15],
 #              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.solar}
+#              'colormap': cmocean.cm.balance},
 #            ]
-#   Atmosphere variables
-#modelComp = 'atm'
-#modelName = 'eam'
 
 plotDepthAvg = False
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
@@ -286,7 +235,8 @@ zmaxs = [0.]
 #zmaxs = [0.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0.]
-dlevels = [50., 100.]
+#dlevels = [50., 100.]
+dlevels = [0., 50., 100.]
 #dlevels = [300.]
 
 # Info about MPAS mesh
@@ -338,7 +288,7 @@ for regionName in regions:
                 x = lonCell
                 y = latCell
 
-            if varname=='streamlines' or varname=='velSpeed':
+            if varname=='velSpeed':
                 # Regrid velocityZonal and velocityMeridional (if necessary)
                 if plotDepthAvg:
                     # Compute the depth average first and then regrid
@@ -525,12 +475,10 @@ for regionName in regions:
                         zmin = zmins[iz]
                         zmax = zmaxs[iz]
 
-                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                        figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figtitle   = f'Difference high-low composite {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
+                        figfile  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}diff_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
-                        if varname=='streamlines' or varname=='velSpeed':
+                        if varname=='velSpeed':
                             uLow  = xr.open_dataset(infileLow_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
                             vLow  = xr.open_dataset(infileLow_v).isel(Time=0).timeMonthly_avg_velocityMeridional.values
                             uHigh  = xr.open_dataset(infileHigh_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
@@ -541,26 +489,13 @@ for regionName in regions:
                             vHigh = varfactor * vHigh
                             speedLow  = 0.5 * np.sqrt(uLow*uLow + vLow*vLow)
                             speedHigh = 0.5 * np.sqrt(uHigh*uHigh + vHigh*vHigh)
+                            diff = speedHigh-speedLow
                             lon = xr.open_dataset(infileLow_u).lon.values
                             lat = xr.open_dataset(infileLow_u).lat.values
 
-                            if varname=='streamlines':
-                                streamlineDensity = 4
-                                make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
-                                                     colormap, clevels, colorIndices, varunits,
-                                                     'NorthPolarStereo', figtitleLow, figfileLow,
-                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                                make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
-                                                     colormap, clevels, colorIndices, varunits,
-                                                     'NorthPolarStereo', figtitleHigh, figfileHigh,
-                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                            else:
-                                make_contourf_plot(lon, lat, speedLow, colormap, clevels, colorIndices, varunits,
-                                                   figtitleLow, figfileLow, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
-                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                                make_contourf_plot(lon, lat, speedHigh, colormap, clevels, colorIndices, varunits,
-                                                   figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
-                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            make_contourf_plot(lon, lat, diff, colormap, clevels, colorIndices, varunits,
+                                               figtitle, figfile, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
+                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
                             infileLow = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileLow):
@@ -573,22 +508,18 @@ for regionName in regions:
 
                             fldLow  = varfactor * dsFieldLow.values
                             fldHigh = varfactor * dsFieldHigh.values
+                            diff = fldHigh-fldLow
 
                             dotSize = 1.2 # this should go up as resolution decreases
-                            make_scatter_plot(x, y, dotSize, figtitleLow, figfileLow, projectionName='NorthPolarStereo',
+                            make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=fldLow, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-                            make_scatter_plot(x, y, dotSize, figtitleHigh, figfileHigh, projectionName='NorthPolarStereo',
-                                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                                              fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
                 else:
                     for iz in range(len(dlevels)):
-                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                        figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figtitle   = f'Difference high-low composite {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
+                        figfile  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}diff_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
-                        if varname=='streamlines' or varname=='velSpeed':
+                        if varname=='velSpeed':
                             uLow = xr.open_dataset(infileLow_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
                             vLow = xr.open_dataset(infileLow_v).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityMeridional
                             uHigh = xr.open_dataset(infileHigh_u).isel(Time=0, nVertLevels=zlevels[iz]).timeMonthly_avg_velocityZonal
@@ -601,26 +532,13 @@ for regionName in regions:
                              
                             speedLow  = 0.5 * np.sqrt(uLow*uLow + vLow*vLow)
                             speedHigh = 0.5 * np.sqrt(uHigh*uHigh + vHigh*vHigh)
+                            diff = speedHigh-speedLow
                             lon = xr.open_dataset(infileLow_u).lon.values
                             lat = xr.open_dataset(infileLow_u).lat.values
 
-                            if varname=='streamlines':
-                                streamlineDensity = 4
-                                make_streamline_plot(lon, lat, uLow, vLow, speedLow, streamlineDensity, 
-                                                     colormap, clevels, colorIndices, varunits,
-                                                     'NorthPolarStereo', figtitleLow, figfileLow,
-                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                                make_streamline_plot(lon, lat, uHigh, vHigh, speedHigh, streamlineDensity, 
-                                                     colormap, clevels, colorIndices, varunits,
-                                                     'NorthPolarStereo', figtitleHigh, figfileHigh,
-                                                     lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                            else:
-                                make_contourf_plot(lon, lat, speedLow, colormap, clevels, colorIndices, varunits,
-                                                   figtitleLow, figfileLow, contourFld=None, contourValues=None, projectionName='NorthPolarStereo', 
-                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
-                                make_contourf_plot(lon, lat, speedHigh, colormap, clevels, colorIndices, varunits,
-                                                   figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo', 
-                                                   lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+                            make_contourf_plot(lon, lat, diff, colormap, clevels, colorIndices, varunits,
+                                               figtitle, figfile, contourFld=None, contourValues=None, projectionName='NorthPolarStereo', 
+                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
                             dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
@@ -631,19 +549,15 @@ for regionName in regions:
 
                             fldLow  = varfactor * dsFieldLow.values
                             fldHigh = varfactor * dsFieldHigh.values
+                            diff = fldHigh-fldLow
 
                             dotSize = 1.2 # this should go up as resolution decreases
-                            make_scatter_plot(x, y, dotSize, figtitleLow, figfileLow, projectionName='NorthPolarStereo',
+                            make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=fldLow, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-                            make_scatter_plot(x, y, dotSize, figtitleHigh, figfileHigh, projectionName='NorthPolarStereo',
-                                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                                              fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
             else:
-                figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}'
-                figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}'
-                figfileLow  = f'{figdir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                figfileHigh = f'{figdir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                figtitle = f'Difference high-low composite {varRef} ({regionName})\nmonth={im}, {vartitle}'
+                figfile  = f'{figdir}/{varname}_{varRef}diff_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                 if varname=='windStressSpeed':
                     dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
@@ -684,6 +598,7 @@ for regionName in regions:
                    dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0)[varmpasname]
                    fldLow  = varfactor * dsFieldLow.values
                    fldHigh = varfactor * dsFieldHigh.values
+                diff = fldHigh-fldLow
 
                 if varname=='iceVolume' or varname=='iceDivergence':
                     # Mask fields where ice concentration < 15%
@@ -697,41 +612,19 @@ for regionName in regions:
                         raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
                     fldHigh[np.where(iceArea<0.15)]   = np.nan
+                    diff = fldHigh-fldLow
 
                 #print(np.nanmin(fldLow), np.nanmax(fldLow))
-                #print(np.nanmin(fldHigh), np.nanmax(fldHigh))
 
                 dotSize = 1.2 # this should go up as resolution decreases
                 if varname=='iceArea':
                     fldLow[np.where(fldLow<0.15)]   = np.nan
                     fldHigh[np.where(fldHigh<0.15)] = np.nan
-                    # Plot iceArea with iceThickness contours
-                    infile  = f'{indir}/iceVolume_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                    if not os.path.isfile(infile):
-                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
-                    iceVol = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceVolumeCell']
-                    make_scatter_plot(x, y, dotSize, figtitleLow, figfileLow, projectionName='NorthPolarStereo',
+                    diff = fldHigh-fldLow
+                    make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                                       lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                      fld=fldLow, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits,
-                                      contourfld=iceVol, contourLevels=[1, 2], contourColors=['w', 'k'])
-                    #make_scatter_plot(x, y, dotSize, figtitleLow, figfileLow, projectionName='NorthPolarStereo',
-                    #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                    #                  fld=fldLow, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
-                    infile  = f'{indir}/iceVolume_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                    if not os.path.isfile(infile):
-                        raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
-                    iceVol = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceVolumeCell']
-                    make_scatter_plot(x, y, dotSize, figtitleHigh, figfileHigh, projectionName='NorthPolarStereo',
-                                      lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                      fld=fldHigh, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits,
-                                      contourfld=iceVol, contourLevels=[1, 2], contourColors=['w', 'k'])
-                    #make_scatter_plot(x, y, dotSize, figtitleHigh, figfileHigh, projectionName='NorthPolarStereo',
-                    #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                    #                  fld=fldHigh, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
+                                      fld=diff, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
                 else:
-                    make_scatter_plot(x, y, dotSize, figtitleLow, figfileLow, projectionName='NorthPolarStereo',
+                    make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                                       lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                      fld=fldLow, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-                    make_scatter_plot(x, y, dotSize, figtitleHigh, figfileHigh, projectionName='NorthPolarStereo',
-                                      lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                      fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                                      fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)

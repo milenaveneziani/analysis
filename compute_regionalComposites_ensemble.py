@@ -50,14 +50,15 @@ calendar = 'gregorian'
 referenceDate = '0001-01-01'
 
 # Main variable with respect to which composites are calculated
-timeseriesVar = 'iceArea'
-timeseriesUnits = 'km$^2$'
-#timeseriesVar = 'maxMLD'
-#timeseriesUnits = 'm'
+#timeseriesVar = 'iceArea'
+#timeseriesUnits = 'km$^2$'
+timeseriesVar = 'maxMLD'
+timeseriesUnits = 'm'
 
 # Timeseries detrending is on by default. View raw timeseries
 # first and then decide whether to detrend or not
-use_detrend = True
+#use_detrend = True
+use_detrend = False # for maxMLD
 view_timeseries = False
 
 # Months over which timeseriesVar is averaged before 
@@ -70,7 +71,8 @@ titleClimoMonths = 'JFMA'
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 # one region at a time, for now:
-region = 'Greenland Sea'
+#region = 'Greenland Sea'
+region = 'Norwegian Sea'
 regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
 # Fields relevant for step 2):
@@ -81,12 +83,6 @@ regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '
 #   Ocean variables
 modelComp = 'ocn'
 modelName = 'mpaso'
-#mpasFile = 'timeSeriesStatsMonthlyMax'
-#variables = [
-#             {'name': 'maxMLD',
-#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-#            ]
-#
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
              {'name': 'velocityZonalDepthAvg',
@@ -111,16 +107,31 @@ variables = [
               'mpas': 'timeMonthly_avg_windStressZonal'},
              {'name': 'windStressMeridional',
               'mpas': 'timeMonthly_avg_windStressMeridional'},
-             {'name': 'sensibleHeatFlux',
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
              {'name': 'spiciness',
               'mpas': None},
              {'name': 'barotropicStreamfunction',
-              'mpas': 'barotropicStreamfunction'}
+              'mpas': 'barotropicStreamfunction'},
+             {'name': 'surfaceBuoyancyForcing',
+              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+             {'name': 'shortWaveHeatFlux',
+              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+             {'name': 'longWaveHeatFluxUp',
+              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
+             {'name': 'longWaveHeatFluxDown',
+              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
+             {'name': 'seaIceFreshWaterFlux',
+              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
+             {'name': 'sensibleHeatFlux',
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+             {'name': 'latentHeatFlux',
+              'mpas': 'timeMonthly_avg_latentHeatFlux'}
              ]
-#             #{'name': 'surfaceBuoyancyForcing',
-#             #{'name': 'latentHeatFlux',
-#             # 'mpas': 'timeMonthly_avg_latentHeatFlux'}
+#
+#mpasFile = 'timeSeriesStatsMonthlyMax'
+#variables = [
+#             {'name': 'maxMLD',
+#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#            ]
 #   Sea ice variables
 #modelComp = 'ice'
 #modelName = 'mpassi'
@@ -254,7 +265,7 @@ ax.set_title(f'Distribution of {timeseriesVar} in the {region}', fontsize=18, fo
 ax.yaxis.set_minor_locator(MultipleLocator(5))
 plt.grid(axis='y', alpha=0.75)
 #plt.grid(axis='y', which='both', alpha=0.75)
-plt.savefig(f'{figdir}/{timeseriesVar}_{regionNameShort}.png', bbox_inches='tight')
+plt.savefig(f'{figdir}/{timeseriesVar}hist_{regionNameShort}.png', bbox_inches='tight')
 plt.close()
 
 timeseries_monthly_flat = timeseries_seasonal_monthly.flatten()

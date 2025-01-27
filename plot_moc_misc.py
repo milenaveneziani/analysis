@@ -107,7 +107,7 @@ for nlat in range(len(moclats)):
         window = int(movingAverageMonths)
         moc_runavg = pd.Series(moc).rolling(window, center=True).mean()
         ax.plot(time, moc_runavg, '-', color=color, linewidth=2, label=legendlabel)
-        ax.plot(time, moc, '-', color=color, alpha=0.5, linewidth=1.2)
+        #ax.plot(time, moc, '-', color=color, alpha=0.5, linewidth=1.2)
         if npanelsToPlot>1:
             axice1.plot(time, moc_runavg, '-', color=color, linewidth=2, label=legendlabel)
     else:

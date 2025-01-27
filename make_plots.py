@@ -15,7 +15,7 @@ import copy
 from common_functions import add_land_lakes_coastline
 
 
-def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, cmap=None, clevels=None, cindices=None, cbarLabel=None):
+def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
     
     figdpi = 150
     figsize = [20, 20]
@@ -40,8 +40,6 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
     gl.rotate_labels = False
 
-    add_land_lakes_coastline(ax)
-
     if fld is not None:
         [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
         sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
@@ -53,6 +51,17 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
         cbar.set_label(cbarLabel, fontsize=14)
     else:
         sc = ax.scatter(lon, lat, s=dotSize, c='k', marker='D', transform=data_crs)
+
+
+    if contourfld is not None:
+        if contourLevels is None:
+            raise ValueError('contourLevels needs to be defined if contourfld is')
+        if contourColors is not None:
+            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors=contourColors, transform=data_crs)
+        else:
+            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors='k', transform=data_crs)
+
+    add_land_lakes_coastline(ax)
 
     ax.set_title(figTitle, y=1.04, fontsize=16)
     plt.savefig(figFile, bbox_inches='tight')

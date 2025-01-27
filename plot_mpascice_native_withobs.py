@@ -24,8 +24,8 @@ from common_functions import add_land_lakes_coastline
 #runname = '20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl'
 #modeldir = '/global/cfs/projectdirs/m1199/e3sm-arrm-simulations/20210416.GMPAS-JRA1p4.TL319_oARRM60to10.cori-knl/run'
 #meshfile = '/global/project/projectdirs/e3sm/inputdata/ocn/mpas-o/oARRM60to10/ocean.ARRM60to10.180715.nc'
-runnameShort = 'E3SM-Arcticv2.1_historical0301'
-runname = 'E3SM-Arcticv2.1_historical0301'
+runnameShort = 'E3SM-Arcticv2.1_historical0101'
+runname = 'E3SM-Arcticv2.1_historical0101'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/archive/ice/hist'
 #runnameShort = 'E3SM-Arcticv2.1_historical0201noclassnuc'
 #runname = 'E3SM-Arcticv2.1_historical0201noclassnuc'
@@ -212,6 +212,9 @@ for year in years:
                         fld_obs = f.variables['sea_ice_thickness'][:, :]
                         f.close()
 
+        fld_obs[np.where(fld_obs<0)] = np.nan
+        print('obsMin = ', np.nanmin(fld_obs), 'obsMax = ', np.nanmax(fld_obs))
+
         # Read in model data
         # v1:
         #modelfile = f'{modeldir}/mpascice.hist.am.timeSeriesStatsMonthly.{modelYear:04d}-{month:02d}-01.nc'
@@ -256,12 +259,20 @@ for year in years:
             # Plot obs contours
             #cs = ax.contour(xobs, yobs, fld_obs, clevels_obs, colors='firebrick', linewidths=2,
             #               linestyles='solid', transform=ccrs.Stereographic(**kw))
-            cs = ax.contour(xobs, yobs, fld_obs, [1], colors='white', linewidths=1,
-                           linestyles='solid', transform=ccrs.Stereographic(**kw))
-            cs = ax.contour(xobs, yobs, fld_obs, [2], colors='firebrick', linewidths=1,
-                           linestyles='solid', transform=ccrs.Stereographic(**kw))
-            if len(clevels_obs)>1:
-                ax.clabel(cs, inline=1, fontsize=10, fmt='%1.2f')
+            #if len(clevels_obs)>1:
+            #    ax.clabel(cs, inline=1, fontsize=10, fmt='%1.2f')
+            if varname=='iceAreaCell':
+                cs = ax.contour(xobs, yobs, fld_obs, [0.15], colors='firebrick', linewidths=1,
+                                linestyles='solid', transform=ccrs.Stereographic(**kw))
+                cs = ax.contour(xobs, yobs, fld_obs, [0.8], colors='white', linewidths=1,
+                                linestyles='solid', transform=ccrs.Stereographic(**kw))
+            if varname=='iceVolumeCell':
+                cs = ax.contour(xobs, yobs, fld_obs, [1], colors='firebrick', linewidths=1,
+                                linestyles='solid', transform=ccrs.Stereographic(**kw))
+                cs = ax.contour(xobs, yobs, fld_obs, [2], colors='black', linewidths=1,
+                                linestyles='solid', transform=ccrs.Stereographic(**kw))
+                cs = ax.contour(xobs, yobs, fld_obs, [3.5], colors='white', linewidths=1,
+                                linestyles='solid', transform=ccrs.Stereographic(**kw))
             #cs = ax.pcolormesh(xobs, yobs, fld_obs, cmap=plt.cm.Blues,
             #                   transform=ccrs.Stereographic(**kw))
             #cs = ax.contourf(xobs, yobs, fld_obs, cmap=plt.cm.Blues,
