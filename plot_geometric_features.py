@@ -44,17 +44,19 @@ def _add_bbox(ax, bbox):
     ax.set_boundary(polygon)
 
 # Settings for lcrc:
-#bathyfile = '/lcrc/group/e3sm/public_html/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
+bathyfile = '/lcrc/group/e3sm/public_html/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
 ##featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_regions_detailed.geojson'
 ##transectfile = None
 #transectfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
+featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_regions_detailed.geojson'
+transectfile = '/home/ac.milena//MPAS-git-repositories/geometric_features/geometric_data/ocean/transect/Iceland-Faroe-Scotland/transect.geojson'
 
 # Settings for nersc:
-bathyfile = '/global/cfs/cdirs/e3sm/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticRegions.geojson'
-transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-#transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
+#bathyfile = '/global/cfs/cdirs/e3sm/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticRegions.geojson'
+#transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+##transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
 
 figdir = './general'
 if not os.path.isdir(figdir):
@@ -110,7 +112,7 @@ mapProj = ccrs.NorthPolarStereo(central_longitude=0)
 figsize = [20, 20]
 figdpi = 300
 #extent = [-180, 180, 63, 90] # Arctic Ocean
-extent = [-50, 50, 60, 80] # Nordic Seas
+extent = [-50, 50, 58, 80] # Nordic Seas
 plt.figure(figsize=figsize, dpi=figdpi)
 ax = plt.axes(projection=mapProj)
 add_land_lakes_coastline(ax)
@@ -146,7 +148,7 @@ figdpi = 300
 featuresToPlot = ['Norwegian Sea', 'Greenland Sea']
 transectsToPlot = ['Iceland-Faroe-Scotland']
 colors = ['#2166ac', '#d6604d']
-extent = [-50, 50, 60, 80] # Nordic Seas
+extent = [-50, 50, 58, 80] # Nordic Seas
 #featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'Eurasian Basin']
 #transectsToPlot = ['Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
 #transectsToPlot = ['Fram Strait', 'Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
