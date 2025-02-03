@@ -38,17 +38,19 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': 20}
+    gl.ylabel_style = {'size': 20}
     gl.rotate_labels = False
 
     if fld is not None:
         [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
         sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
         if cindices is not None:
-            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
+            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
         else:
-            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5)
-        cbar.ax.tick_params(labelsize=16, labelcolor='black')
-        cbar.set_label(cbarLabel, fontsize=14)
+            cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4)
+        cbar.ax.tick_params(labelsize=20, labelcolor='black')
+        cbar.set_label(cbarLabel, fontsize=20)
     else:
         sc = ax.scatter(lon, lat, s=dotSize, c='k', marker='D', transform=data_crs)
 
@@ -63,7 +65,7 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
 
     add_land_lakes_coastline(ax)
 
-    ax.set_title(figTitle, y=1.04, fontsize=16)
+    ax.set_title(figTitle, y=1.08, fontsize=22)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
 
@@ -192,13 +194,13 @@ def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figT
 
     cf = ax.pcolormesh(lon, lat, fldcyclic, cmap=colormap, norm=cnorm, transform=data_crs)
     cbar = plt.colorbar(cf, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
-    cbar.ax.tick_params(labelsize=14, labelcolor='black')
-    cbar.set_label(cbarLabel, fontsize=12, fontweight='bold')
+    cbar.ax.tick_params(labelsize=20, labelcolor='black')
+    cbar.set_label(cbarLabel, fontsize=18, fontweight='bold')
     if (contourFld is not None) and (contourValues is not None):
         cs = ax.contour(lon, lat, contourFld, contourValues, colors='k', linewidths=1.5)
         cb = plt.clabel(cs, levels=contourValues, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
 
-    ax.set_title(figTitle, y=1.04, fontsize=16)
+    ax.set_title(figTitle, y=1.04, fontsize=22)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
     

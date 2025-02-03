@@ -123,15 +123,15 @@ variables = [
               'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
               'cIndices': colorIndices,
               'colormap': cmocean.cm.speed_r},
-             {'name': 'dThreshMLD',
-              'title': 'Mean MLD',
-              'units': 'm',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_dThreshMLD',
-              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-              'cIndices': colorIndices,
-              'colormap': plt.get_cmap('viridis')},
+             #{'name': 'dThreshMLD',
+             # 'title': 'Mean MLD',
+             # 'units': 'm',
+             # 'factor': 1,
+             # 'isvar3d': False,
+             # 'mpas': 'timeMonthly_avg_dThreshMLD',
+             # 'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
+             # 'cIndices': colorIndices,
+             # 'colormap': plt.get_cmap('viridis')},
              {'name': 'spiciness',
               'title': 'Spiciness0',
               'units': '',
@@ -143,7 +143,7 @@ variables = [
               'colormap': cmocean.cm.balance},
              {'name': 'activeTracers_temperature',
               'title': 'Potential Temperature',
-             'units': 'degC',
+             'units': '$^\circ$C',
               'factor': 1,
               'isvar3d': True,
               'mpas': 'timeMonthly_avg_activeTracers_temperature',
@@ -165,10 +165,12 @@ variables = [
               'factor': 1e8,
               'isvar3d': False,
               'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing',
-              'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
+              'clevels': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
+              #'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
               'cIndices': colorIndices,
-             # 'cIndices': [0, 14, 28, 57, 80, 113, 125, 155, 170, 198, 227, 242, 255],
-              'colormap': plt.get_cmap('RdYlBu_r')},
+              #'cIndices': [0, 14, 28, 57, 80, 113, 125, 155, 170, 198, 227, 242, 255],
+              #'colormap': plt.get_cmap('RdYlBu_r')},
+              'colormap': cmocean.cm.balance},
              # 'cIndices': None,
              # 'colormap': cols.ListedColormap([(37/255,  52/255,  148/255), (44/255,  127/255, 184/255),     \
              #                                  (65/255,  182/255, 196/255), (127/255, 205/255, 187/255),     \
@@ -209,9 +211,9 @@ variables = [
               'factor': 1e6,
               'isvar3d': False,
               'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r}
+              'clevels': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.balance}
              ]
 #
 #mpasFile = 'timeSeriesStatsMonthlyMax'
@@ -222,7 +224,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD',
-#              'clevels': [50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800, 1000, 1200],
+#              #'clevels': [20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 210, 250, 300], # summer months
+#              'clevels': [50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800, 1000, 1200], # winter months
 #              'cIndices': colorIndices,
 #              'colormap': plt.get_cmap('viridis')},
 #            ]
@@ -237,7 +240,7 @@ variables = [
 #              'factor': 100,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_iceAreaCell',
-#              'clevels': [0.15, 0.3, 0.5, 0.8, 0.9, 0.95, 0.97, 0.98, 0.99, 1.0],
+#              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100],
 #              'cIndices': colorIndices,
 #              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
 #                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
@@ -286,7 +289,7 @@ zmaxs = [0.]
 #zmaxs = [0.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0.]
-dlevels = [50., 100.]
+dlevels = [0., 50., 100.]
 #dlevels = [300.]
 
 # Info about MPAS mesh
@@ -317,7 +320,8 @@ for regionName in regions:
     regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
     for im in range(1, 13):
-    #for im in range(3, 4):
+    #for im in range(1, 5): # winter months
+    #for im in range(5, 13): # summer months
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']
@@ -525,8 +529,10 @@ for regionName in regions:
                         zmin = zmins[iz]
                         zmax = zmaxs[iz]
 
-                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
+                        figtitleLow   = f'LC composite, {vartitle} (avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m), month={im}'
+                        figtitleHigh  = f'HC Composite, {vartitle} (avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m), month={im}'
+                        #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
+                        #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
                         figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                         figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
@@ -583,8 +589,10 @@ for regionName in regions:
                                               fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
                 else:
                     for iz in range(len(dlevels)):
-                        figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
+                        figtitleLow   = f'LC composite, {vartitle} (z={z[zlevels[iz]]:5.1f} m), month={im}'
+                        figtitleHigh  = f'HC composite, {vartitle} (z={z[zlevels[iz]]:5.1f} m), month={im}'
+                        #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
+                        #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
                         figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                         figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
@@ -640,8 +648,10 @@ for regionName in regions:
                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
                                               fld=fldHigh, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
             else:
-                figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}'
-                figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}'
+                figtitleLow   = f'LC composite, {vartitle}, month={im}'
+                figtitleHigh  = f'HC composite, {vartitle}, month={im}'
+                #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}'
+                #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}'
                 figfileLow  = f'{figdir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                 figfileHigh = f'{figdir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
@@ -698,13 +708,17 @@ for regionName in regions:
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
                     fldHigh[np.where(iceArea<0.15)]   = np.nan
 
+                if varname=='iceSpeed': # iceSpeed is on vertex, so iceArea doesn't work for masking
+                    fldLow[np.where(fldLow<1e-15)]    = np.nan
+                    fldHigh[np.where(fldHigh<1e-15)]  = np.nan
+
                 #print(np.nanmin(fldLow), np.nanmax(fldLow))
                 #print(np.nanmin(fldHigh), np.nanmax(fldHigh))
 
                 dotSize = 1.2 # this should go up as resolution decreases
                 if varname=='iceArea':
-                    fldLow[np.where(fldLow<0.15)]   = np.nan
-                    fldHigh[np.where(fldHigh<0.15)] = np.nan
+                    fldLow[np.where(fldLow<0.15*varfactor)]   = np.nan
+                    fldHigh[np.where(fldHigh<0.15*varfactor)] = np.nan
                     # Plot iceArea with iceThickness contours
                     infile  = f'{indir}/iceVolume_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
