@@ -104,8 +104,8 @@ regionGroups = ['Arctic Regions']
 # ice variables (2d only)
 #
 #   Ocean variables
-#mpasComp = 'mpaso'
-#modelComp = 'ocn'
+mpasComp = 'mpaso'
+modelComp = 'ocn'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
 #             {'name': 'maxMLD',
@@ -115,62 +115,62 @@ regionGroups = ['Arctic Regions']
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
 #            ]
 #
-#mpasFile = 'timeSeriesStatsMonthly'
-#variables = [
-#             {'name': 'sensibleHeatFlux',
-#              'title': 'Sensible Heat Flux',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
-#             {'name': 'fwc',
-#              'title': 'Freshwater content',
-#              'units': '10$^3$ km$^3$',
-#              'factor': 1e-12,
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity'}
-#            ]
-             #{'name': 'latentHeatFlux',
-             # 'title': 'Latent Heat Flux',
-             # 'units': 'W/m$^2$',
-             # 'factor': 1,
-             # 'mpas': 'timeMonthly_avg_latentHeatFlux'}
-             #{'name': 'longWaveHeatFluxUp',
-             # 'title': 'Longwave Up Heat Flux',
-             # 'units': 'W/m$^2$',
-             # 'factor': 1,
-             # 'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'}
-             #{'name': 'longWaveHeatFluxDown',
-             # 'title': 'Longwave Down Heat Flux',
-             # 'units': 'W/m$^2$',
-             # 'factor': 1,
-             # 'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'}
-             #{'name': 'shortWaveHeatFlux',
-             # 'title': 'Shortwave Heat Flux',
-             # 'units': 'W/m$^2$',
-             # 'factor': 1,
-             # 'mpas': 'timeMonthly_avg_shortWaveHeatFlux'}
-             # 'mpas': 'timeMonthly_avg_seaIceHeatFlux'}
-             # 'mpas': 'timeMonthly_avg_penetrativeTemperatureFlux'}
-             #{'name': 'surfaceBuoyancyForcing',
-             # 'title': 'Surface buoyancy flux',
-             # 'units': 'm$^2$ s$^{-3}$',
-             # 'factor': 1,
-             # 'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
-#   Sea ice variables
-mpasComp = 'mpassi'
-modelComp = 'ice'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'iceArea',
-              'title': 'Integrated Ice Area',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'timeMonthly_avg_iceAreaCell'},
-             {'name': 'iceVolume',
-              'title': 'Integrated Ice Volume',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'timeMonthly_avg_iceVolumeCell'}
+             {'name': 'sensibleHeatFlux',
+              'title': 'Sensible Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+             #{'name': 'fwc',
+             # 'title': 'Freshwater content',
+             # 'units': '10$^3$ km$^3$',
+             # 'factor': 1e-12,
+             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'}
+             {'name': 'latentHeatFlux',
+              'title': 'Latent Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_latentHeatFlux'},
+             {'name': 'longWaveHeatFluxUp',
+              'title': 'Longwave Up Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
+             {'name': 'longWaveHeatFluxDown',
+              'title': 'Longwave Down Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
+             {'name': 'shortWaveHeatFlux',
+              'title': 'Shortwave Heat Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+             {'name': 'surfaceBuoyancyForcing',
+              'title': 'Surface buoyancy flux',
+              'units': 'm$^2$ s$^{-3}$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
+             # 'mpas': 'timeMonthly_avg_seaIceHeatFlux'}
+             # 'mpas': 'timeMonthly_avg_penetrativeTemperatureFlux'}
             ]
+#   Sea ice variables
+#mpasComp = 'mpassi'
+#modelComp = 'ice'
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
+#             {'name': 'iceArea',
+#              'title': 'Integrated Ice Area',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'timeMonthly_avg_iceAreaCell'},
+#             {'name': 'iceVolume',
+#              'title': 'Integrated Ice Volume',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'timeMonthly_avg_iceVolumeCell'}
+#            ]
 
 if isShortTermArchive:
     rundir = f'{rundir}/archive/{modelComp}/hist'

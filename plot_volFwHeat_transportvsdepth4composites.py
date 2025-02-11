@@ -14,6 +14,7 @@ import cmocean
 from common_functions import add_inset
 from geometric_features import FeatureCollection, read_feature_collection
 from mpas_analysis.shared.io.utility import decode_strings
+from make_plots import _make_discrete_colormap
 
 
 # Settings for erdc.hpc.mil
@@ -31,12 +32,12 @@ from mpas_analysis.shared.io.utility import decode_strings
 # Settings for nersc
 ensemble = '0301'
 casename = 'E3SM-Arcticv2.1_historical'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-transportfile0 = f'./transports_data/{casename}{ensemble}/atlanticZonalSectionsTransportsvsdepth_{casename}{ensemble}'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-#transportfile0 = f'./transports_data/{casename}{ensemble}/arcticSectionsTransportsvsdepth_{casename}{ensemble}'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#transportfile0 = f'./transports_data/{casename}{ensemble}/atlanticZonalSectionsTransportsvsdepth_{casename}{ensemble}'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+transportfile0 = f'./transports_data/{casename}{ensemble}/arcticSectionsTransportsvsdepth_{casename}{ensemble}'
 years_maxMLDhighFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDhigh_{ensemble}.dat'
 years_maxMLDlowFile = f'./composites_maxMLDbased_data/{casename}/years_maxMLDlow_{ensemble}.dat'
 
@@ -48,8 +49,9 @@ year2 = 2014
 years = range(year1, year2+1)
 nyears = len(years)
 
-transectsToPlot = ['Atlantic zonal 27.2N', 'Atlantic zonal 45N', 'Atlantic zonal OSNAP East', 'Atlantic zonal 65N']
+#transectsToPlot = ['Atlantic zonal 27.2N', 'Atlantic zonal 45N', 'Atlantic zonal OSNAP East', 'Atlantic zonal 65N']
 #transectsToPlot = ['Fram Strait', 'Barents Sea Opening', 'Davis Strait', 'Denmark Strait', 'Iceland-Faroe-Scotland']
+transectsToPlot = ['Iceland-Faroe-Scotland']
 
 figdir = f'./transports/{casename}'
 if not os.path.isdir(figdir):
@@ -113,6 +115,7 @@ for i in range(nTransects):
         FWTransportSref = dsTransect1.FWTransportSref + dsTransect2.FWTransportSref + dsTransect3.FWTransportSref
         tempTransect = dsTransect1.tempTransect + dsTransect2.tempTransect + dsTransect3.tempTransect
         saltTransect = dsTransect1.saltTransect + dsTransect2.saltTransect + dsTransect3.saltTransect
+        spice0Transect = dsTransect1.spice0Transect + dsTransect2.spice0Transect + dsTransect3.spice0Transect
         depthTransect = xr.concat([dsTransect1.depthTransect.isel(Time=0),
                                    dsTransect2.depthTransect.isel(Time=0),
                                    dsTransect3.depthTransect.isel(Time=0)], dim='nEdges')
@@ -128,6 +131,7 @@ for i in range(nTransects):
         FWTransportSref = dsTransect.FWTransportSref
         tempTransect = dsTransect.tempTransect
         saltTransect = dsTransect.saltTransect
+        spice0Transect = dsTransect.spice0Transect
         depthTransect = dsTransect.depthTransect.isel(Time=0)
 
     volTransport_annual = volTransport.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
@@ -136,6 +140,7 @@ for i in range(nTransects):
     FWTransportSref_annual = FWTransportSref.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
     tempTransect_annual = tempTransect.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
     saltTransect_annual = saltTransect.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
+    spiceTransect_annual = spice0Transect.groupby_bins('Time', nyears).mean().rename({'Time_bins': 'Time'})
     zmax = depthTransect.max()
 
     # Plot Volume Transport
@@ -241,4 +246,38 @@ for i in range(nTransects):
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=-0.7)
     #fig.tight_layout(pad=0.5)
 
+    fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+
+    # Plot spiciness0 in different figure
+    figfile = f'{figdir}/spicevsdepth4composites_{transectName}_{casename}{ensemble}.png'
+    fig = plt.figure(figsize=figsize)
+    ax = plt.subplot()
+    for tick in ax.xaxis.get_ticklabels():
+        tick.set_fontsize(14)
+        tick.set_weight('bold')
+    for tick in ax.yaxis.get_ticklabels():
+        tick.set_fontsize(14)
+        tick.set_weight('bold')
+    fld = spiceTransect_annual.values
+    colormap = plt.get_cmap('cividis')
+    colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
+    clevels = [0, 0.11, 0.22, 0.33, 0.44, 0.55, 0.66, 0.77, 0.88, 0.99, 1.1, 1.21, 1.32]
+    #clevels = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.125, 1.25, 1.375, 1.5]
+    #clevels = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35, 1.5, 1.65, 1.8]
+    [cmap, cnorm] = _make_discrete_colormap(colormap, colorIndices, clevels)
+    cf = ax.contourf(x, y, fld, cmap=cmap, norm=cnorm, levels=clevels, extend='both')
+    for k in indYears_preMLDhigh:
+        ax.axvline(x=t_annual.isel(Time=k), linewidth=1.5, color='white', alpha=0.6)
+    for k in indYears_preMLDlow:
+        ax.axvline(x=t_annual.isel(Time=k), linewidth=1.5, color='black', alpha=0.4)
+    cbar = plt.colorbar(cf, location='bottom', pad=0.11, shrink=0.9, extend='both')
+    cbar.ax.tick_params(labelsize=16, labelcolor='black')
+    cbar.set_label('Spiciness0 (Kg/m$^3$)', fontsize=16, fontweight='bold')
+    ax.set_ylim(0, zmax)
+    ax.invert_yaxis()
+    ax.set_xlabel('Time (years)', fontsize=18, fontweight='bold')
+    ax.set_ylabel('Depth (m)', fontsize=18, fontweight='bold')
+    #fig.suptitle(f'Transect = {transectName}\nrunname = {casename}{ensemble}\n years preceding HC (white) and LC (black)', \
+    #             fontsize=20, fontweight='bold', y=1)
+    #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=1.5, ybuffer=-0.7)
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')

@@ -85,126 +85,126 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'barotropicStreamfunction',
-              'title': 'Barotropic streamfunction',
-              'units': 'Sv',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'barotropicStreamfunction',
-              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
-              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.curl},
-              #'colormap': cmocean.cm.tarn}
-             #{'name': 'streamlines',
-             # 'title': 'Velocity',
-             # 'units': 'cm/s',
-             # 'factor': 1e2,
-             # 'isvar3d': True,
-             # 'mpas': None,
-             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-             # 'cIndices': colorIndices,
-             # 'colormap': cmocean.cm.speed_r},
-             #{'name': 'velSpeed',
-             # 'title': 'Velocity magnitude',
-             # 'units': 'cm/s',
-             # 'factor': 1e2,
-             # 'isvar3d': True,
-             # 'mpas': None,
-             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-             # 'cIndices': colorIndices,
-             # 'colormap': cmocean.cm.speed_r},
-             {'name': 'windStressSpeed',
-              'title': 'Wind stress magnitude',
-              'units': 'N/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': None,
-              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.speed_r},
-             #{'name': 'dThreshMLD',
-             # 'title': 'Mean MLD',
-             # 'units': 'm',
-             # 'factor': 1,
-             # 'isvar3d': False,
-             # 'mpas': 'timeMonthly_avg_dThreshMLD',
-             # 'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
-             # 'cIndices': colorIndices,
-             # 'colormap': plt.get_cmap('viridis')},
-             {'name': 'spiciness',
-              'title': 'Spiciness0',
-              'units': '',
-              'factor': 1,
-              'isvar3d': True,
-              'mpas': 'spiciness0',
-              'clevels': [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.balance},
-             {'name': 'activeTracers_temperature',
-              'title': 'Potential Temperature',
-             'units': '$^\circ$C',
-              'factor': 1,
-              'isvar3d': True,
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.thermal},
-             {'name': 'activeTracers_salinity',
-              'title': 'Salinity',
-              'units': 'psu',
-              'factor': 1,
-              'isvar3d': True,
-              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.haline},
-             {'name': 'surfaceBuoyancyForcing',
-              'title': 'Surface buoyancy flux',
-              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
-              'factor': 1e8,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing',
-              'clevels': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
-              #'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
-              'cIndices': colorIndices,
-              #'cIndices': [0, 14, 28, 57, 80, 113, 125, 155, 170, 198, 227, 242, 255],
-              #'colormap': plt.get_cmap('RdYlBu_r')},
-              'colormap': cmocean.cm.balance},
-             # 'cIndices': None,
-             # 'colormap': cols.ListedColormap([(37/255,  52/255,  148/255), (44/255,  127/255, 184/255),     \
-             #                                  (65/255,  182/255, 196/255), (127/255, 205/255, 187/255),     \
-             #                                  (199/255, 233/255, 180/255), (1, 1, 204/255), (1, 1, 217/255),\
-             #                                  (254/255, 240/255, 217/255), (253/255, 212/255, 158/255),     \
-             #                                  (253/255, 187/255, 132/255), (252/255, 141/255, 89/255),      \
-             #                                  (227/255, 74/255,  51/255),  (179/255, 0,   0)])},
-             {'name': 'sensibleHeatFlux',
-              'title': 'Sensible Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
-             {'name': 'latentHeatFlux',
-              'title': 'Latent Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'timeMonthly_avg_latentHeatFlux',
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
-             {'name': 'totalHeatFlux',
-              'title': 'Total Heat (sensible+latent+netLR+netSR) Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': None,
-              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
-              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
-              'colormap': cmocean.cm.solar_r},
+#             {'name': 'barotropicStreamfunction',
+#              'title': 'Barotropic streamfunction',
+#              'units': 'Sv',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'barotropicStreamfunction',
+#              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
+#              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.curl},
+#              #'colormap': cmocean.cm.tarn}
+#             #{'name': 'streamlines',
+#             # 'title': 'Velocity',
+#             # 'units': 'cm/s',
+#             # 'factor': 1e2,
+#             # 'isvar3d': True,
+#             # 'mpas': None,
+#             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+#             # 'cIndices': colorIndices,
+#             # 'colormap': cmocean.cm.speed_r},
+#             #{'name': 'velSpeed',
+#             # 'title': 'Velocity magnitude',
+#             # 'units': 'cm/s',
+#             # 'factor': 1e2,
+#             # 'isvar3d': True,
+#             # 'mpas': None,
+#             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+#             # 'cIndices': colorIndices,
+#             # 'colormap': cmocean.cm.speed_r},
+#             {'name': 'windStressSpeed',
+#              'title': 'Wind stress magnitude',
+#              'units': 'N/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': None,
+#              'clevels': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.speed_r},
+#             #{'name': 'dThreshMLD',
+#             # 'title': 'Mean MLD',
+#             # 'units': 'm',
+#             # 'factor': 1,
+#             # 'isvar3d': False,
+#             # 'mpas': 'timeMonthly_avg_dThreshMLD',
+#             # 'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800],
+#             # 'cIndices': colorIndices,
+#             # 'colormap': plt.get_cmap('viridis')},
+#             {'name': 'spiciness',
+#              'title': 'Spiciness0',
+#              'units': '',
+#              'factor': 1,
+#              'isvar3d': True,
+#              'mpas': 'spiciness0',
+#              'clevels': [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.curl},
+#              #'colormap': cmocean.cm.balance},
+#             {'name': 'activeTracers_temperature',
+#              'title': 'Potential Temperature',
+#             'units': '$^\circ$C',
+#              'factor': 1,
+#              'isvar3d': True,
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.thermal},
+#             {'name': 'activeTracers_salinity',
+#              'title': 'Salinity',
+#              'units': 'psu',
+#              'factor': 1,
+#              'isvar3d': True,
+#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.haline},
+#             {'name': 'surfaceBuoyancyForcing',
+#              'title': 'Surface buoyancy flux',
+#              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
+#              'factor': 1e8,
+#              'isvar3d': False,
+#              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing',
+#              'clevels': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
+#             # 'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
+#              'cIndices': colorIndices,
+#             # 'cIndices': [0, 14, 28, 57, 80, 113, 125, 155, 170, 198, 227, 242, 255],
+#              'colormap': plt.get_cmap('BrBG_r')},
+#             # 'cIndices': None,
+#             # 'colormap': cols.ListedColormap([(37/255,  52/255,  148/255), (44/255,  127/255, 184/255),     \
+#             #                                  (65/255,  182/255, 196/255), (127/255, 205/255, 187/255),     \
+#             #                                  (199/255, 233/255, 180/255), (1, 1, 204/255), (1, 1, 217/255),\
+#             #                                  (254/255, 240/255, 217/255), (253/255, 212/255, 158/255),     \
+#             #                                  (253/255, 187/255, 132/255), (252/255, 141/255, 89/255),      \
+#             #                                  (227/255, 74/255,  51/255),  (179/255, 0,   0)])},
+#             {'name': 'sensibleHeatFlux',
+#              'title': 'Sensible Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
+#              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
+#              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
+#              'colormap': cmocean.cm.solar_r},
+#             {'name': 'latentHeatFlux',
+#              'title': 'Latent Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'timeMonthly_avg_latentHeatFlux',
+#              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
+#              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
+#              'colormap': cmocean.cm.solar_r},
+#             {'name': 'totalHeatFlux',
+#              'title': 'Total Heat (sensible+latent+netLR+netSR) Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': None,
+#              'clevels': [-250, -200, -180, -160, -140,  -120, -100, -80, -60, -40, -20, -10, 0],
+#              'cIndices': [0, 28, 40, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255],
+#              'colormap': cmocean.cm.solar_r},
              {'name': 'seaIceFreshWaterFlux',
               'title': 'Sea ice FW flux',
               'units': '10$^{-6}$ kg m$^-2$ s$^-1$',
@@ -213,7 +213,8 @@ variables = [
               'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux',
               'clevels': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
               'cIndices': colorIndices,
-              'colormap': cmocean.cm.balance}
+              'colormap': plt.get_cmap('PuOr_r')}
+              #'colormap': plt.get_cmap('BrBG_r')}
              ]
 #
 #mpasFile = 'timeSeriesStatsMonthlyMax'
@@ -240,11 +241,16 @@ variables = [
 #              'factor': 100,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_iceAreaCell',
-#              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100],
+#              #'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100],
+#              'clevels': [10, 15, 30, 50, 80, 90, 95, 97, 98, 99, 100],
 #              'cIndices': colorIndices,
+#              #'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
+#              #                                 (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
+#              #                                 (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])},
 #              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
-#                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
-#                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)])},
+#                                               (0,     0.4,   0.4),   (0.169, 0.435, 0.223), (0.455, 0.478, 0.196),\
+#                                               (0.757, 0.474, 0.435), (0.827, 0.561, 0.772), (0.761, 0.757, 0.949),\
+#                                               (0.808, 0.921, 0.937)])},
 #             {'name': 'iceVolume',
 #              'title': 'Sea Ice Thickness',
 #              'units': 'm',
@@ -322,6 +328,7 @@ for regionName in regions:
     for im in range(1, 13):
     #for im in range(1, 5): # winter months
     #for im in range(5, 13): # summer months
+    #for im in range(3, 4):
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']
@@ -695,20 +702,22 @@ for regionName in regions:
                    fldLow  = varfactor * dsFieldLow.values
                    fldHigh = varfactor * dsFieldHigh.values
 
-                if varname=='iceVolume' or varname=='iceDivergence':
-                    # Mask fields where ice concentration < 15%
+                if varname=='iceVolume' or varname=='iceDivergence' or varname=='seaIceFreshWaterFlux':
+                    # Mask fields where ice concentration < 15% (or =0%)
                     infile  = f'{indir}/iceArea_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
                         raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
-                    fldLow[np.where(iceArea<0.15)]   = np.nan
+                    #fldLow[np.where(iceArea<0.15)]   = np.nan
+                    fldLow[np.where(iceArea<1e-15)]   = np.nan
                     infile = f'{indir}/iceArea_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
                         raise IOError(f'File {infile} does not exist. Need to create it with compute_composites')
                     iceArea  = xr.open_dataset(infile).isel(Time=0)['timeMonthly_avg_iceAreaCell']
-                    fldHigh[np.where(iceArea<0.15)]   = np.nan
+                    #fldHigh[np.where(iceArea<0.15)]   = np.nan
+                    fldHigh[np.where(iceArea<1e-15)]   = np.nan
 
-                if varname=='iceSpeed': # iceSpeed is on vertex, so iceArea doesn't work for masking
+                if varname=='iceSpeed': # iceSpeed is on vertices, so iceArea doesn't work for masking
                     fldLow[np.where(fldLow<1e-15)]    = np.nan
                     fldHigh[np.where(fldHigh<1e-15)]  = np.nan
 
@@ -717,8 +726,10 @@ for regionName in regions:
 
                 dotSize = 1.2 # this should go up as resolution decreases
                 if varname=='iceArea':
-                    fldLow[np.where(fldLow<0.15*varfactor)]   = np.nan
-                    fldHigh[np.where(fldHigh<0.15*varfactor)] = np.nan
+                    #fldLow[np.where(fldLow<0.15*varfactor)]   = np.nan
+                    #fldHigh[np.where(fldHigh<0.15*varfactor)] = np.nan
+                    fldLow[np.where(fldLow<1e-15)]   = np.nan
+                    fldHigh[np.where(fldHigh<1e-15)] = np.nan
                     # Plot iceArea with iceThickness contours
                     infile  = f'{indir}/iceVolume_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                     if not os.path.isfile(infile):
