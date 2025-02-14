@@ -61,11 +61,19 @@ figfile1 = f'{figdir}/maxMLD_{regionNameShort}_nordicSeaPaper.png'
 figfile2 = f'{figdir}/iceArea_{regionNameShort}_nordicSeaPaper.png'
 figfile3 = f'{figdir}/FWTransportSref_{transectNameShort}_nordicSeaPaper.png'
 figfile4 = f'{figdir}/totalHeatFlux_{regionNameShort}_nordicSeaPaper.png'
+#figfile4 = f'{figdir}/sensibleHeatFlux_{regionNameShort}_nordicSeaPaper.png'
+#figfile4 = f'{figdir}/latentHeatFlux_{regionNameShort}_nordicSeaPaper.png'
+#figfile4 = f'{figdir}/netLWHeatFlux_{regionNameShort}_nordicSeaPaper.png'
+#figfile4 = f'{figdir}/netSWHeatFlux_{regionNameShort}_nordicSeaPaper.png'
 figfile5 = f'{figdir}/surfaceBuoyancyForcing_{regionNameShort}_nordicSeaPaper.png'
 figtitle1 = f'Max MLD (JFMA-avg) in {regionName} region'
-figtitle2 = f'Ice area (JFMA-avg) in {regionName} region'
+figtitle2 = f'Aggregated ice area (JFMA-avg) over {regionName} region'
 figtitle3 = f'FW (Sref=34.8 psu) transport (ANN-avg) across {transectName}'
 figtitle4 = f'Total heat flux (JFMA-avg) in {regionName} region'
+#figtitle4 = f'Sensible heat flux (JFMA-avg) in {regionName} region'
+#figtitle4 = f'Latent heat flux (JFMA-avg) in {regionName} region'
+#figtitle4 = f'Net LW radiation flux (JFMA-avg) in {regionName} region'
+#figtitle4 = f'Net SW radiation flux (JFMA-avg) in {regionName} region'
 figtitle5 = f'Surface buoyancy flux (JFMA-avg) in {regionName} region'
 indirRegion  = './timeseries_data'
 indirTransect = './transports_data'
@@ -212,6 +220,11 @@ for nEns in range(nEnsembles):
              ds4LWup['longWaveHeatFluxUp'].isel(nRegions=regionIndex)   +\
              ds4LWdo['longWaveHeatFluxDown'].isel(nRegions=regionIndex) +\
              ds4SW['shortWaveHeatFlux'].isel(nRegions=regionIndex)
+    #dsvar4 = ds4sens['sensibleHeatFlux'].isel(nRegions=regionIndex)
+    #dsvar4 = ds4late['latentHeatFlux'].isel(nRegions=regionIndex)
+    #dsvar4 = ds4LWup['longWaveHeatFluxUp'].isel(nRegions=regionIndex)   +\
+    #         ds4LWdo['longWaveHeatFluxDown'].isel(nRegions=regionIndex)
+    #dsvar4 = ds4SW['shortWaveHeatFlux'].isel(nRegions=regionIndex)
     dsvar5 = ds5['surfaceBuoyancyForcing'].isel(nRegions=regionIndex)
 
     # Compute and plot seasonal averages
