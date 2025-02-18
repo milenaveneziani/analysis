@@ -28,7 +28,7 @@ from mpas_analysis.ocean.utility import compute_zmid
 from barotropicStreamfunction import compute_barotropic_streamfunction_vertex
 
 
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 matplotlib.rc('xtick', labelsize=14)
 matplotlib.rc('ytick', labelsize=14)
 plt.rc('font', weight='bold')
@@ -85,44 +85,44 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'velocityZonalDepthAvg',
-              'mpas': 'timeMonthly_avg_velocityZonal'},
-             {'name': 'velocityMeridionalDepthAvg',
-              'mpas': 'timeMonthly_avg_velocityMeridional'},
-             {'name': 'velocityZonal',
-              'mpas': 'timeMonthly_avg_velocityZonal'},
-             {'name': 'velocityMeridional',
-              'mpas': 'timeMonthly_avg_velocityMeridional'},
-             {'name': 'activeTracers_temperature',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             {'name': 'activeTracers_salinity',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             {'name': 'activeTracers_temperatureDepthAvg',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             {'name': 'activeTracers_salinityDepthAvg',
-             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             {'name': 'dThreshMLD',
-              'mpas': 'timeMonthly_avg_dThreshMLD'},
-             {'name': 'windStressZonal',
-              'mpas': 'timeMonthly_avg_windStressZonal'},
-             {'name': 'windStressMeridional',
-              'mpas': 'timeMonthly_avg_windStressMeridional'},
-             {'name': 'spiciness',
-              'mpas': None},
+#             {'name': 'velocityZonalDepthAvg',
+#              'mpas': 'timeMonthly_avg_velocityZonal'},
+#             {'name': 'velocityMeridionalDepthAvg',
+#              'mpas': 'timeMonthly_avg_velocityMeridional'},
+#             {'name': 'velocityZonal',
+#              'mpas': 'timeMonthly_avg_velocityZonal'},
+#             {'name': 'velocityMeridional',
+#              'mpas': 'timeMonthly_avg_velocityMeridional'},
+#             {'name': 'activeTracers_temperature',
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+#             {'name': 'activeTracers_salinity',
+#              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+#             {'name': 'activeTracers_temperatureDepthAvg',
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+#             {'name': 'activeTracers_salinityDepthAvg',
+#             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+#             {'name': 'dThreshMLD',
+#              'mpas': 'timeMonthly_avg_dThreshMLD'},
+#             {'name': 'windStressZonal',
+#              'mpas': 'timeMonthly_avg_windStressZonal'},
+#             {'name': 'windStressMeridional',
+#              'mpas': 'timeMonthly_avg_windStressMeridional'},
+#             {'name': 'spiciness',
+#              'mpas': None},
              {'name': 'barotropicStreamfunction',
               'mpas': 'barotropicStreamfunction'},
-             {'name': 'surfaceBuoyancyForcing',
-              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
-             {'name': 'shortWaveHeatFlux',
-              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
-             {'name': 'longWaveHeatFluxUp',
-              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
-             {'name': 'longWaveHeatFluxDown',
-              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
-             {'name': 'seaIceFreshWaterFlux',
-              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
-             {'name': 'sensibleHeatFlux',
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+#             {'name': 'surfaceBuoyancyForcing',
+#              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+#             {'name': 'shortWaveHeatFlux',
+#              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+#             {'name': 'longWaveHeatFluxUp',
+#              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
+#             {'name': 'longWaveHeatFluxDown',
+#              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
+#             {'name': 'seaIceFreshWaterFlux',
+#              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
+#             {'name': 'sensibleHeatFlux',
+#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
              {'name': 'latentHeatFlux',
               'mpas': 'timeMonthly_avg_latentHeatFlux'}
              ]
@@ -418,10 +418,11 @@ for im in range(1, 13):
                             # Compute post-processed field and write to file if datafile does not exist
                             datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
+                                print(f'*** Low composite, datafile={datafile}')
+                                min_lat = -45.0
                                 min_depth = -10000.0
                                 max_depth = 0.0
-                                fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_depth, max_depth)
-                                print(f'*** Low composite, datafile={datafile}')
+                                fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_lat, min_depth, max_depth)
                                 dsOut = xr.Dataset()
                                 dsOut['barotropicStreamfunction'] = fld
                                 dsOut['barotropicStreamfunction'].attrs['long_name'] = 'Barotropic streamfunction'
@@ -519,10 +520,11 @@ for im in range(1, 13):
                             # Compute post-processed field and write to file if datafile does not exist
                             datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
+                                print(f'*** High composite, datafile={datafile}')
+                                min_lat = -45.0
                                 min_depth = -10000.0
                                 max_depth = 0.0
-                                fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_depth, max_depth)
-                                print(f'*** High composite, datafile={datafile}')
+                                fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_lat, min_depth, max_depth)
                                 dsOut = xr.Dataset()
                                 dsOut['barotropicStreamfunction'] = fld
                                 dsOut['barotropicStreamfunction'].attrs['long_name'] = 'Barotropic streamfunction'

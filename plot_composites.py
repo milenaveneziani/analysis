@@ -85,17 +85,17 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-#             {'name': 'barotropicStreamfunction',
-#              'title': 'Barotropic streamfunction',
-#              'units': 'Sv',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'barotropicStreamfunction',
-#              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
-#              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.curl},
-#              #'colormap': cmocean.cm.tarn}
+             {'name': 'barotropicStreamfunction',
+              'title': 'Barotropic streamfunction',
+              'units': 'Sv',
+              'factor': 1,
+              'isvar3d': False,
+              'mpas': 'barotropicStreamfunction',
+              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
+              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.curl},
+              #'colormap': cmocean.cm.tarn}
 #             #{'name': 'streamlines',
 #             # 'title': 'Velocity',
 #             # 'units': 'cm/s',
@@ -328,7 +328,7 @@ for regionName in regions:
     for im in range(1, 13):
     #for im in range(1, 5): # winter months
     #for im in range(5, 13): # summer months
-    #for im in range(3, 4):
+    #for im in range(1, 2):
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']

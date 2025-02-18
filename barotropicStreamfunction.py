@@ -8,7 +8,7 @@ import scipy.sparse.linalg
 from mpas_analysis.ocean.utility import compute_zmid
 
 
-def compute_barotropic_streamfunction_vertex(dsMesh, ds, min_depth, max_depth):
+def compute_barotropic_streamfunction_vertex(dsMesh, ds, min_lat, min_depth, max_depth):
 
         inner_edges, transport = _compute_transport(dsMesh, ds, min_depth, max_depth)
 
@@ -16,10 +16,9 @@ def compute_barotropic_streamfunction_vertex(dsMesh, ds, min_depth, max_depth):
         cells_on_vertex = dsMesh.cellsOnVertex - 1
         vertices_on_edge = dsMesh.verticesOnEdge - 1
         is_boundary_cov = cells_on_vertex == -1
-        boundary_vertices = np.logical_or(is_boundary_cov.isel(vertexDegree=0),
-                                          is_boundary_cov.isel(vertexDegree=1))
-        boundary_vertices = np.logical_or(boundary_vertices,
-                                          is_boundary_cov.isel(vertexDegree=2))
+        boundary_vertices = is_boundary_cov.sum(dim='vertexDegree') > 0
+        boundary_vertices = np.logical_and(boundary_vertices,
+                                           dsMesh.latVertex > np.deg2rad(min_lat))
 
         # convert from boolean mask to indices
         boundary_vertices = np.flatnonzero(boundary_vertices.values)
@@ -27,8 +26,8 @@ def compute_barotropic_streamfunction_vertex(dsMesh, ds, min_depth, max_depth):
         n_boundary_vertices = len(boundary_vertices)
         n_inner_edges = len(inner_edges)
 
-        indices = np.zeros((2, 2*n_inner_edges+n_boundary_vertices), dtype=int)
-        data = np.zeros(2*n_inner_edges+n_boundary_vertices, dtype=float)
+        indices = np.zeros((2, 2*n_inner_edges + n_boundary_vertices), dtype=int)
+        data = np.zeros(2*n_inner_edges + n_boundary_vertices, dtype=float)
 
         # The difference between the streamfunction at vertices on an inner
         # edge should be equal to the transport
@@ -40,28 +39,28 @@ def compute_barotropic_streamfunction_vertex(dsMesh, ds, min_depth, max_depth):
         indices[1, 2*ind] = v1
         data[2*ind] = 1.
 
-        indices[0, 2*ind+1] = ind
-        indices[1, 2*ind+1] = v0
-        data[2*ind+1] = -1.
+        indices[0, 2*ind + 1] = ind
+        indices[1, 2*ind + 1] = v0
+        data[2*ind + 1] = -1.
 
-        # the streamfunction should be zero at all boundary vertices
+        # Make the average of the stream function at boundary vertices north
+        # of min_lat equal to zero
         ind = np.arange(n_boundary_vertices)
-        indices[0, 2*n_inner_edges + ind] = n_inner_edges + ind
-        indices[1, 2*n_inner_edges + ind] = boundary_vertices
+        indices[0, 2*n_inner_edges + ind] = n_inner_edges
+        indices[1, 2*n_inner_edges + ind] = ind
         data[2*n_inner_edges + ind] = 1.
 
-        rhs = np.zeros(n_inner_edges+n_boundary_vertices, dtype=float)
+        rhs = np.zeros(n_inner_edges + 1, dtype=float)
 
         # convert to Sv
         ind = np.arange(n_inner_edges)
         rhs[ind] = 1e-6*np.squeeze(transport)
 
-        ind = np.arange(n_boundary_vertices)
-        rhs[n_inner_edges + ind] = 0.
+        rhs[n_inner_edges] = 0.
 
         matrix = scipy.sparse.csr_matrix(
             (data, indices),
-            shape=(n_inner_edges+n_boundary_vertices, nvertices))
+            shape=(n_inner_edges + 1, nvertices))
 
         solution = scipy.sparse.linalg.lsqr(matrix, rhs)
         bsf_vertex = xr.DataArray(-solution[0],
@@ -88,17 +87,19 @@ def _compute_transport(dsMesh, ds, min_depth, max_depth):
     z_mid = compute_zmid(dsMesh.bottomDepth, dsMesh.maxLevelCell-1,
                          dsMesh.layerThickness)
     z_mid_edge = 0.5*(z_mid.isel(nCells=cell0) + z_mid.isel(nCells=cell1))
+
     normal_velocity = ds.timeMonthly_avg_normalVelocity.isel(nEdges=inner_edges)
     if 'timeMonthly_avg_normalGMBolusVelocity' in ds.keys():
         normal_velocity = normal_velocity + ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=inner_edges)
     if 'timeMonthly_avg_normalMLEvelocity' in ds.keys():
         normal_velocity = normal_velocity + ds.timeMonthly_avg_normalMLEvelocity.isel(nEdges=inner_edges)
+
     layer_thickness = ds.timeMonthly_avg_layerThickness
     layer_thickness_edge = 0.5*(layer_thickness.isel(nCells=cell0) +
                                 layer_thickness.isel(nCells=cell1))
     mask_bottom = (vert_index < dsMesh.maxLevelCell).T
-    mask_bottom_edge = 0.5*(mask_bottom.isel(nCells=cell0) +
-                            mask_bottom.isel(nCells=cell1))
+    mask_bottom_edge = np.logical_and(mask_bottom.isel(nCells=cell0),
+                                      mask_bottom.isel(nCells=cell1))
     masks = [mask_bottom_edge,
              z_mid_edge <= max_depth,
              z_mid_edge >= min_depth]
