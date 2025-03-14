@@ -16,7 +16,7 @@ import gsw
 
 
 # settings for nersc
-runname = 'E3SM-Arcticv2.1_historical0301'
+runname = 'E3SM-Arcticv2.1_historical0151'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/archive'
 oceandir = f'{modeldir}/ocn/hist'
 seaicedir = f'{modeldir}/ice/hist'
@@ -29,9 +29,10 @@ regionName = 'Canada Basin'
 #regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 
-years = np.arange(1950, 1971) # try with 20 years at a time
-#years = np.arange(1971, 1991)
-years = np.arange(2000, 2015)
+#years = np.arange(1950, 1971) # try with 20 years at a time
+#years = np.arange(1971, 1992)
+years = np.arange(1992, 2015)
+#years = np.arange(2000, 2015)
 months = [2, 8]
 
 plotPHCWOA = True

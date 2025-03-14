@@ -288,11 +288,11 @@ for regionName in regions:
         print(yMed)
 
         # Save this information to ascii files
-        np.savetxt(f'{outdir}/years_maxMLDlow.dat', yLow, fmt='%5d', delimiter=' ')
-        np.savetxt(f'{outdir}/years_maxMLDhigh.dat', yHigh, fmt='%5d', delimiter=' ')
+        np.savetxt(f'{outdir}/years_maxMLDlow_{regionNameShort}.dat', yLow, fmt='%5d', delimiter=' ')
+        np.savetxt(f'{outdir}/years_maxMLDhigh_{regionNameShort}.dat', yHigh, fmt='%5d', delimiter=' ')
     else:
-        yLow = np.loadtxt(f'{outdir}/years_maxMLDlow.dat')
-        yHigh = np.loadtxt(f'{outdir}/years_maxMLDhigh.dat')
+        yLow = np.loadtxt(f'{outdir}/years_maxMLDlow_{regionNameShort}.dat')
+        yHigh = np.loadtxt(f'{outdir}/years_maxMLDhigh_{regionNameShort}.dat')
 
     if compute_composites is True:
         #####

@@ -71,8 +71,8 @@ titleClimoMonths = 'JFMA'
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 # one region at a time, for now:
-#region = 'Greenland Sea'
-region = 'Norwegian Sea'
+region = 'Greenland Sea'
+#region = 'Norwegian Sea'
 regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
 # Fields relevant for step 2):
@@ -97,10 +97,10 @@ variables = [
 #              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
 #             {'name': 'activeTracers_salinity',
 #              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-#             {'name': 'activeTracers_temperatureDepthAvg',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-#             {'name': 'activeTracers_salinityDepthAvg',
-#             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'activeTracers_temperatureDepthAvg',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinityDepthAvg',
+             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
 #             {'name': 'dThreshMLD',
 #              'mpas': 'timeMonthly_avg_dThreshMLD'},
 #             {'name': 'windStressZonal',
@@ -109,8 +109,8 @@ variables = [
 #              'mpas': 'timeMonthly_avg_windStressMeridional'},
 #             {'name': 'spiciness',
 #              'mpas': None},
-             {'name': 'barotropicStreamfunction',
-              'mpas': 'barotropicStreamfunction'},
+#             {'name': 'barotropicStreamfunction',
+#              'mpas': 'barotropicStreamfunction'},
 #             {'name': 'surfaceBuoyancyForcing',
 #              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
 #             {'name': 'shortWaveHeatFlux',
@@ -154,12 +154,12 @@ variables = [
 
 # For depthAvg variables, choose zmin,zmax values over which to average
 # Note: for now, it is easier to do this for each depth range
-zmin = -50.
-zmax = 0.
+#zmin = -100.
+#zmax = 10.
 #zmin = -600.
 #zmax = -100.
-#zmin = -600.
-#zmax = 0.
+zmin = -8000.
+zmax = -600.
 
 outdir = f'./composites_{timeseriesVar}based_data/{ensembleName}'
 figdir = f'./composites_{timeseriesVar}based/{ensembleName}'
@@ -172,11 +172,11 @@ if not os.path.isdir(figdir):
 # The following is only relevant for depthAvg variables, the
 # barotropic streamfunction, and for gsw-derived variables
 dsMesh = xr.open_dataset(meshFile)
-z = dsMesh.refBottomDepth
+depth = dsMesh.bottomDepth
 lat = 180.0/np.pi*dsMesh.latCell
 lon = 180.0/np.pi*dsMesh.lonCell
 maxLevelCell = dsMesh.maxLevelCell
-pressure = gsw.p_from_z(-z, lat)
+pressure = gsw.p_from_z(-depth, lat)
 
 #####
 ##### STEP 1
@@ -302,17 +302,16 @@ years_high = np.int32(years2d*conditionHigh)
 years_med  = np.int32(years2d*conditionMed)
 
 # Save this information to ascii files
-with open(f'{outdir}/years_{timeseriesVar}low.dat', 'w') as outfile:
+with open(f'{outdir}/years_{timeseriesVar}low_{regionNameShort}.dat', 'w') as outfile:
     outfile.write(f'Years associated with low {timeseriesVar} in the {region} for each ensemble member\n')
     for nEns in range(nEnsembles):
         outfile.write(f'\nEnsemble member: {ensembleName}{ensembleMemberNames[nEns]}\n')
         np.savetxt(outfile, years_low[nEns, np.nonzero(years_low[nEns, :])][0], fmt='%5d', delimiter=' ')
-with open(f'{outdir}/years_{timeseriesVar}high.dat', 'w') as outfile:
+with open(f'{outdir}/years_{timeseriesVar}high_{regionNameShort}.dat', 'w') as outfile:
     outfile.write(f'Years associated with high {timeseriesVar} in the {region} for each ensemble member\n')
     for nEns in range(nEnsembles):
         outfile.write(f'\nEnsemble member: {ensembleName}{ensembleMemberNames[nEns]}\n')
         np.savetxt(outfile, years_high[nEns, np.nonzero(years_high[nEns, :])][0], fmt='%5d', delimiter=' ')
-
 #####
 ##### STEP 2
 #####
@@ -321,6 +320,7 @@ with open(f'{outdir}/years_{timeseriesVar}high.dat', 'w') as outfile:
 #####
 
 for im in range(1, 13):
+#for im in range(3, 4):
     print(f'   climatological month: {im}')
     for var in variables:
         varname = var['name']
@@ -330,8 +330,8 @@ for im in range(1, 13):
 
         if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
            varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
-            outfileLow  = f'{outdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
-            outfileHigh = f'{outdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+            outfileLow  = f'{outdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+            outfileHigh = f'{outdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
         else:
             outfileLow  = f'{outdir}/{varname}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
             outfileHigh = f'{outdir}/{varname}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
@@ -372,10 +372,10 @@ for im in range(1, 13):
                             fld = xr.open_dataset(datafile)[varmpasname]
 
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 # Depth-masked zmin-zmax layer thickness
-                                zMid = compute_zmid(z, maxLevelCell, layerThickness)
+                                zMid = compute_zmid(depth, maxLevelCell, layerThickness)
                                 depthMask = np.logical_and(zMid >= zmin, zMid <= zmax)
                                 layerThickness = layerThickness.where(depthMask, drop=False)
                                 layerDepth = layerThickness.sum(dim='nVertLevels')
@@ -421,7 +421,7 @@ for im in range(1, 13):
                                 print(f'*** Low composite, datafile={datafile}')
                                 min_lat = -45.0
                                 min_depth = -10000.0
-                                max_depth = 0.0
+                                max_depth = 10.0
                                 fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_lat, min_depth, max_depth)
                                 dsOut = xr.Dataset()
                                 dsOut['barotropicStreamfunction'] = fld
@@ -474,9 +474,9 @@ for im in range(1, 13):
                             fld = xr.open_dataset(datafile)[varmpasname]
 
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
-                                zMid = compute_zmid(z, maxLevelCell, layerThickness)
+                                zMid = compute_zmid(depth, maxLevelCell, layerThickness)
                                 # Depth-masked zmin-zmax layer thickness
                                 depthMask = np.logical_and(zMid >= zmin, zMid <= zmax)
                                 layerThickness = layerThickness.where(depthMask, drop=False)
@@ -523,7 +523,7 @@ for im in range(1, 13):
                                 print(f'*** High composite, datafile={datafile}')
                                 min_lat = -45.0
                                 min_depth = -10000.0
-                                max_depth = 0.0
+                                max_depth = 10.0
                                 fld = compute_barotropic_streamfunction_vertex(dsMesh, dsIn, min_lat, min_depth, max_depth)
                                 dsOut = xr.Dataset()
                                 dsOut['barotropicStreamfunction'] = fld

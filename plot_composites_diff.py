@@ -63,8 +63,8 @@ if not os.path.isdir(figdir):
 
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
-regions = ['Greenland Sea']
-#regions = ['Norwegian Sea']
+#regions = ['Greenland Sea']
+regions = ['Norwegian Sea']
 
 climoMonths = 'JFMA' # should be consistent with composites calculation
 
@@ -154,8 +154,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-#              #'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
-#              'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
+#              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
+#              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
 #             {'name': 'latentHeatFlux',
@@ -164,8 +164,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthly_avg_latentHeatFlux',
-#              #'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
-#              'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
+#              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
+#              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
 #             {'name': 'totalHeatFlux',
@@ -174,8 +174,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': None,
-#              #'clevels': [-180, -150, -120, -90, -60, -30, 0.0, 30, 60, 90, 120, 150, 180], # winter months
-#              'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
+#              'clevels': [-180, -150, -120, -90, -60, -30, 0.0, 30, 60, 90, 120, 150, 180], # winter months
+#              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
              {'name': 'seaIceFreshWaterFlux',
@@ -197,8 +197,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD',
-#              #'clevels': [-120, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120], # summer months
-#              'clevels': [-1200, -1000, -800, -600, -400, -200, 0, 200, 400, 600, 800, 1000, 1200], # winter months
+#              'clevels': [-120, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120], # summer months
+#              #'clevels': [-1200, -1000, -800, -600, -400, -200, 0, 200, 400, 600, 800, 1000, 1200], # winter months
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
 #            ]

@@ -64,7 +64,7 @@ if not os.path.isdir(figdir):
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 regions = ['Greenland Sea']
-#regions = ['Greenland Sea', 'Norwegian Sea']
+#regions = ['Norwegian Sea']
 
 climoMonths = 'JFMA' # should be consistent with composites calculation
 
@@ -85,17 +85,17 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'barotropicStreamfunction',
-              'title': 'Barotropic streamfunction',
-              'units': 'Sv',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'barotropicStreamfunction',
-              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
-              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.curl},
-              #'colormap': cmocean.cm.tarn}
+#             {'name': 'barotropicStreamfunction',
+#              'title': 'Barotropic streamfunction',
+#              'units': 'Sv',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'barotropicStreamfunction',
+#              #'clevels': [-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18],
+#              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.curl},
+#              #'colormap': cmocean.cm.tarn}
 #             #{'name': 'streamlines',
 #             # 'title': 'Velocity',
 #             # 'units': 'cm/s',
@@ -142,24 +142,24 @@ variables = [
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.curl},
 #              #'colormap': cmocean.cm.balance},
-#             {'name': 'activeTracers_temperature',
-#              'title': 'Potential Temperature',
-#             'units': '$^\circ$C',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature',
-#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.thermal},
-#             {'name': 'activeTracers_salinity',
-#              'title': 'Salinity',
-#              'units': 'psu',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity',
-#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.haline},
+             {'name': 'activeTracers_temperature',
+              'title': 'Potential Temperature',
+             'units': '$^\circ$C',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.thermal},
+             {'name': 'activeTracers_salinity',
+              'title': 'Salinity',
+              'units': 'psu',
+              'factor': 1,
+              'isvar3d': True,
+              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4],
+              'cIndices': colorIndices,
+              'colormap': cmocean.cm.haline},
 #             {'name': 'surfaceBuoyancyForcing',
 #              'title': 'Surface buoyancy flux',
 #              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
@@ -283,16 +283,16 @@ variables = [
 #modelComp = 'atm'
 #modelName = 'eam'
 
-plotDepthAvg = False
+plotDepthAvg = True
 # zmins/zmaxs [m] (relevant for 3d variables and if plotDepthAvg = True)
-#zmins = [-50., -600., -8000.]
-#zmaxs = [0., -100., 0.]
-zmins = [-50.]
-zmaxs = [0.]
-#zmins = [-50., -600.]
-#zmaxs = [0., -100.]
+#zmins = [-100.]
+#zmaxs = [10.]
 #zmins = [-600.]
-#zmaxs = [0.]
+#zmaxs = [-100.]
+#zmins = [-8000.]
+#zmaxs = [-600.]
+zmins = [-100., -600., -8000.]
+zmaxs = [10., -100., -600.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
 #dlevels = [0.]
 dlevels = [0., 50., 100.]
@@ -328,7 +328,7 @@ for regionName in regions:
     for im in range(1, 13):
     #for im in range(1, 5): # winter months
     #for im in range(5, 13): # summer months
-    #for im in range(1, 2):
+    #for im in range(3, 4):
         print(f'  Month: {im}')
         for var in variables:
             varname = var['name']
@@ -358,7 +358,7 @@ for regionName in regions:
                         zmax = zmaxs[iz]
 
                         # Check if regridded uLow file exists
-                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityZonalDepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileLow_u  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileLow_u):
                             print(f'\nRegridded file {infileLow_u} does not exist. Creating it with ncremap...')
@@ -371,7 +371,7 @@ for regionName in regions:
                                 args.append(infileLow_u)
                                 subprocess.check_call(args)
                         # Check if regridded vLow file exists
-                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityMeridionalDepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileLow_v  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileLow_v):
                             print(f'\nRegridded file {infileLow_v} does not exist. Creating it with ncremap...')
@@ -384,7 +384,7 @@ for regionName in regions:
                                 args.append(infileLow_v)
                                 subprocess.check_call(args)
                         # Check if regridded uHigh file exists
-                        fileHead = f'velocityZonalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityZonalDepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileHigh_u  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileHigh_u):
                             print(f'\nRegridded file {infileHigh_u} does not exist. Creating it with ncremap...')
@@ -397,7 +397,7 @@ for regionName in regions:
                                 args.append(infileHigh_u)
                                 subprocess.check_call(args)
                         # Check if regridded vHigh file exists
-                        fileHead = f'velocityMeridionalDepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
+                        fileHead = f'velocityMeridionalDepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}'
                         infileHigh_v  = f'{indir}/{fileHead}_{remap}.nc'
                         if not os.path.isfile(infileHigh_v):
                             print(f'\nRegridded file {infileHigh_v} does not exist. Creating it with ncremap...')
@@ -536,12 +536,10 @@ for regionName in regions:
                         zmin = zmins[iz]
                         zmax = zmaxs[iz]
 
-                        figtitleLow   = f'LC composite, {vartitle} (avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m), month={im}'
-                        figtitleHigh  = f'HC Composite, {vartitle} (avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m), month={im}'
-                        #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, avg over z=[{np.abs(np.int32(zmax))}-{np.abs(np.int32(zmin))}] m'
-                        figfileLow  = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
-                        figfileHigh = f'{figdir}/{varname}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figtitleLow   = f'LC composite, {vartitle} (avg over z=({np.int32(zmin)}, {np.int32(zmax)}) m), month={im}'
+                        figtitleHigh  = f'HC Composite, {vartitle} (avg over z=({np.int32(zmin)}, {np.int32(zmax)}) m), month={im}'
+                        figfileLow  = f'{figdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
+                        figfileHigh = f'{figdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
                         if varname=='streamlines' or varname=='velSpeed':
                             uLow  = xr.open_dataset(infileLow_u).isel(Time=0).timeMonthly_avg_velocityZonal.values
@@ -575,10 +573,10 @@ for regionName in regions:
                                                    figtitleHigh, figfileHigh, contourFld=None, contourValues=None, projectionName='NorthPolarStereo',
                                                    lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
                         else:
-                            infileLow = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                            infileLow = f'{indir}/{varname}DepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileLow):
                                 raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites')
-                            infileHigh = f'{indir}/{varname}DepthAvg_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+                            infileHigh = f'{indir}/{varname}DepthAvg_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                             if not os.path.isfile(infileHigh):
                                 raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites')
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0)[varmpasname]
@@ -598,8 +596,6 @@ for regionName in regions:
                     for iz in range(len(dlevels)):
                         figtitleLow   = f'LC composite, {vartitle} (z={z[zlevels[iz]]:5.1f} m), month={im}'
                         figtitleHigh  = f'HC composite, {vartitle} (z={z[zlevels[iz]]:5.1f} m), month={im}'
-                        #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
-                        #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}, z={z[zlevels[iz]]:5.1f} m'
                         figfileLow  = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                         figfileHigh = f'{figdir}/{varname}_depth{int(dlevels[iz]):04d}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
@@ -657,8 +653,6 @@ for regionName in regions:
             else:
                 figtitleLow   = f'LC composite, {vartitle}, month={im}'
                 figtitleHigh  = f'HC composite, {vartitle}, month={im}'
-                #figtitleLow   = f'Composite for low {varRef} ({regionName})\nmonth={im}, {vartitle}'
-                #figtitleHigh  = f'Composite for high {varRef} ({regionName})\nmonth={im}, {vartitle}'
                 figfileLow  = f'{figdir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                 figfileHigh = f'{figdir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 

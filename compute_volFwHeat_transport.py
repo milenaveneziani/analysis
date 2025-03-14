@@ -16,6 +16,7 @@ mpl.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+import pandas as pd
 import gsw
 
 from common_functions import add_inset
@@ -42,9 +43,13 @@ meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARR
 maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
 outfile0 = 'arcticSectionsTransports'
-casenameFull = 'E3SM-Arcticv2.1_historical0301'
-casename = 'E3SM-Arcticv2.1_historical0301'
+#casenameFull = 'E3SM-Arcticv2.1_historical0301'
+#casename = 'E3SM-Arcticv2.1_historical0301'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+outdir0 = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}'
+#outdir0 = './'
 
 # Settings for erdc.hpc.mil
 #meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
@@ -60,12 +65,13 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archiv
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
 #modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
+#outdir0 = './'
 
 # Choose years
-year1 = 1950
-year2 = 2014
-#year1 = 1
-#year2 = 386 # rA02
+#year1 = 1950
+#year2 = 2014
+year1 = 1
+year2 = 386 # rA02
 #year2 = 246 # rA07
 years = range(year1, year2+1)
 
@@ -74,7 +80,8 @@ use_fixeddz = False
 figdir = f'./transports/{casename}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
-outdir = f'./transports_data/{casename}'
+#outdir = f'{outdir0}/transports_data/{casename}'
+outdir = f'{outdir0}/transports_data'
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 
@@ -390,7 +397,7 @@ for year in years:
                     attrs=dict(description='days since start of simulation (assumes 365-day year)',
                                units='days', )
                     )
-            #        data=[dsIn.Time.isel(Time=0)], 
+            #        data=[dsIn.Time.isel(Time=0)/365.], 
             #        dims=('Time', ), 
             #        attrs=dict(description='days since start of simulation (assumes 365-day year)',
             #                   units='days', )
@@ -462,16 +469,19 @@ for i in range(nTransects):
     else:
         bounds = None
 
-    #vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 12, center=True).mean()
-    #heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 12, center=True).mean()
-    #heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, i]), 12, center=True).mean()
-    #salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransport[:, i]), 12, center=True).mean()
+    vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 5*12, center=True).mean()
+    heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 5*12, center=True).mean()
+    heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, i]), 5*12, center=True).mean()
+    FW_runavg = pd.Series.rolling(pd.DataFrame(FWTransportSref[:, i]), 5*12, center=True).mean()
+    temp_runavg = pd.Series.rolling(pd.DataFrame(tempTransect[:, i]), 5*12, center=True).mean()
+    salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransect[:, i]), 5*12, center=True).mean()
 
     # Plot Volume Transport
     figfile = f'{figdir}/transports_{transectName_forfigfile}_{casename}.png'
     fig = plt.figure(figsize=figsize)
     ax1 = plt.subplot(421)
     ax1.plot(t, volTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
+    ax1.plot(t, vol_runavg, 'b', linewidth=2, label='5-year run-avg')
     #ax1.plot(t, volTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(volTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(volTransportIn[:,i]):5.2f})')
     #ax1.plot(t, volTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(volTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(volTransportOut[:,i]):5.2f})')
     if bounds is not None:
@@ -485,6 +495,7 @@ for i in range(nTransects):
     # Plot Heat Transport wrt Tref=0
     ax2 = plt.subplot(422)
     ax2.plot(t, heatTransport[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransport[:,i]):5.2f} $\pm$ {np.nanstd(heatTransport[:,i]):5.2f})')
+    ax2.plot(t, heat_runavg, 'b', linewidth=2, label='5-year run-avg')
     #ax2.plot(t, heatTransportIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportIn[:,i]):5.2f})')
     #ax2.plot(t, heatTransportOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportOut[:,i]):5.2f})')
     ax2.plot(t, np.zeros_like(t), 'k', linewidth=1)
@@ -496,6 +507,7 @@ for i in range(nTransects):
     # Plot Heat Transport wrt Tref=TfreezingPoint
     ax3 = plt.subplot(423)
     ax3.plot(t, heatTransportTfp[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(heatTransportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:,i]):5.2f})')
+    ax3.plot(t, heatTfp_runavg, 'b', linewidth=2, label='5-year run-avg')
     #ax3.plot(t, heatTransportTfpIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(heatTransportTfpIn[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpIn[:,i]):5.2f})')
     #ax3.plot(t, heatTransportTfpOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(heatTransportTfpOut[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfpOut[:,i]):5.2f})')
     ax3.plot(t, np.zeros_like(t), 'k', linewidth=1)
@@ -507,6 +519,7 @@ for i in range(nTransects):
     # Plot transect mean temperature
     ax4 = plt.subplot(424)
     ax4.plot(t, tempTransect[:,i], 'k', linewidth=2, label=f'temp ({np.nanmean(tempTransect[:,i]):5.2f} $\pm$ {np.nanstd(tempTransect[:,i]):5.2f})')
+    ax4.plot(t, temp_runavg, 'b', linewidth=2, label='5-year run-avg')
     ax4.grid(color='k', linestyle=':', linewidth = 0.5)
     ax4.autoscale(enable=True, axis='x', tight=True)
     ax4.set_ylabel('Transect mean temperature ($^\circ$C)', fontsize=12, fontweight='bold')
@@ -515,6 +528,7 @@ for i in range(nTransects):
     # Plot FW Transport wrt Sref
     ax5 = plt.subplot(425)
     ax5.plot(t, FWTransportSref[:,i], 'k', linewidth=2, label=f'net ({np.nanmean(FWTransportSref[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:,i]):5.2f})')
+    ax5.plot(t, FW_runavg, 'b', linewidth=2, label='5-year run-avg')
     #ax5.plot(t, FWTransportSrefIn[:,i], 'r', linewidth=2, label=f'inflow ({np.nanmean(FWTransportSrefIn[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSrefIn[:,i]):5.2f})')
     #ax5.plot(t, FWTransportSrefOut[:,i], 'b', linewidth=2, label=f'outflow ({np.nanmean(FWTransportSrefOut[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSrefOut[:,i]):5.2f})')
     ax5.plot(t, np.zeros_like(t), 'k', linewidth=1)
@@ -540,6 +554,7 @@ for i in range(nTransects):
     # Plot transect mean salinity
     ax7 = plt.subplot(427)
     ax7.plot(t, saltTransect[:,i], 'k', linewidth=2, label=f'salt ({np.nanmean(saltTransect[:,i]):5.2f} $\pm$ {np.nanstd(saltTransect[:,i]):5.2f})')
+    ax7.plot(t, salt_runavg, 'b', linewidth=2, label='5-year run-avg')
     ax7.grid(color='k', linestyle=':', linewidth = 0.5)
     ax7.autoscale(enable=True, axis='x', tight=True)
     ax7.set_ylabel('Transect mean salinity (psu)', fontsize=12, fontweight='bold')
