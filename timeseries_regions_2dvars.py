@@ -13,22 +13,23 @@ from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
 
 from geometric_features import FeatureCollection, read_feature_collection
 
-from common_functions import timeseries_analysis_plot, add_inset, days_to_datetime
+from common_functions import timeseries_analysis_plot, add_inset
 
-startYear = 1950
-endYear = 2014
-#startYear = 1
-#endYear = 386
+#startYear = 1950
+#endYear = 2014
+startYear = 1
+endYear = 246 # rA07
+#endYear = 386 # rA02
 calendar = 'gregorian'
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0301'
-runNameShort = 'E3SMv2.1-Arctic-historical0301'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0301'
+#runNameShort = 'E3SMv2.1-Arctic-historical0301'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -46,13 +47,16 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 #isShortTermArchive = True
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/work/milena/{runName}'
-#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+#rundir = f'/p/cwfs/milena/{runName}'
+runName = 'E3SMv2.1B60to10rA07'
+runNameShort = 'E3SMv2.1B60to10rA07'
+rundir = f'/p/cwfs/apcraig/archive/{runName}'
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -62,26 +66,6 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 #runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
 #rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
 #isShortTermArchive = False
-
-outdir = f'./timeseries_data/{runName}'
-if not os.path.isdir(outdir):
-    os.makedirs(outdir)
-figdir = f'./timeseries/{runName}'
-if not os.path.isdir(figdir):
-    os.makedirs(figdir)
-
-if os.path.exists(meshFile):
-    dsMesh = xr.open_dataset(meshFile)
-    dsMesh = dsMesh.isel(Time=0)
-else:
-    raise IOError('No MPAS restart/mesh file found')
-if 'landIceMask' in dsMesh:
-    # only the region outside of ice-shelf cavities
-    openOceanMask = dsMesh.landIceMask == 0
-else:
-    openOceanMask = None
-areaCell = dsMesh.areaCell
-globalArea = areaCell.sum()
 
 sref = 34.8 # needed for Arctic fwc calculation
 
@@ -117,16 +101,16 @@ modelComp = 'ocn'
 #
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
+             {'name': 'dThreshMLD',
+              'title': 'Mean MLD',
+              'units': 'm',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_dThreshMLD'},
              {'name': 'sensibleHeatFlux',
               'title': 'Sensible Heat Flux',
               'units': 'W/m$^2$',
               'factor': 1,
               'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
-             #{'name': 'fwc',
-             # 'title': 'Freshwater content',
-             # 'units': '10$^3$ km$^3$',
-             # 'factor': 1e-12,
-             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'}
              {'name': 'latentHeatFlux',
               'title': 'Latent Heat Flux',
               'units': 'W/m$^2$',
@@ -147,11 +131,46 @@ variables = [
               'units': 'W/m$^2$',
               'factor': 1,
               'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+             {'name': 'evaporationFlux',
+              'title': 'Evaporation Flux',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_evaporationFlux'},
+             {'name': 'rainFlux',
+              'title': 'Rain Flux',
+              'units': 'kg m^$-2$ s^$-1$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_rainFlux'},
+             {'name': 'snowFlux',
+              'title': 'Snow Flux',
+              'units': 'kg m^$-2$ s^$-1$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_snowFlux'},
+             {'name': 'riverRunoffFlux',
+              'title': 'River Runoff Flux',
+              'units': 'kg m^$-2$ s^$-1$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_riverRunoffFlux'},
+             {'name': 'iceRunoffFlux',
+              'title': 'Ice Runoff Flux',
+              'units': 'kg m^$-2$ s^$-1$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_iceRunoffFlux'},
+             {'name': 'seaIceFreshWaterFlux',
+              'title': 'Sea Ice Freshwater Flux',
+              'units': 'kg m^$-2$ s^$-1$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
              {'name': 'surfaceBuoyancyForcing',
               'title': 'Surface buoyancy flux',
               'units': 'm$^2$ s$^{-3}$',
               'factor': 1,
               'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
+             #{'name': 'fwc',
+             # 'title': 'Freshwater content',
+             # 'units': '10$^3$ km$^3$',
+             # 'factor': 1e-12,
+             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'}
              # 'mpas': 'timeMonthly_avg_seaIceHeatFlux'}
              # 'mpas': 'timeMonthly_avg_penetrativeTemperatureFlux'}
             ]
@@ -173,7 +192,30 @@ variables = [
 #            ]
 
 if isShortTermArchive:
-    rundir = f'{rundir}/archive/{modelComp}/hist'
+    if runName=='E3SMv2.1B60to10rA07':
+        rundir = f'{rundir}/{modelComp}/hist'
+    else:
+        rundir = f'{rundir}/archive/{modelComp}/hist'
+
+outdir = f'./timeseries_data/{runName}'
+if not os.path.isdir(outdir):
+    os.makedirs(outdir)
+figdir = f'./timeseries/{runName}'
+if not os.path.isdir(figdir):
+    os.makedirs(figdir)
+
+if os.path.exists(meshFile):
+    dsMesh = xr.open_dataset(meshFile)
+    dsMesh = dsMesh.isel(Time=0)
+else:
+    raise IOError('No MPAS restart/mesh file found')
+if 'landIceMask' in dsMesh:
+    # only the region outside of ice-shelf cavities
+    openOceanMask = dsMesh.landIceMask == 0
+else:
+    openOceanMask = None
+areaCell = dsMesh.areaCell
+globalArea = areaCell.sum()
 
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
