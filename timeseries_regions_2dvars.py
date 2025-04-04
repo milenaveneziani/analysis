@@ -133,7 +133,7 @@ variables = [
               'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
              {'name': 'evaporationFlux',
               'title': 'Evaporation Flux',
-              'units': 'W/m$^2$',
+              'units': 'kg m^$-2$ s^$-1$',
               'factor': 1,
               'mpas': 'timeMonthly_avg_evaporationFlux'},
              {'name': 'rainFlux',
