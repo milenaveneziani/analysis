@@ -16,7 +16,8 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import timeseries_analysis_plot, add_inset
 
 startYear = 1
-endYear = 246 # rA07
+endYear = 59
+#endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
 
@@ -42,12 +43,14 @@ calendar = 'gregorian'
 regionMaskDir = '/p/home/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/cwfs/milena/{runName}'
-runName = 'E3SMv2.1B60to10rA07'
-runNameShort = 'E3SMv2.1B60to10rA07'
-rundir = f'/p/cwfs/apcraig/archive/{runName}'
+rundir = f'/p/cwfs/milena/{runName}'
+#runName = 'E3SMv2.1B60to10rA07'
+#runNameShort = 'E3SMv2.1B60to10rA07'
+#rundir = f'/p/cwfs/apcraig/archive/{runName}'
 isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
@@ -66,8 +69,8 @@ zmaxs = [0., 0.]
 # Relevant only for computeDepthAvg = False
 dlevels = [0.]
 
-#regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-regionGroups = ['Arctic Regions']
+#regionGroups = ['Arctic Regions']
+regionGroups = ['arctic_atlantic_budget_regions_new20240408']
 #regionGroups = ['OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
 
@@ -240,13 +243,14 @@ for regionGroup in regionGroups:
                         dsOut['zbounds'] = ('nbounds', [zmin, zmax])
                         dsOut.zbounds.attrs['units'] = 'm'
 
+                        dsOut['regionNames'] = regionName
+
                         datasets.append(dsOut)
 
                     # combine data sets into a single data set
                     dsOut = xr.concat(datasets, 'nRegions')
 
-                    # a few variables have become time or region dependent and shouldn't be
-                    dsOut['totalVol'] = dsOut['totalVol'].isel(Time=0, drop=True)
+                    # zbounds has become region dependent and shouldn't be
                     dsOut['zbounds'] = dsOut['zbounds'].isel(nRegions=0, drop=True)
 
                     #write_netcdf(dsOut, timeSeriesFile)
@@ -309,6 +313,8 @@ for regionGroup in regionGroups:
                         else:
                             dsOut['totalArea'] = regionalArea
                         dsOut.totalArea.attrs['units'] = 'm^2'
+
+                        dsOut['regionNames'] = regionName
 
                         datasets.append(dsOut)
 

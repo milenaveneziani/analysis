@@ -18,7 +18,8 @@ from common_functions import timeseries_analysis_plot, add_inset
 #startYear = 1950
 #endYear = 2014
 startYear = 1
-endYear = 246 # rA07
+endYear = 59
+#endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
 
@@ -50,12 +51,14 @@ calendar = 'gregorian'
 regionMaskDir = '/p/home/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/cwfs/milena/{runName}'
-runName = 'E3SMv2.1B60to10rA07'
-runNameShort = 'E3SMv2.1B60to10rA07'
-rundir = f'/p/cwfs/apcraig/archive/{runName}'
+rundir = f'/p/cwfs/milena/{runName}'
+#runName = 'E3SMv2.1B60to10rA07'
+#runNameShort = 'E3SMv2.1B60to10rA07'
+#rundir = f'/p/cwfs/apcraig/archive/{runName}'
 isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
@@ -70,18 +73,19 @@ isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed t
 sref = 34.8 # needed for Arctic fwc calculation
 
 # Quantities needed for plotting only
-#movingAverageMonths = 12
-#monthsToPlot = range(1, 13)
-#titleMonthsToPlot = None
-movingAverageMonths = 1
-monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
-titleMonthsToPlot = 'JFMA'
+movingAverageMonths = 12
+monthsToPlot = range(1, 13)
+titleMonthsToPlot = None
+#movingAverageMonths = 1
+#monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
+#titleMonthsToPlot = 'JFMA'
 
 # region mask file will be $meshname_$regionGroups.nc
+regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-regionGroups = ['Arctic Regions']
-#regionGroups = ['OceanOHC Regions']
-#regionGroups = ['Antarctic Regions']
+#regionGroups = ['Arctic Regions']
+##regionGroups = ['OceanOHC Regions']
+##regionGroups = ['Antarctic Regions']
 
 # Choose either 2d variables in timeSeriesStatsMonthly
 # or variables in timeSeriesStatsMonthlyMax (2d only) or
@@ -98,7 +102,7 @@ modelComp = 'ocn'
 #              'factor': 1,
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
 #            ]
-#
+
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
              {'name': 'dThreshMLD',
@@ -345,8 +349,6 @@ for regionGroup in regionGroups:
                         dsOut = dsOut.rename({varmpasname: varname})
 
                     dsOut = varfactor * dsOut
-                    #print(dsOut)
-                    #print(dsOut[varname])
                     dsOut[varname].attrs['units'] = varunits
                     dsOut[varname].attrs['description'] = vartitle
 
