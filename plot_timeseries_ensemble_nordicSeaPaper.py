@@ -253,10 +253,12 @@ for nEns in range(nEnsembles):
         buoyFlux_seasonal[nEns, iy] = np.nanmean(buoyFlux[mask])
 
     corr1 = stats.pearsonr(maxMLD_seasonal[nEns, :], iceArea_seasonal[nEns, :])
-    #print(corr.statistic)
-    #print(corr.confidence_interval(confidence_level=0.95))
+    print('MMLD-iceArea corr, pval = ', corr1.statistic, corr1.pvalue)
+    #print(corr1.confidence_interval(confidence_level=0.95))
     corr2 = stats.pearsonr(maxMLD_seasonal[nEns, :], heatFlux_seasonal[nEns, :])
+    print('MMLD-heatFlux corr, pval = ', corr2.statistic, corr2.pvalue)
     corr3 = stats.pearsonr(maxMLD_seasonal[nEns, :], buoyFlux_seasonal[nEns, :])
+    print('MMLD-buoyFlux corr, pval = ', corr3.statistic, corr3.pvalue)
 
     ax1.plot(years, maxMLD_seasonal[nEns, :], colors[nEns], marker='o', linewidth=1.5, label=ensembleMemberName)
     ax2.plot(years, 1e-5*iceArea_seasonal[nEns, :], colors[nEns], marker='o', linewidth=1.5, label=f'{ensembleMemberName}, r={corr1.statistic:5.2f}')
@@ -268,6 +270,9 @@ for nEns in range(nEnsembles):
     corr = stats.pearsonr(maxMLD_seasonal[nEns, 1:-1], FW_seasonal[nEns, 0:-2]) # correlation with previous year FW transport
     #print(corr.statistic)
     #print(corr.confidence_interval(confidence_level=0.95))
+    print('MMLD-fwFlux (Fram St) corr, pval = ', corr.statistic, corr.pvalue)
+    print('')
+
     ax3.plot(years, FW_seasonal[nEns, :], colors[nEns], marker='o', linewidth=1.5, label=f'{ensembleMemberName}, r={corr.statistic:5.2f}')
 
 maxMLD_flat = maxMLD_seasonal.flatten()
