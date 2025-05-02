@@ -29,6 +29,15 @@ movingAverageYears = 1 # number of years over which to compute running average
 # Settings for regional time series
 tsdir = '/global/cfs/cdirs/m4259/milena/AMOCpaper/timeseries_data'
 variables = [
+             {'name': 'maxMLD',
+              'title': 'Max MLD',
+              'units': 'm'},
+             {'name': 'iceArea',
+              'title': 'Ice area',
+              'units': 'km$^2$'},
+             {'name': 'iceVolume',
+              'title': 'Ice volume',
+              'units': 'km$^3$'},
              {'name': 'sensibleHeatFlux',
               'title': 'Sensible heat flux',
               'units': 'W/m$^2$'},
@@ -56,15 +65,6 @@ variables = [
              {'name': 'surfaceBuoyancyForcing',
               'title': 'Surface buoyancy forcing',
               'units': 'm$^2$ s$^{-3}$'},
-             {'name': 'maxMLD',
-              'title': 'Max MLD',
-              'units': 'm'},
-             {'name': 'iceArea',
-              'title': 'Ice area',
-              'units': 'km$^2$'},
-             {'name': 'iceVolume',
-              'title': 'Ice volume',
-              'units': 'km$^3$'},
              {'name': 'temperature',
               'title': 'SST',
               'units': '$^\circ$C'},
@@ -76,14 +76,14 @@ variables = [
 #regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 #regionName = 'Labrador Sea'
-#regionName = 'Irminger Sea'
-#regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
+regionName = 'Irminger Sea'
+regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
 #regionName = 'North Atlantic subpolar gyre'
 #regionName = 'North Atlantic subtropical gyre'
 #regionName = 'Atlantic tropical'
 #regionName = 'South Atlantic subtropical gyre'
-regionName = 'Greater Arctic'
-regionGroup = 'arctic_atlantic_budget_regions_new20240408'
+#regionName = 'Greater Arctic'
+#regionGroup = 'arctic_atlantic_budget_regions_new20240408'
 #regionName = 'Southern Ocean Atlantic Sector'
 #regionName = 'Southern Ocean Basin'
 #regionGroup = 'oceanSubBasins20210315'
@@ -237,9 +237,10 @@ for var in variables:
     #meanControl = np.nanmean(timeseriesControl)
     #stdControl = np.nanstd(timeseriesControl)
 
-    plt.plot(dsControl.Time.values/365, timeseriesControl_runavg, 'salmon', linewidth=2, label=f'control {movingAverageYears:d}-year run-avg')
-    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery, 'grey', linewidth=1.2)
-    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery_runavg, 'k', linewidth=2, label=f'recovery {movingAverageYears:d}-year run-avg')
+    plt.plot(dsControl.Time.values/365, timeseriesControl, 'grey', linewidth=1.2)
+    plt.plot(dsControl.Time.values/365, timeseriesControl_runavg, 'k', linewidth=2, label=f'control {movingAverageYears:d}-year run-avg')
+    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery, 'salmon', linewidth=1.2)
+    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery_runavg, 'r', linewidth=2, label=f'recovery {movingAverageYears:d}-year run-avg')
     plt.plot(dsCollapse.Time.values/365, timeseriesCollapse, 'lightgreen', linewidth=1.2)
     plt.plot(dsCollapse.Time.values/365, timeseriesCollapse_runavg, 'green', linewidth=2, label=f'collapse {movingAverageYears:d}-year run-avg')
     #plt.axhline(y=np.nanmean(timeseries), color='k', label='mean')
