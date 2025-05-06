@@ -38,8 +38,8 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
-    gl.xlabel_style = {'size': 20}
-    gl.ylabel_style = {'size': 20}
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 16}
     gl.rotate_labels = False
 
     if fld is not None:
@@ -94,6 +94,8 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 16}
     gl.rotate_labels = False
 
     add_land_lakes_coastline(ax)
@@ -110,7 +112,7 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     cbar.ax.tick_params(labelsize=16, labelcolor='black')
     cbar.set_label(cbarLabel, fontsize=14)
 
-    ax.set_title(figTitle, y=1.04, fontsize=16)
+    ax.set_title(figTitle, y=1.08, fontsize=16)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
 
@@ -140,12 +142,17 @@ def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTit
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 16}
     gl.rotate_labels = False
 
     add_land_lakes_coastline(ax)
 
-    fldcyclic, loncyclic = add_cyclic_point(fld, lon)
-    [lon, lat] = np.meshgrid(loncyclic, lat)
+    if len(np.shape(lon))==1:
+        fldcyclic, loncyclic = add_cyclic_point(fld, lon)
+        [lon, lat] = np.meshgrid(loncyclic, lat)
+    else:
+        fldcyclic = fld
 
     cf = ax.contourf(lon, lat, fldcyclic, cmap=colormap, norm=cnorm, levels=clevels, extend='both', transform=data_crs)
     cbar = plt.colorbar(cf, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
@@ -155,7 +162,7 @@ def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTit
         cs = ax.contour(lon, lat, contourFld, contourValues, colors='k', linewidths=1.5)
         cb = plt.clabel(cs, levels=contourValues, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
 
-    ax.set_title(figTitle, y=1.04, fontsize=16)
+    ax.set_title(figTitle, y=1.08, fontsize=16)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
     
@@ -185,12 +192,17 @@ def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figT
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
     gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 16}
     gl.rotate_labels = False
 
     add_land_lakes_coastline(ax)
 
-    fldcyclic, loncyclic = add_cyclic_point(fld, lon)
-    [lon, lat] = np.meshgrid(loncyclic, lat)
+    if len(np.shape(lon))==1:
+        fldcyclic, loncyclic = add_cyclic_point(fld, lon)
+        [lon, lat] = np.meshgrid(loncyclic, lat)
+    else:
+        fldcyclic = fld
 
     cf = ax.pcolormesh(lon, lat, fldcyclic, cmap=colormap, norm=cnorm, transform=data_crs)
     cbar = plt.colorbar(cf, ticks=clevels, boundaries=clevels, location='right', pad=0.05, shrink=.5, extend='both')
@@ -200,7 +212,7 @@ def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figT
         cs = ax.contour(lon, lat, contourFld, contourValues, colors='k', linewidths=1.5)
         cb = plt.clabel(cs, levels=contourValues, inline=True, inline_spacing=2, fmt='%2.1f', fontsize=9)
 
-    ax.set_title(figTitle, y=1.04, fontsize=22)
+    ax.set_title(figTitle, y=1.08, fontsize=22)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
     

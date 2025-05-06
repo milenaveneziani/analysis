@@ -4,6 +4,7 @@ import os
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
+import matplotlib.colors as cols
 import cmocean
 
 from make_plots import make_scatter_plot, make_pcolormesh_plot
@@ -16,20 +17,29 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/postprocess
 EN4dir = '/global/cfs/cdirs/m1199/milena/Obs/EN4/climatologies'
 WOAdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/WOA23'
 MLDdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/MLD'
+SSMIdirname = 'Bootstrapv4'
+SSMIfilename = 'NSIDC0079'
+#SSMIdirname = 'SSMR_SSMIv2'
+#SSMIfilename = 'NSIDC0051'
+SSMIdir = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/{SSMIdirname}_{SSMIfilename}/climatologies'
+SSMIgridfileNH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_N25km_v1.0.nc'
+SSMIgridfileSH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_S25km_v1.0.nc'
 
-figdir = f'./ocean_native/{runname}'
+figdir = f'./mpasClimo_native/{runname}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
 climoyear1 = 2000
 climoyear2 = 2014
 
-months = ['03', '09', 'ANN']
+months = ['03', '09', '11']
 #months = ['ANN']
 
 depthlevels = [0., 50., 250.]
 
 projection = 'NorthPolarStereo'
+SSMIgridfile = SSMIgridfileNH
+regionname = 'N25km' # change to 'S25km' for SH plots
 lon0 = -50.0
 lon1 = 50.0
 dlon = 10.0
@@ -38,43 +48,72 @@ lat1 = 80.0
 dlat = 4.0
 colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 variables = [
-             {'varname': 'activeTracers_temperature',
-              'mpasvarname': 'timeMonthly_avg_activeTracers_temperature',
-              'EN4varname': 'temperature',
-              'WOAvarname': 'pt_an',
-              'MLDvarname': None,
-              'isvar3d': True,
-              'title': 'Temperature',
-              'units': '$^\circ$C',
-              'colormap': plt.get_cmap('RdBu_r'),
-              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]},
-             {'varname': 'activeTracers_salinity',
-              'mpasvarname': 'timeMonthly_avg_activeTracers_salinity',
-              'EN4varname': 'salinity',
-              'WOAvarname': 's_an',
-              'MLDvarname': None,
-              'isvar3d': True,
-              'title': 'Salinity',
-              'units': 'psu',
-              'colormap': cmocean.cm.haline,
-              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4]},
-             {'varname': 'dThreshMLD',
-              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
+#             {'varname': 'activeTracers_temperature',
+#              'mpasvarname': 'timeMonthly_avg_activeTracers_temperature',
+#              'EN4varname': 'temperature',
+#              'WOAvarname': 'pt_an',
+#              'MLDvarname': None,
+#              'SSMIvarname': None, 
+#              'isvar3d': True,
+#              'title': 'Temperature',
+#              'units': '$^\circ$C',
+#              'colormap': plt.get_cmap('RdBu_r'),
+#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]},
+#             {'varname': 'activeTracers_salinity',
+#              'mpasvarname': 'timeMonthly_avg_activeTracers_salinity',
+#              'EN4varname': 'salinity',
+#              'WOAvarname': 's_an',
+#              'MLDvarname': None,
+#              'SSMIvarname': None, 
+#              'isvar3d': True,
+#              'title': 'Salinity',
+#              'units': 'psu',
+#              'colormap': cmocean.cm.haline,
+#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4]},
+#             {'varname': 'dThreshMLD',
+#              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
+#              'EN4varname': None,
+#              'WOAvarname': None,
+#              'MLDvarname': 'mld_dt_mean',
+#              'SSMIvarname': None, 
+#              'isvar3d': False,
+#              'title': 'MLD',
+#              'units': 'm',
+#              'colormap': plt.get_cmap('viridis'),
+#              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800]},
+#             {'varname': 'barotropicStreamfunction',
+#              'mpasvarname': 'barotropicStreamfunction',
+#              'EN4varname': None,
+#              'WOAvarname': None,
+#              'MLDvarname': None,
+#              'SSMIvarname': None, 
+#              'isvar3d': False,
+#              'title': 'Barotropic streamfunction',
+#              'units': 'Sv',
+#              'colormap': cmocean.cm.curl,
+#              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12]},
+             {'varname': 'iceAreaCell',
+              'mpasvarname': 'timeMonthly_avg_iceAreaCell',
               'EN4varname': None,
               'WOAvarname': None,
-              'MLDvarname': 'mld_dt_mean',
+              'MLDvarname': None,
+              'SSMIvarname': 'ICECON', 
               'isvar3d': False,
-              'title': 'MLD',
-              'units': 'm',
-              'colormap': plt.get_cmap('viridis'),
-              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800]}
+              'title': 'Sea ice concentration',
+              'units': '%',
+              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
+                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
+                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)]),
+              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
             ]
 ##############################################################################
 
 # Info about MPAS mesh
 dsMesh = xr.open_dataset(meshfile)
-lonMod = 180/np.pi*dsMesh.lonCell
-latMod = 180/np.pi*dsMesh.latCell
+lonCell = 180/np.pi*dsMesh.lonCell
+latCell = 180/np.pi*dsMesh.latCell
+lonVert = 180/np.pi*dsMesh.lonVertex
+latVert = 180/np.pi*dsMesh.latVertex
 maxLevelCell = dsMesh.maxLevelCell
 nVertLevels = dsMesh.sizes['nVertLevels']
 vertIndex = xr.DataArray(data=np.arange(nVertLevels), dims=('nVertLevels',))
@@ -122,12 +161,19 @@ for month in months:
     #print(zEN4.values[zlevEN4])
     #print(zWOA.values[zlevWOA])
 
+    if month!='ANN':
+        SSMIfile = f'{SSMIdir}/{SSMIfilename}_SEAICE_PS_{regionname}_{month}_{climoyear1:04d}_{climoyear2:04d}.nc'
+        dsSSMI = xr.open_dataset(SSMIfile, decode_times=False).isel(time=0)
+        lonSSMI = xr.open_dataset(SSMIgridfile)['longitude']
+        latSSMI = xr.open_dataset(SSMIgridfile)['latitude']
+
     for var in variables:
         varname = var['varname']
         varnameMod = var['mpasvarname']
         varnameEN4 = var['EN4varname']
         varnameWOA = var['WOAvarname']
         varnameMLD = var['MLDvarname']
+        varnameSSMI = var['SSMIvarname']
         isvar3d = var['isvar3d']
         varunits = var['units']
         vartitle = var['title']
@@ -136,7 +182,15 @@ for month in months:
         print(f'  variable: {vartitle}...')
 
         modelfile = f'{modeldir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.nc'
-        dsMod = xr.open_dataset(modelfile, decode_times=False).isel(Time=0)
+        if varname=='barotropicStreamfunction':
+            lonMod = lonVert
+            latMod = latVert
+            dsMod = xr.open_dataset(modelfile)
+        else:
+            lonMod = lonCell
+            latMod = latCell
+            dsMod = xr.open_dataset(modelfile, decode_times=False).isel(Time=0)
+
         if isvar3d:
             # mask values below local depth
             dsMod = dsMod.where(depthmask, drop=False)
@@ -145,7 +199,7 @@ for month in months:
             figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
             figfileMLD = f'{figdir}/MLDholtetalley_{varnameMLD}_{month}.png'
 
-            figtitleMod = f'{runname} {vartitle} ({month} climatology,\nyears={climoyear1}-{climoyear2})'
+            figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
             figtitleMLD = f'Holte-Talley {vartitle} ({month} climatology)'
 
             fldMod = dsMod[varnameMod]
@@ -162,6 +216,39 @@ for month in months:
                                  figfileMLD, contourFld=None, contourValues=None, projectionName=projection,
                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
+        if vartitle=='Sea ice concentration' and month!='ANN':
+            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+            figfileSSMI = f'{figdir}/{SSMIdirname}_{varnameSSMI}_{month}.png'
+
+            figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
+            figtitleSSMI = f'{SSMIdirname} {vartitle} ({month} climatology)'
+
+            fldMod = 100*dsMod[varnameMod].values
+            fldSSMI = 100*dsSSMI[varnameSSMI].values
+            fldMod[np.where(fldMod<15)] = np.nan
+            fldSSMI[np.where(fldSSMI<15)] = np.nan
+
+            dotSize = 1.2 # this should go up as resolution decreases
+            make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+                              fld=fldMod, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
+
+            make_pcolormesh_plot(lonSSMI, latSSMI, fldSSMI, colormap, clevels, None, varunits, figtitleSSMI,
+                                 figfileSSMI, contourFld=None, contourValues=None, projectionName=projection,
+                                 lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+
+        if vartitle=='Barotropic streamfunction':
+            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+
+            figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
+
+            fldMod = dsMod[varnameMod]
+
+            dotSize = 1.2 # this should go up as resolution decreases
+            make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+                              fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+
         if isvar3d:
             for iz in range(len(depthlevels)):
                 depthlevel = depthlevels[iz]
@@ -171,9 +258,9 @@ for month in months:
                 figfileEN4 = f'{figdir}/EN4_{varnameEN4}_{month}_{climoyear1}_{climoyear2}_z{np.int16(depthlevel)}.png'
                 figfileWOA = f'{figdir}/WOA23_{varnameWOA}_{month}_z{np.int16(depthlevel)}.png'
 
-                figtitleMod = f'{runname} {vartitle} ({month} climatology,\nyears={climoyear1}-{climoyear2}, z={np.round(zMod[zlevMod[iz]].values)} m)'
-                figtitleEN4 = f'EN4 {vartitle} ({month} climatology,\nyears={climoyear1}-{climoyear2}, z={np.round(zEN4[zlevEN4[iz]].values)} m)'
-                figtitleWOA = f'WOA23 {vartitle} ({month} climatology,\nz={np.round(zWOA[zlevWOA[iz]].values)} m)'
+                figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2}, z={np.round(zMod[zlevMod[iz]].values)} m)'
+                figtitleEN4 = f'EN4 {vartitle}\n({month} climatology, z={np.round(zEN4[zlevEN4[iz]].values)} m)'
+                figtitleWOA = f'WOA23 {vartitle}\n({month} climatology, z={np.round(zWOA[zlevWOA[iz]].values)} m)'
 
                 fldMod = dsMod[varnameMod].isel(nVertLevels=zlevMod[iz])
                 fldEN4 = dsEN4[varnameEN4].isel(depth=zlevEN4[iz])
