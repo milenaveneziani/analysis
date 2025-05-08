@@ -22,23 +22,21 @@ def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevel
     figsize = [20, 20]
 
     data_crs = ccrs.PlateCarree()
+    transform = ccrs.Geodetic()
 
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
         # define a map projection for our figure
         projection = ccrs.NorthPolarStereo()
-        transform = ccrs.NorthPolarStereo()
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         # define a map projection for our figure
         projection = ccrs.SouthPolarStereo()
-        transform = ccrs.SouthPolarStereo()
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
     else:
         # define a map projection for our figure
         projection = ccrs.Robinson()
-        transform = ccrs.Geodetic()
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
@@ -57,11 +55,13 @@ def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevel
 
     # create a `Descriptor` object which takes the mesh information and creates
     # the polygon coordinate arrays needed for `matplotlib.collections.PolyCollection`.
-    descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=False)
+    descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=True)
 
     # using the `Descriptor` object we just created, make a pseudocolor plot of
     # the "indexToCellID" variable, which is defined at cell centers.
     collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, antialiaseds=False)
+    # to show edges in zoomed in plots (Andrew's suggestion; not tested yet):
+    #collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, edgecolors='k', antialiaseds=True)
 
     if cindices is not None:
         cbar = plt.colorbar(collection, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
