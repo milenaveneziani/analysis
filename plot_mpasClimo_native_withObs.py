@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import cmocean
 
-from make_plots import make_scatter_plot, make_pcolormesh_plot
+from make_plots import make_scatter_plot, make_pcolormesh_plot, make_mosaic_plot
 
 
 # Settings for nersc
@@ -32,8 +32,8 @@ if not os.path.isdir(figdir):
 climoyear1 = 2000
 climoyear2 = 2014
 
-months = ['03', '09', '11']
-#months = ['ANN']
+#months = ['03', '09', '11']
+months = ['ANN']
 
 depthlevels = [0., 50., 250.]
 
@@ -81,35 +81,38 @@ variables = [
 #              'units': 'm',
 #              'colormap': plt.get_cmap('viridis'),
 #              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800]},
-#             {'varname': 'barotropicStreamfunction',
-#              'mpasvarname': 'barotropicStreamfunction',
-#              'EN4varname': None,
-#              'WOAvarname': None,
-#              'MLDvarname': None,
-#              'SSMIvarname': None, 
-#              'isvar3d': False,
-#              'title': 'Barotropic streamfunction',
-#              'units': 'Sv',
-#              'colormap': cmocean.cm.curl,
-#              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12]},
-             {'varname': 'iceAreaCell',
-              'mpasvarname': 'timeMonthly_avg_iceAreaCell',
+             {'varname': 'barotropicStreamfunction',
+              'mpasvarname': 'barotropicStreamfunction',
               'EN4varname': None,
               'WOAvarname': None,
               'MLDvarname': None,
-              'SSMIvarname': 'ICECON', 
+              'SSMIvarname': None, 
               'isvar3d': False,
-              'title': 'Sea ice concentration',
-              'units': '%',
-              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
-                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
-                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)]),
-              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
+              'title': 'Barotropic streamfunction',
+              'units': 'Sv',
+              'colormap': cmocean.cm.curl,
+              'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12]},
+#             {'varname': 'iceAreaCell',
+#              'mpasvarname': 'timeMonthly_avg_iceAreaCell',
+#              'EN4varname': None,
+#              'WOAvarname': None,
+#              'MLDvarname': None,
+#              'SSMIvarname': 'ICECON', 
+#              'isvar3d': False,
+#              'title': 'Sea ice concentration',
+#              'units': '%',
+#              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
+#                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
+#                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)]),
+#              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
             ]
 ##############################################################################
 
 # Info about MPAS mesh
 dsMesh = xr.open_dataset(meshfile)
+# restart files are missing this attribute that is needed for mosaic,
+# so for now adding this manually:
+dsMesh.attrs['is_periodic'] = 'NO'
 lonCell = 180/np.pi*dsMesh.lonCell
 latCell = 180/np.pi*dsMesh.latCell
 lonVert = 180/np.pi*dsMesh.lonVertex
@@ -238,16 +241,20 @@ for month in months:
                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
         if vartitle=='Barotropic streamfunction':
-            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+            #figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}_mosaic.png'
 
             figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
 
             fldMod = dsMod[varnameMod]
 
-            dotSize = 1.2 # this should go up as resolution decreases
-            make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
-                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                              fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+            #dotSize = 1.2 # this should go up as resolution decreases
+            #make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+            #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+            #                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+            make_mosaic_plot(lonMod, latMod, fldMod, dsMesh, figtitleMod, figfileMod, cmap=colormap,
+                             clevels=clevels, cindices=colorIndices, cbarLabel=varunits, projectionName=projection,
+                             lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
         if isvar3d:
             for iz in range(len(depthlevels)):

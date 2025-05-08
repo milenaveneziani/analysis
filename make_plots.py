@@ -7,6 +7,7 @@ import matplotlib.colors as cols
 from matplotlib.colors import BoundaryNorm
 import cartopy
 import cartopy.crs as ccrs
+import mosaic
 from cartopy.util import add_cyclic_point
 import matplotlib.ticker as mticker
 import cmocean
@@ -14,6 +15,74 @@ import copy
 
 from common_functions import add_land_lakes_coastline
 
+
+def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+    
+    figdpi = 150
+    figsize = [20, 20]
+
+    data_crs = ccrs.PlateCarree()
+
+    plt.figure(figsize=figsize, dpi=figdpi)
+
+    if projectionName=='NorthPolarStereo':
+        # define a map projection for our figure
+        projection = ccrs.NorthPolarStereo()
+        transform = ccrs.NorthPolarStereo()
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+    elif projectionName=='SouthPolarStereo':
+        # define a map projection for our figure
+        projection = ccrs.SouthPolarStereo()
+        transform = ccrs.SouthPolarStereo()
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    else:
+        # define a map projection for our figure
+        projection = ccrs.Robinson()
+        transform = ccrs.Geodetic()
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+    ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
+    gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
+    gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
+    gl.ylocator = mticker.FixedLocator(np.arange(lat0+dlat/2, lat1-dlat/2, dlat))
+    gl.n_steps = 100
+    gl.right_labels = False
+    gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
+    gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': 16}
+    gl.ylabel_style = {'size': 16}
+    gl.rotate_labels = False
+
+    # make colormap
+    [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
+
+    # create a `Descriptor` object which takes the mesh information and creates
+    # the polygon coordinate arrays needed for `matplotlib.collections.PolyCollection`.
+    descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=False)
+
+    # using the `Descriptor` object we just created, make a pseudocolor plot of
+    # the "indexToCellID" variable, which is defined at cell centers.
+    collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, antialiaseds=False)
+
+    if cindices is not None:
+        cbar = plt.colorbar(collection, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
+    else:
+        cbar = plt.colorbar(collection, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4)
+    cbar.ax.tick_params(labelsize=20, labelcolor='black')
+    cbar.set_label(cbarLabel, fontsize=20)
+
+    if contourfld is not None:
+        if contourLevels is None:
+            raise ValueError('contourLevels needs to be defined if contourfld is')
+        if contourColors is not None:
+            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors=contourColors, transform=data_crs)
+        else:
+            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors='k', transform=data_crs)
+
+    add_land_lakes_coastline(ax)
+
+    ax.set_title(figTitle, y=1.08, fontsize=22)
+    plt.savefig(figFile, bbox_inches='tight')
+    plt.close()
 
 def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
     
@@ -53,7 +122,6 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
         cbar.set_label(cbarLabel, fontsize=20)
     else:
         sc = ax.scatter(lon, lat, s=dotSize, c='k', marker='D', transform=data_crs)
-
 
     if contourfld is not None:
         if contourLevels is None:
