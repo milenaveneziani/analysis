@@ -18,7 +18,8 @@ from common_functions import timeseries_analysis_plot, add_inset
 #startYear = 1950
 #endYear = 2014
 startYear = 1
-endYear = 59
+#endYear = 1
+endYear = 50
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
@@ -55,10 +56,10 @@ runName = 'E3SMv2.1G60to10_01'
 runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/cwfs/milena/{runName}'
-#runName = 'E3SMv2.1B60to10rA07'
-#runNameShort = 'E3SMv2.1B60to10rA07'
-#rundir = f'/p/cwfs/apcraig/archive/{runName}'
+#rundir = f'/p/cwfs/milena/{runName}'
+runName = 'E3SMv2.1B60to10rA07'
+runNameShort = 'E3SMv2.1B60to10rA07'
+rundir = f'/p/cwfs/apcraig/archive/{runName}'
 isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
@@ -81,9 +82,9 @@ titleMonthsToPlot = None
 #titleMonthsToPlot = 'JFMA'
 
 # region mask file will be $meshname_$regionGroups.nc
-regionGroups = ['oceanSubBasins20210315']
+#regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-#regionGroups = ['Arctic Regions']
+regionGroups = ['Arctic Regions']
 ##regionGroups = ['OceanOHC Regions']
 ##regionGroups = ['Antarctic Regions']
 
@@ -105,78 +106,86 @@ modelComp = 'ocn'
 
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'dThreshMLD',
-              'title': 'Mean MLD',
-              'units': 'm',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_dThreshMLD'},
-             {'name': 'sensibleHeatFlux',
-              'title': 'Sensible Heat Flux',
+#             {'name': 'dThreshMLD',
+#              'title': 'Mean MLD',
+#              'units': 'm',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_dThreshMLD'},
+#             {'name': 'sensibleHeatFlux',
+#              'title': 'Sensible Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+#             {'name': 'latentHeatFlux',
+#              'title': 'Latent Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_latentHeatFlux'},
+#             {'name': 'longWaveHeatFluxUp',
+#              'title': 'Longwave Up Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
+#             {'name': 'longWaveHeatFluxDown',
+#              'title': 'Longwave Down Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
+#             {'name': 'shortWaveHeatFlux',
+#              'title': 'Shortwave Heat Flux',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+#             {'name': 'evaporationFlux',
+#              'title': 'Evaporation Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_evaporationFlux'},
+#             {'name': 'rainFlux',
+#              'title': 'Rain Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_rainFlux'},
+#             {'name': 'snowFlux',
+#              'title': 'Snow Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_snowFlux'},
+#             {'name': 'riverRunoffFlux',
+#              'title': 'River Runoff Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_riverRunoffFlux'},
+#             {'name': 'iceRunoffFlux',
+#              'title': 'Ice Runoff Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_iceRunoffFlux'},
+#             {'name': 'seaIceFreshWaterFlux',
+#              'title': 'Sea Ice Freshwater Flux',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
+#             {'name': 'surfaceBuoyancyForcing',
+#              'title': 'Surface buoyancy flux',
+#              'units': 'm$^2$ s$^{-3}$',
+#              'factor': 1,
+#              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+             {'name': 'totalHeatFlux',
+              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
               'units': 'W/m$^2$',
               'factor': 1,
-              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
-             {'name': 'latentHeatFlux',
-              'title': 'Latent Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_latentHeatFlux'},
-             {'name': 'longWaveHeatFluxUp',
-              'title': 'Longwave Up Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
-             {'name': 'longWaveHeatFluxDown',
-              'title': 'Longwave Down Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
-             {'name': 'shortWaveHeatFlux',
-              'title': 'Shortwave Heat Flux',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
-             {'name': 'evaporationFlux',
-              'title': 'Evaporation Flux',
+              'mpas': None},
+             {'name': 'totalFWFlux',
+              'title': 'Total FW Flux (E-P+Runoff+SeaIce)',
               'units': 'kg m^$-2$ s^$-1$',
               'factor': 1,
-              'mpas': 'timeMonthly_avg_evaporationFlux'},
-             {'name': 'rainFlux',
-              'title': 'Rain Flux',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_rainFlux'},
-             {'name': 'snowFlux',
-              'title': 'Snow Flux',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_snowFlux'},
-             {'name': 'riverRunoffFlux',
-              'title': 'River Runoff Flux',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_riverRunoffFlux'},
-             {'name': 'iceRunoffFlux',
-              'title': 'Ice Runoff Flux',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_iceRunoffFlux'},
-             {'name': 'seaIceFreshWaterFlux',
-              'title': 'Sea Ice Freshwater Flux',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
-             {'name': 'surfaceBuoyancyForcing',
-              'title': 'Surface buoyancy flux',
-              'units': 'm$^2$ s$^{-3}$',
-              'factor': 1,
-              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'}
-             #{'name': 'fwc',
-             # 'title': 'Freshwater content',
-             # 'units': '10$^3$ km$^3$',
-             # 'factor': 1e-12,
-             # 'mpas': 'timeMonthly_avg_activeTracers_salinity'}
-             # 'mpas': 'timeMonthly_avg_seaIceHeatFlux'}
-             # 'mpas': 'timeMonthly_avg_penetrativeTemperatureFlux'}
+              'mpas': None},
+#             {'name': 'fwc',
+#              'title': 'Freshwater content',
+#              'units': '10$^3$ km$^3$',
+#              'factor': 1e-12,
+#              'mpas': None}
             ]
 #   Sea ice variables
 #mpasComp = 'mpassi'
@@ -261,9 +270,19 @@ for regionGroup in regionGroups:
         varfactor = var['factor']
         varunits = var['units']
         vartitle = var['title']
-        variableList = [varmpasname]
+
         if varname=='fwc':
-            variableList = variableList + ['timeMonthly_avg_layerThickness']
+            variableList = ['timeMonthly_avg_activeTracers_salinity', 'timeMonthly_avg_layerThickness']
+        elif varname=='totalHeatFlux':
+            variableList = ['timeMonthly_avg_sensibleHeatFlux', 'timeMonthly_avg_latentHeatFlux',
+                            'timeMonthly_avg_shortWaveHeatFlux', 'timeMonthly_avg_longWaveHeatFluxDown',
+                            'timeMonthly_avg_longWaveHeatFluxUp']
+        elif varname=='totalFWFlux':
+            variableList = ['timeMonthly_avg_evaporationFlux', 'timeMonthly_avg_rainFlux',
+                            'timeMonthly_avg_snowFlux', 'timeMonthly_avg_riverRunoffFlux',
+                            'timeMonthly_avg_iceRunoffFlux', 'timeMonthly_avg_seaIceFreshWaterFlux']
+        else:
+            variableList = [varmpasname]
 
         outdirvar = f'{outdir}/{varname}'
         if not os.path.isdir(outdirvar):
@@ -318,7 +337,7 @@ for regionGroup in regionGroups:
                         nCells = dsIn.dims['nCells']
                         if regionNameShort=='arcticOcean_noBarents_KaraSeas' or \
                            regionNameShort=='beaufortGyre' or regionNameShort=='canadaBasin':
-                            salinity = dsIn[varmpasname].values
+                            salinity = dsIn['timeMonthly_avg_activeTracers_salinity'].values
                             layerThickness = dsIn['timeMonthly_avg_layerThickness'].values
                             fwc = np.zeros([nTimes, nCells])
                             for itime in range(nTimes):
@@ -328,29 +347,59 @@ for regionGroup in regionGroups:
                                         fwc_tmp = (sref - salinity[itime, icell, zindex])/sref * \
                                                   layerThickness[itime, icell, zindex]
                                         fwc[itime, icell] = fwc_tmp.sum()
-                            dsIn[varname] = (['Time', 'nCells'], fwc)
-                            dsIn = dsIn[varname]
-                            dsOut = (localArea*dsIn.where(cellMask, drop=True)).sum(dim='nCells')
-                            dsOut = dsOut.rename(varname)
+                            fwc = xr.DataArray(data=fwc, dims=('Time', 'nCells'))
+                            fwc = (localArea*fwc.where(cellMask, drop=True)).sum(dim='nCells')
+                            dsOut = xr.Dataset(data_vars={varname: fwc},
+                                               coords={'Time': dsIn.Time},
+                                               attrs={'units': varunits, 'description': vartitle})
                         else:
                             print('    Warning: Freshwater content is not computed for this region')
                             continue
+                    elif varname=='totalHeatFlux':
+                        totalHeatFlux = dsIn['timeMonthly_avg_sensibleHeatFlux'] + \
+                                        dsIn['timeMonthly_avg_latentHeatFlux'] + \
+                                        dsIn['timeMonthly_avg_shortWaveHeatFlux'] + \
+                                        dsIn['timeMonthly_avg_longWaveHeatFluxDown'] + \
+                                        dsIn['timeMonthly_avg_longWaveHeatFluxUp']
+                        if regionName=='Global':
+                            totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalArea
+                        else:
+                            totalHeatFlux = (localArea*totalHeatFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                        dsOut = xr.Dataset(data_vars={varname: totalHeatFlux},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
+                    elif varname=='totalFWFlux':
+                        totalFWFlux = dsIn['timeMonthly_avg_evaporationFlux'] + \
+                                      dsIn['timeMonthly_avg_rainFlux'] + \
+                                      dsIn['timeMonthly_avg_snowFlux'] + \
+                                      dsIn['timeMonthly_avg_riverRunoffFlux'] + \
+                                      dsIn['timeMonthly_avg_iceRunoffFlux'] + \
+                                      dsIn['timeMonthly_avg_seaIceFreshWaterFlux']
+                        if regionName=='Global':
+                            totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalArea
+                        else:
+                            totalFWFlux = (localArea*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                        dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
                     elif varname=='iceArea' or varname=='iceVolume':
                         if regionName=='Global':
                             dsOut = (areaCell*dsIn).sum(dim='nCells')
                         else:
                             dsOut = (localArea*dsIn.where(cellMask, drop=True)).sum(dim='nCells')
                         dsOut = dsOut.rename({varmpasname: varname})
+                        dsOut[varname].attrs['units'] = varunits
+                        dsOut[varname].attrs['description'] = vartitle
                     else:
                         if regionName=='Global':
                             dsOut = (areaCell*dsIn).sum(dim='nCells') / globalArea
                         else:
                             dsOut = (localArea*dsIn.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
                         dsOut = dsOut.rename({varmpasname: varname})
+                        dsOut[varname].attrs['units'] = varunits
+                        dsOut[varname].attrs['description'] = vartitle
 
                     dsOut = varfactor * dsOut
-                    dsOut[varname].attrs['units'] = varunits
-                    dsOut[varname].attrs['description'] = vartitle
 
                     if regionName=='Global':
                         dsOut['totalArea'] = globalArea

@@ -29,64 +29,70 @@ movingAverageYears = 1 # number of years over which to compute running average
 # Settings for regional time series
 tsdir = '/global/cfs/cdirs/m4259/milena/AMOCpaper/timeseries_data'
 variables = [
-             {'name': 'maxMLD',
-              'title': 'Max MLD',
-              'units': 'm'},
-             {'name': 'iceArea',
-              'title': 'Ice area',
-              'units': 'km$^2$'},
-             {'name': 'iceVolume',
-              'title': 'Ice volume',
-              'units': 'km$^3$'},
-             {'name': 'sensibleHeatFlux',
-              'title': 'Sensible heat flux',
+#             {'name': 'maxMLD',
+#              'title': 'Max MLD',
+#              'units': 'm'},
+#             {'name': 'iceArea',
+#              'title': 'Ice area',
+#              'units': 'km$^2$'},
+#             {'name': 'iceVolume',
+#              'title': 'Ice volume',
+#              'units': 'km$^3$'},
+#             {'name': 'sensibleHeatFlux',
+#              'title': 'Sensible heat flux',
+#              'units': 'W/m$^2$'},
+#             {'name': 'latentHeatFlux',
+#              'title': 'Latent heat flux',
+#              'units': 'W/m$^2$'},
+#             {'name': 'evaporationFlux',
+#              'title': 'Evaporation flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'rainFlux',
+#              'title': 'Rain flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'snowFlux',
+#              'title': 'Snow flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'riverRunoffFlux',
+#              'title': 'River runoff flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'iceRunoffFlux',
+#              'title': 'Ice runoff flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'seaIceFreshWaterFlux',
+#              'title': 'Sea ice FW flux',
+#              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'surfaceBuoyancyForcing',
+#              'title': 'Surface buoyancy forcing',
+#              'units': 'm$^2$ s$^{-3}$'},
+             {'name': 'totalHeatFlux',
+              'title': 'Total heat flux (Sens+Lat+SWNet+LWNet)',
               'units': 'W/m$^2$'},
-             {'name': 'latentHeatFlux',
-              'title': 'Latent heat flux',
-              'units': 'W/m$^2$'},
-             {'name': 'evaporationFlux',
-              'title': 'Evaporation flux',
+             {'name': 'totalFWFlux',
+              'title': 'Total FW flux (E-P+runoff+seaiceFW)',
               'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'rainFlux',
-              'title': 'Rain flux',
-              'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'snowFlux',
-              'title': 'Snow flux',
-              'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'riverRunoffFlux',
-              'title': 'River runoff flux',
-              'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'iceRunoffFlux',
-              'title': 'Ice runoff flux',
-              'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'seaIceFreshWaterFlux',
-              'title': 'Sea ice FW flux',
-              'units': 'kg m$^-2$ s$^-1$'},
-             {'name': 'surfaceBuoyancyForcing',
-              'title': 'Surface buoyancy forcing',
-              'units': 'm$^2$ s$^{-3}$'},
-             {'name': 'temperature',
-              'title': 'SST',
-              'units': '$^\circ$C'},
-             {'name': 'salinity',
-              'title': 'SSS',
-              'units': 'psu'}
+#             {'name': 'temperature',
+#              'title': 'SST',
+#              'units': '$^\circ$C'},
+#             {'name': 'salinity',
+#              'title': 'SSS',
+#              'units': 'psu'}
             ]
 
 #regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 #regionName = 'Labrador Sea'
-#regionName = 'Irminger Sea'
-#regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
+regionName = 'Irminger Sea'
+regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
 #regionName = 'North Atlantic subpolar gyre'
 #regionName = 'North Atlantic subtropical gyre'
 #regionName = 'Atlantic tropical'
 #regionName = 'South Atlantic subtropical gyre'
 #regionName = 'Greater Arctic'
 #regionGroup = 'arctic_atlantic_budget_regions_new20240408'
-regionName = 'Southern Ocean Atlantic Sector'
+#regionName = 'Southern Ocean Atlantic Sector'
 #regionName = 'Southern Ocean Basin'
-regionGroup = 'oceanSubBasins20210315'
+#regionGroup = 'oceanSubBasins20210315'
 regionGroupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 transectName = None
 

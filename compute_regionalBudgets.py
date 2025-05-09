@@ -40,44 +40,50 @@ import matplotlib.ticker as mticker
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 #featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
-featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regions20230313.nc'
 #casename = 'GM600_Redi600'
 #casenameFull = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
 #modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casenameFull}/ocn/hist'
 #
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_greaterArctic04082024.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions20230313.nc'
 #regionmaskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions.nc'
-casenameFull = 'E3SM-Arcticv2.1_historical0101'
-casename = 'E3SM-Arcticv2.1_historical0101'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SM-Arcticv2.1_historical0101'
+#casename = 'E3SM-Arcticv2.1_historical0101'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 ##regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_NH.nc'
 ##featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
 #regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arcticRegions.geojson'
+casenameFull = 'E3SMv2.1G60to10_01'
+casename = 'E3SMv2.1G60to10_01'
 #casenameFull = 'E3SMv2.1B60to10rA02'
 #casename = 'E3SMv2.1B60to10rA02'
-##modeldir = f'/p/archive/osinski/E3SM/{casenameFull}/ocn/hist'
-#modeldir = f'/p/work/milena/archive/{casenameFull}/ocn/hist'
+modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SMv2.1B60to10rA07'
+#casename = 'E3SMv2.1B60to10rA07'
+#modeldir = f'/p/cwfs/apcraig/archive/{casenameFull}/ocn/hist'
 
 #regionNames = ['all']
-regionNames = ['Greater Arctic']
+regionNames = ['Irminger Sea']
 #regionNames = ['North Atlantic subpolar gyre']
 #regionNames = ['North Atlantic subtropical gyre']
 
 # Choose years
-year1 = 1950
-year2 = 1952
+#year1 = 1950
+#year2 = 1952
 #year2 = 2014
-#year1 = 1
-#year2 = 5
+year1 = 1
+year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
 
