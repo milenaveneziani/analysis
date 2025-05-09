@@ -35,7 +35,8 @@ mocfile2 = f'{mocdir}/{runname2}/mocTimeSeries_0001-0246.nc'
 mocfile3 = f'{mocdir}/{runname3}/mocTimeSeries_0001-0059.nc'
 regionalTSdir = '/global/cfs/cdirs/m4259/AMOCpaper/timeseries_data'
 
-moccolors = ['mediumblue', 'dodgerblue', 'teal'] #, 'lightseagreen', 'green'] # same length as number of runnames
+#moccolors = ['mediumblue', 'dodgerblue', 'teal'] #, 'lightseagreen', 'green'] # same length as number of runnames
+moccolors = ['black', 'red', 'green']
 
 regionGroup = 'arctic_atlantic_budget_regions_new20240408'
 

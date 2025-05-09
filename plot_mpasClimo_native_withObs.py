@@ -6,6 +6,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import cmocean
+import time
 
 from make_plots import make_scatter_plot, make_pcolormesh_plot, make_mosaic_plot
 
@@ -46,6 +47,12 @@ dlon = 10.0
 lat0 = 60.0
 lat1 = 80.0
 dlat = 4.0
+#lon0 = -25.0
+#lon1 = 10.0
+#dlon = 5.0
+#lat0 = 75.0
+#lat1 = 79.0
+#dlat = 2.0
 colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 variables = [
 #             {'varname': 'activeTracers_temperature',
@@ -107,6 +114,8 @@ variables = [
 #              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
             ]
 ##############################################################################
+
+t0 = time.time()
 
 # Info about MPAS mesh
 dsMesh = xr.open_dataset(meshfile)
@@ -288,3 +297,6 @@ for month in months:
                 make_pcolormesh_plot(lonWOA, latWOA, fldWOA, colormap, clevels, colorIndices, varunits, figtitleWOA,
                                      figfileWOA, contourFld=None, contourValues=None, projectionName=projection,
                                      lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+
+t1 = time.time()
+print('#seconds = ', t1-t0)

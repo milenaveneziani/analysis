@@ -61,7 +61,7 @@ def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevel
     # the "indexToCellID" variable, which is defined at cell centers.
     collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, antialiaseds=False)
     # to show edges in zoomed in plots (Andrew's suggestion; not tested yet):
-    #collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, edgecolors='k', antialiaseds=True)
+    #collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, edgecolors='grey', antialiaseds=True)
 
     if cindices is not None:
         cbar = plt.colorbar(collection, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
