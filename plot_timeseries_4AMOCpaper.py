@@ -79,10 +79,10 @@ variables = [
 #              'units': 'psu'}
             ]
 
-#regionName = 'Greenland Sea'
+regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 #regionName = 'Labrador Sea'
-regionName = 'Irminger Sea'
+#regionName = 'Irminger Sea'
 regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
 #regionName = 'North Atlantic subpolar gyre'
 #regionName = 'North Atlantic subtropical gyre'

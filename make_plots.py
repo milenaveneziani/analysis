@@ -16,27 +16,34 @@ import copy
 from common_functions import add_land_lakes_coastline
 
 
-def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_mosaic_descriptor(dsMesh, projectionName):
+    transform = ccrs.Geodetic()
+    if projectionName=='NorthPolarStereo':
+        projection = ccrs.NorthPolarStereo()
+    elif projectionName=='SouthPolarStereo':
+        projection = ccrs.SouthPolarStereo()
+    else:
+        projection = ccrs.Robinson()
+
+    # create a `Descriptor` object which takes the mesh information and creates
+    # the polygon coordinate arrays needed for `matplotlib.collections.PolyCollection`.
+    descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=True)
+    return descriptor
+
+def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, showEdges=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
     
     figdpi = 150
     figsize = [20, 20]
 
     data_crs = ccrs.PlateCarree()
-    transform = ccrs.Geodetic()
 
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        # define a map projection for our figure
-        projection = ccrs.NorthPolarStereo()
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
-        # define a map projection for our figure
-        projection = ccrs.SouthPolarStereo()
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
     else:
-        # define a map projection for our figure
-        projection = ccrs.Robinson()
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
@@ -53,15 +60,10 @@ def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevel
     # make colormap
     [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
 
-    # create a `Descriptor` object which takes the mesh information and creates
-    # the polygon coordinate arrays needed for `matplotlib.collections.PolyCollection`.
-    descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=True)
-
-    # using the `Descriptor` object we just created, make a pseudocolor plot of
-    # the "indexToCellID" variable, which is defined at cell centers.
-    collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, antialiaseds=False)
-    # to show edges in zoomed in plots (Andrew's suggestion; not tested yet):
-    #collection = mosaic.polypcolor(ax, descriptor, fld, cmap=colormap, norm=cnorm, edgecolors='grey', antialiaseds=True)
+    if showEdges is True:
+        collection = mosaic.polypcolor(ax, mosaicDescriptor, fld, cmap=colormap, norm=cnorm, edgecolors='grey', antialiaseds=True)
+    else:
+        collection = mosaic.polypcolor(ax, mosaicDescriptor, fld, cmap=colormap, norm=cnorm, antialiaseds=False)
 
     if cindices is not None:
         cbar = plt.colorbar(collection, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
@@ -71,12 +73,13 @@ def make_mosaic_plot(lon, lat, fld, dsMesh, figTitle, figFile, cmap=None, clevel
     cbar.set_label(cbarLabel, fontsize=20)
 
     if contourfld is not None:
-        if contourLevels is None:
-            raise ValueError('contourLevels needs to be defined if contourfld is')
-        if contourColors is not None:
-            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors=contourColors, transform=data_crs)
-        else:
-            ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors='k', transform=data_crs)
+        raise ValueError('Plotting of contours not yet supported. Change contourfld to None')
+        #if contourLevels is None:
+        #    raise ValueError('contourLevels needs to be defined if contourfld is')
+        #if contourColors is not None:
+        #    ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors=contourColors, transform=data_crs)
+        #else:
+        #    ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors='k', transform=data_crs)
 
     add_land_lakes_coastline(ax)
 

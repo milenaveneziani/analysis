@@ -8,7 +8,7 @@ import matplotlib.colors as cols
 import cmocean
 import time
 
-from make_plots import make_scatter_plot, make_pcolormesh_plot, make_mosaic_plot
+from make_plots import make_scatter_plot, make_pcolormesh_plot, make_mosaic_descriptor, make_mosaic_plot
 
 
 # Settings for nersc
@@ -18,10 +18,10 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/postprocess
 EN4dir = '/global/cfs/cdirs/m1199/milena/Obs/EN4/climatologies'
 WOAdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/WOA23'
 MLDdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/MLD'
-SSMIdirname = 'Bootstrapv4'
-SSMIfilename = 'NSIDC0079'
-#SSMIdirname = 'SSMR_SSMIv2'
-#SSMIfilename = 'NSIDC0051'
+#SSMIdirname = 'Bootstrapv4'
+#SSMIfilename = 'NSIDC0079'
+SSMIdirname = 'SSMR_SSMIv2'
+SSMIfilename = 'NSIDC0051'
 SSMIdir = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/{SSMIdirname}_{SSMIfilename}/climatologies'
 SSMIgridfileNH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_N25km_v1.0.nc'
 SSMIgridfileSH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_S25km_v1.0.nc'
@@ -33,61 +33,89 @@ if not os.path.isdir(figdir):
 climoyear1 = 2000
 climoyear2 = 2014
 
-#months = ['03', '09', '11']
-months = ['ANN']
+months = ['03', '09', '11', 'ANN']
+#months = ['ANN']
+#months = ['09']
 
 depthlevels = [0., 50., 250.]
+#depthlevels = [50.]
 
 projection = 'NorthPolarStereo'
 SSMIgridfile = SSMIgridfileNH
 regionname = 'N25km' # change to 'S25km' for SH plots
+# Nordic Seas/northern subpolar close-up:
+figfileRegion = ''
+showEdges = False
 lon0 = -50.0
 lon1 = 50.0
 dlon = 10.0
 lat0 = 60.0
 lat1 = 80.0
 dlat = 4.0
+# Greenland Sea close-up:
+#figfileRegion = 'GreenlandSea'
+#showEdges = True
 #lon0 = -25.0
 #lon1 = 10.0
 #dlon = 5.0
 #lat0 = 75.0
 #lat1 = 79.0
 #dlat = 2.0
+# Barents Sea close-up:
+#figfileRegion = 'BarentsSea'
+#showEdges = True
+#lon0 = -5.0
+#lon1 = 30.0
+#dlon = 5.0
+#lat0 = 69.0
+#lat1 = 80.0
+#dlat = 2.0
+# Arctic Ocean:
+#figfileRegion = 'ArcticOcean'
+#showEdges = False
+#lon0 = -180.0
+#lon1 = 180.0
+#dlon = 30.0
+#lat0 = 55.0
+#lat1 = 90.0
+#dlat = 10.0
 colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 variables = [
-#             {'varname': 'activeTracers_temperature',
-#              'mpasvarname': 'timeMonthly_avg_activeTracers_temperature',
-#              'EN4varname': 'temperature',
-#              'WOAvarname': 'pt_an',
-#              'MLDvarname': None,
-#              'SSMIvarname': None, 
-#              'isvar3d': True,
-#              'title': 'Temperature',
-#              'units': '$^\circ$C',
-#              'colormap': plt.get_cmap('RdBu_r'),
-#              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]},
-#             {'varname': 'activeTracers_salinity',
-#              'mpasvarname': 'timeMonthly_avg_activeTracers_salinity',
-#              'EN4varname': 'salinity',
-#              'WOAvarname': 's_an',
-#              'MLDvarname': None,
-#              'SSMIvarname': None, 
-#              'isvar3d': True,
-#              'title': 'Salinity',
-#              'units': 'psu',
-#              'colormap': cmocean.cm.haline,
-#              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4]},
-#             {'varname': 'dThreshMLD',
-#              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
-#              'EN4varname': None,
-#              'WOAvarname': None,
-#              'MLDvarname': 'mld_dt_mean',
-#              'SSMIvarname': None, 
-#              'isvar3d': False,
-#              'title': 'MLD',
-#              'units': 'm',
-#              'colormap': plt.get_cmap('viridis'),
-#              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800]},
+             {'varname': 'activeTracers_temperature',
+              'mpasvarname': 'timeMonthly_avg_activeTracers_temperature',
+              'EN4varname': 'temperature',
+              'WOAvarname': 'pt_an',
+              'MLDvarname': None,
+              'SSMIvarname': None, 
+              'isvar3d': True,
+              'title': 'Temperature',
+              'units': '$^\circ$C',
+              #'colormap': cmocean.cm.thermal,
+              #'clevels': [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8., 9., 10.]},
+              'colormap': plt.get_cmap('RdBu_r'),
+              'clevels': [-1.0, -0.5, 0.0, 0.5, 2.0, 2.5, 3.0, 3.5, 4.0, 6.0, 8., 10., 12.]},
+             {'varname': 'activeTracers_salinity',
+              'mpasvarname': 'timeMonthly_avg_activeTracers_salinity',
+              'EN4varname': 'salinity',
+              'WOAvarname': 's_an',
+              'MLDvarname': None,
+              'SSMIvarname': None, 
+              'isvar3d': True,
+              'title': 'Salinity',
+              'units': 'psu',
+              'colormap': cmocean.cm.haline,
+              'clevels': [31.0, 33.0, 34.2,  34.4,  34.6, 34.7,  34.8,  34.87, 34.9, 34.95, 35.0, 35.2, 35.4]},
+             {'varname': 'dThreshMLD',
+              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
+              'EN4varname': None,
+              'WOAvarname': None,
+              'MLDvarname': 'mld_dt_mean',
+              'SSMIvarname': None, 
+              'isvar3d': False,
+              'title': 'MLD',
+              'units': 'm',
+              'colormap': plt.get_cmap('viridis'),
+              'clevels': [10, 20, 50, 80, 100, 120, 150, 180, 250, 300, 400, 500, 800]},
              {'varname': 'barotropicStreamfunction',
               'mpasvarname': 'barotropicStreamfunction',
               'EN4varname': None,
@@ -99,19 +127,19 @@ variables = [
               'units': 'Sv',
               'colormap': cmocean.cm.curl,
               'clevels': [-12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12]},
-#             {'varname': 'iceAreaCell',
-#              'mpasvarname': 'timeMonthly_avg_iceAreaCell',
-#              'EN4varname': None,
-#              'WOAvarname': None,
-#              'MLDvarname': None,
-#              'SSMIvarname': 'ICECON', 
-#              'isvar3d': False,
-#              'title': 'Sea ice concentration',
-#              'units': '%',
-#              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
-#                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
-#                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)]),
-#              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
+             {'varname': 'iceAreaCell',
+              'mpasvarname': 'timeMonthly_avg_iceAreaCell',
+              'EN4varname': None,
+              'WOAvarname': None,
+              'MLDvarname': None,
+              'SSMIvarname': 'ICECON', 
+              'isvar3d': False,
+              'title': 'Sea ice concentration',
+              'units': '%',
+              'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
+                                               (0.169, 0.435, 0.223), (0.455, 0.478, 0.196), (0.757, 0.474, 0.435),\
+                                               (0.827, 0.561, 0.772), (0.761, 0.757, 0.949), (0.808, 0.921, 0.937)]),
+              'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
             ]
 ##############################################################################
 
@@ -136,6 +164,7 @@ zlevMod = np.zeros(np.shape(depthlevels), dtype=np.int64)
 for iz in range(len(depthlevels)):
     dz = np.abs(zMod.values-depthlevels[iz])
     zlevMod[iz] = np.argmin(dz)
+mosaic_descriptor = make_mosaic_descriptor(dsMesh, projection)
 
 for month in months:
     print(f'\nPlotting {climoyear1}-{climoyear2} climatology for month: {month}...')
@@ -208,8 +237,8 @@ for month in months:
             dsMod = dsMod.where(depthmask, drop=False)
 
         if vartitle=='MLD' and month!='ANN':
-            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
-            figfileMLD = f'{figdir}/MLDholtetalley_{varnameMLD}_{month}.png'
+            figfileMod = f'{figdir}/{varname}{figfileRegion}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+            figfileMLD = f'{figdir}/MLDholtetalley{figfileRegion}_{varnameMLD}_{month}.png'
 
             figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
             figtitleMLD = f'Holte-Talley {vartitle} ({month} climatology)'
@@ -217,10 +246,13 @@ for month in months:
             fldMod = dsMod[varnameMod]
             fldMLD = dsMLD[varnameMLD]
 
-            dotSize = 1.2 # this should go up as resolution decreases
-            make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
-                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                              fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+            #dotSize = 1.2 # this should go up as resolution decreases
+            #make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+            #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+            #                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+            make_mosaic_plot(lonMod, latMod, fldMod, mosaic_descriptor, figtitleMod, figfileMod, showEdges=showEdges,
+                             cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
+                             projectionName=projection, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
             lonMLD = dsMLD['lon']
             latMLD = dsMLD['lat']
@@ -229,29 +261,33 @@ for month in months:
                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
         if vartitle=='Sea ice concentration' and month!='ANN':
-            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
-            figfileSSMI = f'{figdir}/{SSMIdirname}_{varnameSSMI}_{month}.png'
+            figfileMod = f'{figdir}/{varname}{figfileRegion}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
+            figfileSSMI = f'{figdir}/{SSMIdirname}{figfileRegion}_{varnameSSMI}_{month}.png'
 
             figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
             figtitleSSMI = f'{SSMIdirname} {vartitle} ({month} climatology)'
 
-            fldMod = 100*dsMod[varnameMod].values
-            fldSSMI = 100*dsSSMI[varnameSSMI].values
-            fldMod[np.where(fldMod<15)] = np.nan
-            fldSSMI[np.where(fldSSMI<15)] = np.nan
+            fldMod = 100*dsMod[varnameMod]
+            fldSSMI = 100*dsSSMI[varnameSSMI]
+            #fldMod[np.where(fldMod<15)] = np.nan
+            #fldSSMI[np.where(fldSSMI<15)] = np.nan
+            fldMod = fldMod.where(fldMod>=15, drop=False)
+            fldSSMI = fldSSMI.where(fldSSMI>=15, drop=False)
 
-            dotSize = 1.2 # this should go up as resolution decreases
-            make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
-                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                              fld=fldMod, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
+            #dotSize = 1.2 # this should go up as resolution decreases
+            #make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+            #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+            #                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits)
+            make_mosaic_plot(lonMod, latMod, fldMod, mosaic_descriptor, figtitleMod, figfileMod, showEdges=showEdges,
+                             cmap=colormap, clevels=clevels, cindices=None, cbarLabel=varunits,
+                             projectionName=projection, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
             make_pcolormesh_plot(lonSSMI, latSSMI, fldSSMI, colormap, clevels, None, varunits, figtitleSSMI,
                                  figfileSSMI, contourFld=None, contourValues=None, projectionName=projection,
                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
         if vartitle=='Barotropic streamfunction':
-            #figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
-            figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}_mosaic.png'
+            figfileMod = f'{figdir}/{varname}{figfileRegion}_ensembleMean_{month}_{climoyear1}_{climoyear2}.png'
 
             figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2})'
 
@@ -261,18 +297,18 @@ for month in months:
             #make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
             #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
             #                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-            make_mosaic_plot(lonMod, latMod, fldMod, dsMesh, figtitleMod, figfileMod, cmap=colormap,
-                             clevels=clevels, cindices=colorIndices, cbarLabel=varunits, projectionName=projection,
-                             lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
+            make_mosaic_plot(lonMod, latMod, fldMod, mosaic_descriptor, figtitleMod, figfileMod, showEdges=showEdges,
+                             cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
+                             projectionName=projection, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
         if isvar3d:
             for iz in range(len(depthlevels)):
                 depthlevel = depthlevels[iz]
                 print(f'    depth level: {depthlevel}...')
 
-                figfileMod = f'{figdir}/{varname}_ensembleMean_{month}_{climoyear1}_{climoyear2}_z{np.int16(depthlevel)}.png'
-                figfileEN4 = f'{figdir}/EN4_{varnameEN4}_{month}_{climoyear1}_{climoyear2}_z{np.int16(depthlevel)}.png'
-                figfileWOA = f'{figdir}/WOA23_{varnameWOA}_{month}_z{np.int16(depthlevel)}.png'
+                figfileMod = f'{figdir}/{varname}{figfileRegion}_ensembleMean_{month}_{climoyear1}_{climoyear2}_z{np.int16(depthlevel)}.png'
+                figfileEN4 = f'{figdir}/EN4_{varnameEN4}{figfileRegion}_{month}_{climoyear1}_{climoyear2}_z{np.int16(depthlevel)}.png'
+                figfileWOA = f'{figdir}/WOA23_{varnameWOA}{figfileRegion}_{month}_z{np.int16(depthlevel)}.png'
 
                 figtitleMod = f'{runname} {vartitle}\n({month} climatology, years={climoyear1}-{climoyear2}, z={np.round(zMod[zlevMod[iz]].values)} m)'
                 figtitleEN4 = f'EN4 {vartitle}\n({month} climatology, z={np.round(zEN4[zlevEN4[iz]].values)} m)'
@@ -285,10 +321,13 @@ for month in months:
                     fldEN4 = fldEN4 - 273.15 # Kelvin to Celsius
                     #print(np.nanmin(fldEN4.values), np.nanmax(fldEN4.values))
 
-                dotSize = 1.2 # this should go up as resolution decreases
-                make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
-                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                #dotSize = 1.2 # this should go up as resolution decreases
+                #make_scatter_plot(lonMod, latMod, dotSize, figtitleMod, figfileMod, projectionName=projection,
+                #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+                #                  fld=fldMod, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                make_mosaic_plot(lonMod, latMod, fldMod, mosaic_descriptor, figtitleMod, figfileMod, showEdges=showEdges,
+                                 cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
+                                 projectionName=projection, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
 
                 make_pcolormesh_plot(lonEN4, latEN4, fldEN4, colormap, clevels, colorIndices, varunits, figtitleEN4,
                                      figfileEN4, contourFld=None, contourValues=None, projectionName=projection,
