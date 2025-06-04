@@ -45,15 +45,15 @@ def _add_bbox(ax, bbox):
 
 # Settings for lcrc:
 bathyfile = '/lcrc/group/e3sm/public_html/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
-##featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
-#featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_regions_detailed.geojson'
-##transectfile = None
-#transectfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
 featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_regions_detailed.geojson'
-transectfile = '/home/ac.milena//MPAS-git-repositories/geometric_features/geometric_data/ocean/transect/Iceland-Faroe-Scotland/transect.geojson'
+##featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticRegions.geojson'
+transectfile = None
+#transectfile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
+#transectfile = '/home/ac.milena//MPAS-git-repositories/geometric_features/geometric_data/ocean/transect/Iceland-Faroe-Scotland/transect.geojson'
 
 # Settings for nersc:
 #bathyfile = '/global/cfs/cdirs/e3sm/mpas_standalonedata/mpas-ocean/bathymetry_database/BedMachineAntarctica_v3_and_GEBCO_2023_0.0125_degree_20230831.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arctic_regions_detailed.geojson'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticRegions.geojson'
 #transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
 ##transectfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
@@ -67,7 +67,8 @@ if not os.path.isdir(figdir):
 clevels = [10, 50, 100, 150, 200, 400, 600, 800, 1000, 1200, 1400, 1800, 2200, 2600, 3000, 3500]
 #clevels = [10, 40, 80, 120, 160, 200, 300, 400, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]
 #clevels = [50, 100, 200, 300, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000]
-colormap = plt.get_cmap(cmocean.cm.deep_r)
+#colormap = plt.get_cmap(cmocean.cm.deep_r)
+colormap = plt.get_cmap(cmocean.cm.dense_r)
 colorIndices = np.int_(np.linspace(0, 255, num=len(clevels)+1, endpoint=True))
 underColor = colormap(colorIndices[0])
 overColor = colormap(colorIndices[-1])
@@ -145,10 +146,13 @@ plt.close()
 
 figsize = [20, 20]
 figdpi = 300
-featuresToPlot = ['Norwegian Sea', 'Greenland Sea']
-transectsToPlot = ['Iceland-Faroe-Scotland']
+featuresToPlot = []  # Nordic Seas for schematic
+transectsToPlot = []  # Nordic Seas for schematic
+extent = [-40, 40, 55, 80] # Nordic Seas for schematic
+#extent = [-50, 50, 58, 80] # Nordic Seas
+#featuresToPlot = ['Norwegian Sea', 'Greenland Sea']
+#transectsToPlot = ['Iceland-Faroe-Scotland']
 colors = ['#2166ac', '#d6604d']
-extent = [-50, 50, 58, 80] # Nordic Seas
 #featuresToPlot = ['Barents Sea', 'Kara Sea', 'Laptev Sea', 'Eurasian Basin']
 #transectsToPlot = ['Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
 #transectsToPlot = ['Fram Strait', 'Barents Sea Opening', 'Novaya Zemlya to Gakkel Ridge', 'Severnaya Zemlya to Gakkel Ridge', 'Novosibirskiye Islands to Lomonosov Ridge']
@@ -218,12 +222,14 @@ if transectfile is not None:
 #        transform=noProj)
 
 _add_bbox(ax, extent)
-ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
+#ax.gridlines(draw_labels=True, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6)
+ax.gridlines(draw_labels=False, x_inline=False, y_inline=False, color='k', linestyle=':', zorder=6) # Nordic Seas schematic
 add_land_lakes_coastline(ax)
 #ax.set_title('Barents, Kara, Laptev Seas, and Eurasian basin', y=1.04, fontsize=20)
 ##plt.savefig(f'{figdir}/barentsKaraLaptevRegions.png', bbox_inches='tight')
 #plt.savefig(f'{figdir}/nordicBarentsKaraLaptevRegions.png', bbox_inches='tight')
-plt.savefig(f'{figdir}/nordicSeaRegions_withBathy.png', bbox_inches='tight')
+#plt.savefig(f'{figdir}/nordicSeaRegions_withBathy.png', bbox_inches='tight')
+plt.savefig(f'{figdir}/nordicSeaRegions_withBathy4schematic.png', bbox_inches='tight') # Nordic Seas schematic
 plt.close()
 boh
 
