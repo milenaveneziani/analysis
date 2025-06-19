@@ -179,6 +179,7 @@ fig.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
 
 # Make scatter plot for a range of lags
 for lag in np.arange(0, 7, dtype=np.int16):
+    # First do one scatter plot for *all* ensemble members 
     figfile = f'{figdir}/spice0{transectNameShort}_maxMLD{regionNameShort}_scatterLag{lag:02d}.png'
     figtitle = f'Upper 500 m {transectName} spice vs \n{regionName} maxMLD (Lag={lag:02d}-year)'
     fig = plt.figure(figsize=(5, 5), dpi=figdpi)
@@ -208,10 +209,47 @@ for lag in np.arange(0, 7, dtype=np.int16):
     pearson_corr = stats.pearsonr(fld1, fld2)
     corr = pearson_corr.statistic
     pval = pearson_corr.pvalue
-    #print(corr, pval)
+    print(corr, pval)
     ax.scatter(fld1, fld2, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
     ax.grid(visible=True, which='both')
     ax.legend(prop=legend_properties)
     fig.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
+
+    # Then do one scatter plot for each ensemble member 
+    #for nEns in range(nEnsembles):
+    #    ensembleMemberName = ensembleMemberNames[nEns]
+    #    figfile = f'{figdir}{ensembleMemberName}/spice0{transectNameShort}_maxMLD{regionNameShort}_scatterLag{lag:02d}.png'
+    #    figtitle = f'Upper 500 m {transectName} spice vs \n{regionName} maxMLD (Lag={lag:02d}-year, ensemble={ensembleMemberName})'
+    #    fig = plt.figure(figsize=(5, 5), dpi=figdpi)
+    #    ax = fig.add_subplot()
+    #    for tick in ax.xaxis.get_ticklabels():
+    #        tick.set_fontsize(fontsize_smallLabels)
+    #        tick.set_weight('bold')
+    #    for tick in ax.yaxis.get_ticklabels():
+    #        tick.set_fontsize(fontsize_smallLabels)
+    #        tick.set_weight('bold')
+    #    ax.yaxis.get_offset_text().set_fontsize(fontsize_smallLabels)
+    #    ax.yaxis.get_offset_text().set_weight('bold')
+    #    ax.set_xlabel('JFMA spice', fontsize=fontsize_labels, fontweight='bold')
+    #    ax.set_ylabel('JFMA maxMLD', fontsize=fontsize_labels, fontweight='bold')
+    #    ax.set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
+    # 
+    #    if lag==0:
+    #        fld1 = spice_seasonal[nEns, :]
+    #        fld2 = maxMLD_seasonal[nEns, :]
+    #    if lag>0:
+    #        fld1 = spice_seasonal[nEns, 0:-lag]
+    #        fld2 = maxMLD_seasonal[nEns, lag::]
+    #    if lag<0:
+    #        fld1 = spice_seasonal[nEns -1:-lag-1:-1]
+    #        fld2 = maxMLD_seasonal[nEns -1+lag::-1]
+    #
+    #    pearson_corr = stats.pearsonr(fld1, fld2)
+    #    corr = pearson_corr.statistic
+    #    pval = pearson_corr.pvalue
+    #    ax.scatter(fld1, fld2, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
+    #    ax.grid(visible=True, which='both')
+    #    ax.legend(prop=legend_properties)
+    #    fig.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
 
 #plt.show()
