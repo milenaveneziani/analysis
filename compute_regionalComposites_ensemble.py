@@ -83,8 +83,8 @@ regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '
 #   Ocean variables
 modelComp = 'ocn'
 modelName = 'mpaso'
-mpasFile = 'timeSeriesStatsMonthly'
-variables = [
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
 #             {'name': 'velocityZonalDepthAvg',
 #              'mpas': 'timeMonthly_avg_velocityZonal'},
 #             {'name': 'velocityMeridionalDepthAvg',
@@ -97,10 +97,10 @@ variables = [
 #              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
 #             {'name': 'activeTracers_salinity',
 #              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
-             {'name': 'activeTracers_temperatureDepthAvg',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-             {'name': 'activeTracers_salinityDepthAvg',
-             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+#             {'name': 'activeTracers_temperatureDepthAvg',
+#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+#             {'name': 'activeTracers_salinityDepthAvg',
+#             'mpas': 'timeMonthly_avg_activeTracers_salinity'},
 #             {'name': 'dThreshMLD',
 #              'mpas': 'timeMonthly_avg_dThreshMLD'},
 #             {'name': 'windStressZonal',
@@ -123,15 +123,15 @@ variables = [
 #              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
 #             {'name': 'sensibleHeatFlux',
 #              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
-             {'name': 'latentHeatFlux',
-              'mpas': 'timeMonthly_avg_latentHeatFlux'}
-             ]
+#             {'name': 'latentHeatFlux',
+#              'mpas': 'timeMonthly_avg_latentHeatFlux'}
+#             ]
 #
-#mpasFile = 'timeSeriesStatsMonthlyMax'
-#variables = [
-#             {'name': 'maxMLD',
-#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-#            ]
+mpasFile = 'timeSeriesStatsMonthlyMax'
+variables = [
+             {'name': 'maxMLD',
+              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+            ]
 #   Sea ice variables
 #modelComp = 'ice'
 #modelName = 'mpassi'
@@ -300,6 +300,9 @@ years2d = np.tile(years, (nEnsembles, 1))
 years_low  = np.int32(years2d*conditionLow)
 years_high = np.int32(years2d*conditionHigh)
 years_med  = np.int32(years2d*conditionMed)
+print(years_low)
+print(years_high)
+boh
 
 # Save this information to ascii files
 with open(f'{outdir}/years_{timeseriesVar}low_{regionNameShort}.dat', 'w') as outfile:

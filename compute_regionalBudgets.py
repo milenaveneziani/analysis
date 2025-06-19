@@ -468,6 +468,18 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity horizontal mixing tendency variable found')
+                if 'timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency' in dsIn.keys():
+                    salinityTend = dsIn.timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
+                    salinityTend = salinityTend.where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['saltNonLocalTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change due to non local mixing', units='1.e-3 s^-1', )
+                        )
+                else:   
+                    raise KeyError('no salinity non local tendency variable found')
                 if 'timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -546,8 +558,9 @@ for n in range(nRegions):
         saltVadvTend = dsBudgets['saltVAdvTendency']
         saltHmixTend = dsBudgets['saltHMixTendency']
         saltVmixTend = dsBudgets['saltVMixTendency']
+        saltNonLocalTend = dsBudgets['saltNonLocalTendency']
         saltSurfaceFluxTend = dsBudgets['saltSurfaceFluxTendency']
-        tot = saltHadvTend + saltVadvTend + saltHmixTend + saltVmixTend + saltSurfaceFluxTend
+        tot = saltHadvTend + saltVadvTend + saltHmixTend + saltVmixTend + saltNonLocalTend + saltSurfaceFluxTend
         saltRes = saltTend - tot
         # Read in previously computed heat budget quantities
 
@@ -570,6 +583,7 @@ for n in range(nRegions):
             saltVadvTend_runavg = pd.Series(saltVadvTend).rolling(window, center=True).mean()
             saltHmixTend_runavg = pd.Series(saltHmixTend).rolling(window, center=True).mean()
             saltVmixTend_runavg = pd.Series(saltVmixTend).rolling(window, center=True).mean()
+            saltNonLocalTend_runavg = pd.Series(saltNonLocalTend).rolling(window, center=True).mean()
             saltSurfaceFluxTend_runavg = pd.Series(saltSurfaceFluxTend).rolling(window, center=True).mean()
             saltRes_runavg = pd.Series(saltRes).rolling(window, center=True).mean()
             #
@@ -593,6 +607,7 @@ for n in range(nRegions):
         saltVadvTendMean = saltVadvTend.mean().values
         saltHmixTendMean = saltHmixTend.mean().values
         saltVmixTendMean = saltVmixTend.mean().values
+        saltNonLocalTendMean = saltNonLocalTend.mean().values
         saltSurfaceFluxTendMean = saltSurfaceFluxTend.mean().values
         saltResMean = saltRes.mean().values
         #
@@ -729,18 +744,20 @@ for n in range(nRegions):
         ax = fig.add_subplot()
         if movingAverageMonths==1:
             ax.plot(t, saltHadvTend, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ax.plot(t, saltVadvTend, 'c', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, saltHmixTend, 'g', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, saltVmixTend, 'b', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, saltSurfaceFluxTend, 'salmon', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            ax.plot(t, saltVadvTend, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+            ax.plot(t, saltVmixTend, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+            ax.plot(t, saltNonLocalTend, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+            ax.plot(t, saltHmixTend, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+            ax.plot(t, saltSurfaceFluxTend, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, saltTend, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, saltRes, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
         else:
             ax.plot(t, saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ax.plot(t, saltVadvTend_runavg, 'c', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, saltHmixTend_runavg, 'g', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, saltVmixTend_runavg, 'b', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, saltSurfaceFluxTend_runavg, 'salmon', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            ax.plot(t, saltVadvTend_runavg, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+            ax.plot(t, saltVmixTend_runavg, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+            ax.plot(t, saltNonLocalTend_runavg, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+            ax.plot(t, saltHmixTend_runavg, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+            ax.plot(t, saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
