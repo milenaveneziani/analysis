@@ -62,17 +62,18 @@ isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir
 #rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
 #isShortTermArchive = False
 
-computeDepthAvg = False
+computeDepthAvg = True
 # Relevant only for computeDepthAvg = True
-zmins = [-100., -6000.]
-zmaxs = [0., 0.]
+zmins = [-300.]
+zmaxs = [0.]
 # Relevant only for computeDepthAvg = False
 dlevels = [0.]
 
 #regionGroups = ['Arctic Regions']
-regionGroups = ['arctic_atlantic_budget_regions_new20240408']
+#regionGroups = ['arctic_atlantic_budget_regions_new20240408']
 #regionGroups = ['OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
+regionGroups = ['southAtlantic_eastWest_regions']
 
 # Choose ocean 3d variables to process
 #
