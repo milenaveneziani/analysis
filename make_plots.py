@@ -7,7 +7,7 @@ import matplotlib.colors as cols
 from matplotlib.colors import BoundaryNorm
 import cartopy
 import cartopy.crs as ccrs
-import mosaic
+#import mosaic
 from cartopy.util import add_cyclic_point
 import matplotlib.ticker as mticker
 import cmocean
@@ -100,6 +100,8 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    elif projectionName=='Miller':
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
     else:
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
