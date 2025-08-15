@@ -370,6 +370,7 @@ for regionGroup in regionGroups:
                     fig = timeseries_analysis_plot(field, movingAverageMonths,
                                                    title, xLabel, yLabel,
                                                    calendar=calendar,
+                                                   timevarname = 'Time',
                                                    lineColors=lineColors,
                                                    lineWidths=lineWidths,
                                                    legendText=legendText)
@@ -423,6 +424,7 @@ for regionGroup in regionGroups:
                     fig = timeseries_analysis_plot(field, movingAverageMonths,
                                                    title, xLabel, yLabel,
                                                    calendar=calendar,
+                                                   timevarname = 'Time',
                                                    lineColors=lineColors,
                                                    lineWidths=lineWidths,
                                                    legendText=legendText)

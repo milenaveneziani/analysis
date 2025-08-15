@@ -488,7 +488,7 @@ def subdivide_geom(geometry, geomtype, maxLength):
 
 
 def timeseries_analysis_plot(dsvalues, N, title, xlabel, ylabel,
-                             calendar, lineColors=None,
+                             calendar, timevarname='Time', lineColors=None,
                              lineStyles=None, markers=None, lineWidths=None,
                              legendText=None, maxPoints=None,
                              titleFontSize=None, figsize=(15, 6), dpi=None,
@@ -514,6 +514,9 @@ def timeseries_analysis_plot(dsvalues, N, title, xlabel, ylabel,
 
     calendar : str
         the calendar to use for formatting the time axis
+
+    timevarname : str
+        the name of the time variable. Default is 'Time'.
 
     lineColors, lineStyles, markers, legendText : list of str, optional
         control line color, style, marker, and corresponding legend
@@ -594,11 +597,11 @@ def timeseries_analysis_plot(dsvalues, N, title, xlabel, ylabel,
             mean = pd.Series.rolling(dsvalue.to_pandas(), N,
                                      center=True).mean()
             mean = xr.DataArray.from_series(mean)
-        minDays.append(mean.Time.min())
-        maxDays.append(mean.Time.max())
+        minDays.append(mean[timevarname].min())
+        maxDays.append(mean[timevarname].max())
 
         if maxPoints is not None and maxPoints[dsIndex] is not None:
-            nTime = mean.sizes['Time']
+            nTime = mean.sizes[timevarname]
             if maxPoints[dsIndex] < nTime:
                 stride = int(round(nTime / float(maxPoints[dsIndex])))
                 mean = mean.isel(Time=slice(0, None, stride))
@@ -625,7 +628,7 @@ def timeseries_analysis_plot(dsvalues, N, title, xlabel, ylabel,
         else:
             linewidth = lineWidths[dsIndex]
 
-        plt.plot(mean['Time'].values, mean.values, color=color,
+        plt.plot(mean[timevarname].values, mean.values, color=color,
                  linestyle=linestyle, marker=marker, linewidth=linewidth,
                  label=label)
 
