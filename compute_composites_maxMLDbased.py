@@ -193,7 +193,7 @@ zmax = 0.
 # The following is only relevant for depthAvg variables
 dsMesh = xr.open_dataset(meshFile)
 depth = dsMesh.bottomDepth
-maxLevelCell = dsMesh.maxLevelCell
+maxLevelCell = dsMesh.maxLevelCell - 1 # now compute_zmid uses 0-based indexing
 
 #####
 ##### STEP 0 #####

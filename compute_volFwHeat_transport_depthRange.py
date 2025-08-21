@@ -136,8 +136,8 @@ landmask2 = ~(coe1==0)
 coe0 = coe0 - 1
 coe1 = coe1 - 1
 #
-maxLevelCell1 = dsMesh.maxLevelCell.isel(nCells=coe0)
-maxLevelCell2 = dsMesh.maxLevelCell.isel(nCells=coe1)
+maxLevelCell1 = dsMesh.maxLevelCell.isel(nCells=coe0) - 1 # now compute_zmid uses 0-based indexing
+maxLevelCell2 = dsMesh.maxLevelCell.isel(nCells=coe1) - 1 # now compute_zmid uses 0-based indexing
 depth1 = dsMesh.bottomDepth.isel(nCells=coe0)
 depth2 = dsMesh.bottomDepth.isel(nCells=coe1)
 nVertLevels = dsMesh.sizes['nVertLevels']

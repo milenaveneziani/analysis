@@ -175,7 +175,7 @@ dsMesh = xr.open_dataset(meshFile)
 depth = dsMesh.bottomDepth
 lat = 180.0/np.pi*dsMesh.latCell
 lon = 180.0/np.pi*dsMesh.lonCell
-maxLevelCell = dsMesh.maxLevelCell
+maxLevelCell = dsMesh.maxLevelCell - 1 # now compute_zmid uses 0-based indexing
 pressure = gsw.p_from_z(-depth, lat)
 
 #####

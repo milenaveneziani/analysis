@@ -117,7 +117,7 @@ else:
 areaCell = dsMesh.areaCell
 globalArea = areaCell.sum()
 depth = dsMesh.bottomDepth
-maxLevelCell = dsMesh.maxLevelCell
+maxLevelCell = dsMesh.maxLevelCell - 1 # now compute_zmid uses 0-based indexing
 
 # Find model levels for each depth level (relevant if computeDepthAvg = False)
 z = dsMesh.refBottomDepth

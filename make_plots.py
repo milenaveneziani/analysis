@@ -7,7 +7,7 @@ import matplotlib.colors as cols
 from matplotlib.colors import BoundaryNorm
 import cartopy
 import cartopy.crs as ccrs
-#import mosaic
+import mosaic
 from cartopy.util import add_cyclic_point
 import matplotlib.ticker as mticker
 import cmocean
@@ -22,6 +22,8 @@ def make_mosaic_descriptor(dsMesh, projectionName):
         projection = ccrs.NorthPolarStereo()
     elif projectionName=='SouthPolarStereo':
         projection = ccrs.SouthPolarStereo()
+    elif projectionName=='Miller':
+        projection = ccrs.Miller()
     else:
         projection = ccrs.Robinson()
 
@@ -43,6 +45,8 @@ def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, showEdg
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    elif projectionName=='Miller':
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
     else:
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
@@ -157,6 +161,8 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    elif projectionName=='Miller':
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
     else:
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
@@ -205,6 +211,8 @@ def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTit
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    elif projectionName=='Miller':
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
     else:
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
@@ -255,6 +263,8 @@ def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figT
         ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
     elif projectionName=='SouthPolarStereo':
         ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+    elif projectionName=='Miller':
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
     else:
         ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)

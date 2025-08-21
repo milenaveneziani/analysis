@@ -232,7 +232,7 @@ lon = mesh.lonCell.values
 weights = np.cos(lat)
 lat = np.rad2deg(lat)
 lon = np.rad2deg(lon)
-zMid = compute_zmid(mesh.bottomDepth, mesh.maxLevelCell, mesh.layerThickness).squeeze()
+zMid = compute_zmid(mesh.bottomDepth, mesh.maxLevelCell-1, mesh.layerThickness).squeeze()
 depthMask = np.logical_and(zMid >= zmin, zMid <= zmax)
 depthMask.compute()
 
