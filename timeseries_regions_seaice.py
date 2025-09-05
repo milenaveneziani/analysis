@@ -16,7 +16,7 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import timeseries_analysis_plot, add_inset
 
 #startYear = 2000
-startYear = 2013
+startYear = 2010
 endYear = 2014
 #startYear = 1
 #endYear = 1
@@ -29,8 +29,8 @@ calendar = 'gregorian'
 regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0301'
-runNameShort = 'E3SMv2.1-Arctic-historical0301'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
 rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
@@ -200,6 +200,11 @@ modelComp = 'ice'
 mpasFile = 'timeSeriesStatsDaily'
 mpasvar = 'timeDaily_avg'
 variables = [
+             {'name': 'icePressure',
+              'title': 'sea ice pressure',
+              'units': 'N m$^{-1}$',
+              'factor': 1,
+              'mpas': f'{mpasvar}_icePressure'},
              {'name': 'iceConcentration',
               'title': 'sea ice concentration',
               'units': 'fraction',
@@ -215,6 +220,17 @@ variables = [
               'units': 'km$^3$',
               'factor': 1e-9,
               'mpas': f'{mpasvar}_iceVolumeCell'},
+             {'name': 'uVelocityGeo',
+              'title': 'sea ice velocity zonal',
+              'units': 'm/s',
+              'factor': 1,
+              'mpas': f'{mpasvar}_uVelocityGeo'},
+             {'name': 'vVelocityGeo',
+              'title': 'sea ice velocity meridional',
+              'units': 'm/s',
+              'factor': 1,
+              'mpas': f'{mpasvar}_vVelocityGeo'},
+# the following are only available as monthly (for E3SMv2.1 runs):
 #             {'name': 'iceDivergence',
 #              'title': 'sea ice divergence',
 #              'units': '%/day',
@@ -275,16 +291,6 @@ variables = [
 #              'units': 'm/s',
 #              'factor': 1,
 #              'mpas': f'{mpasvar}_vAirVelocity'},
-             {'name': 'uVelocityGeo',
-              'title': 'sea ice velocity zonal',
-              'units': 'm/s',
-              'factor': 1,
-              'mpas': f'{mpasvar}_uVelocityGeo'},
-             {'name': 'vVelocityGeo',
-              'title': 'sea ice velocity meridional',
-              'units': 'm/s',
-              'factor': 1,
-              'mpas': f'{mpasvar}_vVelocityGeo'},
 #             {'name': 'airStressVertexUGeo',
 #              'title': 'ice-air stress zonal',
 #              'units': 'N/m$^2$',
@@ -458,6 +464,7 @@ for regionGroup in regionGroups:
                                         fwc[itime, icell] = fwc_tmp.sum()
                             fwc = xr.DataArray(data=fwc, dims=('Time', 'nCells'))
                             fwc = (localAreaCell*fwc.where(cellMask, drop=True)).sum(dim='nCells')
+                            fwc = varfactor * fwc
                             dsOut = xr.Dataset(data_vars={varname: fwc},
                                                coords={'Time': dsIn.Time},
                                                attrs={'units': varunits, 'description': vartitle})
@@ -474,6 +481,7 @@ for regionGroup in regionGroups:
                             totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalAreaCell
                         else:
                             totalHeatFlux = (localAreaCell*totalHeatFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalAreaCell
+                        totalHeatFlux = varfactor * totalHeatFlux
                         dsOut = xr.Dataset(data_vars={varname: totalHeatFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
@@ -488,6 +496,7 @@ for regionGroup in regionGroups:
                             totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalAreaCell
                         else:
                             totalFWFlux = (localAreaCell*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalAreaCell
+                        totalFWFlux = varfactor * totalFWFlux
                         dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
@@ -498,6 +507,7 @@ for regionGroup in regionGroups:
                             dsOut = (areaCell*dsIn).sum(dim='nCells')
                         else:
                             dsOut = (localAreaCell*dsIn.where(cellMask, drop=True)).sum(dim='nCells')
+                        dsOut = varfactor * dsOut
                         dsOut = dsOut.rename({varmpasname: varname})
                         dsOut[varname].attrs['units'] = varunits
                         dsOut[varname].attrs['description'] = vartitle
@@ -507,6 +517,7 @@ for regionGroup in regionGroups:
                             dsOut = (areaTriangle*dsIn).sum(dim='nVertices') / globalAreaTriangle
                         else:
                             dsOut = (localAreaTriangle*dsIn.isel(nVertices=vertices_inregion-1, drop=True)).sum(dim='nVertices') / regionalAreaTriangle
+                        dsOut = varfactor * dsOut
                         dsOut = dsOut.rename({varmpasname: varname})
                         dsOut[varname].attrs['units'] = varunits
                         dsOut[varname].attrs['description'] = vartitle
@@ -515,11 +526,10 @@ for regionGroup in regionGroups:
                             dsOut = (areaCell*dsIn).sum(dim='nCells') / globalAreaCell
                         else:
                             dsOut = (localAreaCell*dsIn.where(cellMask, drop=True)).sum(dim='nCells') / regionalAreaCell
+                        dsOut = varfactor * dsOut
                         dsOut = dsOut.rename({varmpasname: varname})
                         dsOut[varname].attrs['units'] = varunits
                         dsOut[varname].attrs['description'] = vartitle
-
-                    dsOut = varfactor * dsOut
 
                     if regionName=='Global':
                         dsOut['totalAreaCell'] = globalAreaCell
