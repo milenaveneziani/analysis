@@ -37,42 +37,46 @@ def get_mask_short_names(mask):
 
 
 # Settings for nersc
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-#outfile0 = 'atlanticZonalSectionsTransports'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-outfile0 = 'arcticSectionsTransports'
-casenameFull = 'E3SM-Arcticv2.1_historical0301'
-casename = 'E3SM-Arcticv2.1_historical0301'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+##featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+##outfile0 = 'atlanticZonalSectionsTransports'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+#outfile0 = 'arcticSectionsTransports'
+#casenameFull = 'E3SM-Arcticv2.1_historical0301'
+#casename = 'E3SM-Arcticv2.1_historical0301'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
+outfile0 = 'arcticSubarcticSectionsTransports'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
 #outfile0 = 'atlanticZonalSectionsTransports'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransports'
-#casenameFull = 'E3SMv2.1B60to10rA02'
-#casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
 #modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
-year1 = 1950
-year2 = 2014
-#year1 = 1
-#year2 = 386 # rA02
+#year1 = 1950
+#year2 = 2014
+year1 = 1
+year2 = 386 # rA02
 #year2 = 246 # rA07
 years = range(year1, year2+1)
 
-zmin = -500.0
-zmax = 0.0
+zmin = -400.0
+#zmin = -500.0
+zmax = 10.0
 
 figdir = f'./transports/{casename}'
 if not os.path.isdir(figdir):
@@ -161,7 +165,10 @@ for year in years:
     kyear = kyear + 1
     print(f'Year = {year:04d} ({kyear} out of {len(years)} years total)')
 
-    outfile = f'{outdir}/{outfile0}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc'
+    if zmax>0:
+        outfile = f'{outdir}/{outfile0}_z0000-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc'
+    else:
+        outfile = f'{outdir}/{outfile0}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc'
     # Compute transports if outfile does not exist
     if not os.path.exists(outfile):
         dsOut = []
@@ -345,7 +352,10 @@ print(f'\nPlotting...')
 # Read in previously computed transport quantities
 infiles = []
 for year in years:
-    infiles.append(f'{outdir}/{outfile0}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc')
+    if zmax>0:
+        infiles.append(f'{outdir}/{outfile0}_z0000-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc')
+    else:
+        infiles.append(f'{outdir}/{outfile0}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc')
 dsIn = xr.open_mfdataset(infiles, decode_times=False)
 t = dsIn['Time'].values
 volTransport = dsIn['volTransport'].values
@@ -400,7 +410,10 @@ for i in range(nTransects):
     temp_runavg = pd.Series.rolling(pd.DataFrame(tempTransect[:, i]), 12, center=True).mean()
     spice_runavg = pd.Series.rolling(pd.DataFrame(spiceTransect[:, i]), 12, center=True).mean()
 
-    figfile = f'{figdir}/transports_{transectName_forfigfile}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}.png'
+    if zmax>0:
+        figfile = f'{figdir}/transports_{transectName_forfigfile}_z0000-{np.abs(np.int32(zmin)):04d}_{casename}.png'
+    else:
+        figfile = f'{figdir}/transports_{transectName_forfigfile}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}.png'
 
     # Plot Volume Transport
     fig = plt.figure(figsize=figsize)
@@ -488,7 +501,10 @@ for i in range(nTransects):
     ax8.legend()
 
     fig.tight_layout(pad=0.5)
-    fig.suptitle(f'Transect = {transectName}\nrunname = {casename}, depth range={np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}', fontsize=14, fontweight='bold', y=1.045)
+    if zmax>0:
+        fig.suptitle(f'Transect = {transectName}\nrunname = {casename}, depth range=0000-{np.abs(np.int32(zmin)):04d}', fontsize=14, fontweight='bold', y=1.045)
+    else:
+        fig.suptitle(f'Transect = {transectName}\nrunname = {casename}, depth range={np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}', fontsize=14, fontweight='bold', y=1.045)
     add_inset(fig, fc, width=1.5, height=1.5, xbuffer=-0.5, ybuffer=-1.65)
 
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
