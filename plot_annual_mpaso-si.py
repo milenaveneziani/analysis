@@ -3,9 +3,10 @@ from __future__ import absolute_import, division, print_function, \
 import os
 import numpy as np
 import xarray as xr
-import cmocean
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols
+import cmocean
+
 
 from make_plots import make_scatter_plot, make_mosaic_descriptor, make_mosaic_plot
 
@@ -14,16 +15,15 @@ from make_plots import make_scatter_plot, make_mosaic_descriptor, make_mosaic_pl
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
 runname = 'E3SMv2.1G60to10_01'
-indir = f'/p/cwfs/milena/{runname}/archive/ocn/hist'
-#indir = f'/p/cwfs/milena/{runname}/archive/ice/hist'
+indir = f'/p/cwfs/milena/{runname}/archive'
 #runname = 'E3SMv2.1B60to10rA07'
-#indir = f'/p/cwfs/apcraig/archive/{runname}/ocn/hist'
-#indir = f'/p/cwfs/apcraig/archive/{runname}/ice/hist'
+#indir = f'/p/cwfs/apcraig/archive/{runname}'
+isShortTermArchive = True # if True, {modelname}/hist will be appended to indir
 
 # Annual mean for year 1 will be plotted first, and then the
 # differences between yearsToPlot and year 1 will be plotted
 yearsToPlot = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50]
-#yearsToPlot = [2, 50]
+#yearsToPlot = [50]
 
 colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 
@@ -35,37 +35,47 @@ lat0 = -60.0
 lat1 = 90.0
 dlat = 30.0
 
-modelname = 'ocean'
+modelname = 'ocn'
+modelnameOut = 'ocean'
 mpascomp = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'EminusP',
-              'mpasvarname': None,
-              'title': 'E-P',
-              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
-              'factor': 1e6,
-              'colormap_year1': plt.get_cmap('PuOr_r'),
-              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+#             {'name': 'EminusP',
+#              'mpasvarname': None,
+#              'title': 'E-P',
+#              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
+#              'factor': 1e6,
+#              'colormap_year1': plt.get_cmap('PuOr_r'),
+#              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+#              'colormap': cmocean.cm.balance,
+#              'clevels': [-50, -40, -30, -20, -10, -5, 0, 5, 10, 20, 30, 40, 50]},
+#             {'name': 'seaIceFreshWaterFlux',
+#              'mpasvarname': 'timeMonthly_avg_seaIceFreshWaterFlux',
+#              'title': 'sea ice FW flux',
+#              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
+#              'factor': 1e6,
+#              'colormap_year1': plt.get_cmap('PuOr_r'),
+#              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+#              'colormap': cmocean.cm.balance,
+#              'clevels': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150]},
+             {'name': 'surfaceBuoyancyForcing',
+              'mpasvarname': 'timeMonthly_avg_surfaceBuoyancyForcing',
+              'title': 'sfc buoyancy flux',
+              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
+              'factor': 1e8,
+              'colormap_year1': plt.get_cmap('BrBG_r'),
+              'clevels_year1': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
               'colormap': cmocean.cm.balance,
-              'clevels': [-50, -40, -30, -20, -10, -5, 0, 5, 10, 20, 30, 40, 50]},
-             {'name': 'seaIceFreshWaterFlux',
-              'mpasvarname': 'timeMonthly_avg_seaIceFreshWaterFlux',
-              'title': 'sea ice FW flux',
-              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
-              'factor': 1e6,
-              'colormap_year1': plt.get_cmap('PuOr_r'),
-              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
-              'colormap': cmocean.cm.balance,
-              'clevels': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150]},
-             {'name': 'MLD',
-              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
-              'title': 'Mean MLD',
-              'units': 'm',
-              'factor': 1,
-              'colormap_year1': plt.get_cmap('viridis'),
-              'clevels_year1': [20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 210, 250, 300],
-              'colormap': cmocean.cm.balance,
-              'clevels': [-100.0, -80.0, -60.0, -40.0, -20.0, -10.0, 0.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0]},
+              'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4]},
+#             {'name': 'MLD',
+#              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
+#              'title': 'Mean MLD',
+#              'units': 'm',
+#              'factor': 1,
+#              'colormap_year1': plt.get_cmap('viridis'),
+#              'clevels_year1': [20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 210, 250, 300],
+#              'colormap': cmocean.cm.balance,
+#              'clevels': [-100.0, -80.0, -60.0, -40.0, -20.0, -10.0, 0.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0]},
             ]
 #mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
@@ -80,7 +90,8 @@ variables = [
 #              'clevels': [-300.0, -250.0, -200.0, -150.0, -100.0, -50.0, 0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0]},
 #            ]
 
-#modelname = 'seaice'
+#modelname = 'ice'
+#modelnameOut = 'seaice'
 #mpascomp = 'mpassi'
 #mpasFile = 'timeSeriesStatsMonthly'
 #variables = [
@@ -98,7 +109,10 @@ variables = [
 #              'clevels': [-50.0, -40.0, -30.0, -20.0, -15.0, -5.0, 0.0, 5.0, 15.0, 20.0, 30.0, 40.0, 50.0]},
 #           ]
 
-figdir = f'./{modelname}_native/{runname}'
+if isShortTermArchive:
+    indir = f'{indir}/{modelname}/hist'
+
+figdir = f'./{modelnameOut}_native/{runname}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
@@ -141,6 +155,7 @@ for var in variables:
     else:
         fld = factor * ds[mpasvarname]
     fld = fld.mean(dim='Time')
+    print(np.nanmin(fld), np.nanmax(fld))
 
     # Save year 1 annual average
     dsYear1[varname] = fld
