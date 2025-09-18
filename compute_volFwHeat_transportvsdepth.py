@@ -36,40 +36,43 @@ def get_mask_short_names(mask):
 
 
 # Settings for nersc
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-##featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-##outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
+meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
+outfile0 = 'arcticSubarcticSectionsTransportsvsdepth'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransportsvsdepth'
-#casenameFull = 'E3SM-Arcticv2.1_historical0301'
-#casename = 'E3SM-Arcticv2.1_historical0301'
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SM-Arcticv2.1_historical0301'
+casename = 'E3SM-Arcticv2.1_historical0301'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
-featurefile = '/p/home/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
-outfile0 = 'arcticSubarcticSectionsTransports'
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
+#outfile0 = 'arcticSubarcticSectionsTransports'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
 #outfile0 = 'atlanticZonalSectionsTransportsvsdepth'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
 #outfile0 = 'arcticSectionsTransportsvsdepth'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
-modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
+#modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
 #modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Choose years
-#year1 = 1950
-#year2 = 2014
-year1 = 1
-year2 = 386 # rA02
+year1 = 1950
+year2 = 2014
+#year1 = 1
+#year2 = 386 # rA02
 #year2 = 246 # rA07
 years = range(year1, year2+1)
 
