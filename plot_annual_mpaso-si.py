@@ -14,10 +14,10 @@ from make_plots import make_scatter_plot, make_mosaic_descriptor, make_mosaic_pl
 # Settings for erdc.hpc.mil
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
-runname = 'E3SMv2.1G60to10_01'
-indir = f'/p/cwfs/milena/{runname}/archive'
-#runname = 'E3SMv2.1B60to10rA07'
-#indir = f'/p/cwfs/apcraig/archive/{runname}'
+#runname = 'E3SMv2.1G60to10_01'
+#indir = f'/p/cwfs/milena/{runname}/archive'
+runname = 'E3SMv2.1B60to10rA07'
+indir = f'/p/cwfs/apcraig/archive/{runname}'
 isShortTermArchive = True # if True, {modelname}/hist will be appended to indir
 
 # Annual mean for year 1 will be plotted first, and then the
@@ -40,6 +40,33 @@ modelnameOut = 'ocean'
 mpascomp = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
+             #{'name': 'windStress',
+             # 'mpasvarname': None,
+             # 'title': 'wind stress magnitude',
+             # 'units': 'N/m$^2$',
+             # 'factor': 1,
+             # 'colormap_year1': cmocean.cm.speed_r,
+             # 'clevels_year1': [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12, 0.14, 0.15],
+             # 'colormap': cmocean.cm.balance,
+             # 'clevels': [-0.06, -0.05, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06]},
+             {'name': 'evaporationFlux',
+              'mpasvarname': 'timeMonthly_avg_evaporationFlux',
+              'title': 'E',
+              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
+              'factor': 1e6,
+              'colormap_year1': plt.get_cmap('PuOr_r'),
+              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+              'colormap': cmocean.cm.balance,
+              'clevels': [-50, -40, -30, -20, -10, -5, 0, 5, 10, 20, 30, 40, 50]},
+             {'name': 'precip',
+              'mpasvarname': None,
+              'title': 'P (rain+snow)',
+              'units': '10$^{-6}$ kg m$^{-2}$ s$^{-1}$',
+              'factor': 1e6,
+              'colormap_year1': plt.get_cmap('PuOr_r'),
+              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
+              'colormap': cmocean.cm.balance,
+              'clevels': [-50, -40, -30, -20, -10, -5, 0, 5, 10, 20, 30, 40, 50]},
 #             {'name': 'EminusP',
 #              'mpasvarname': None,
 #              'title': 'E-P',
@@ -58,15 +85,15 @@ variables = [
 #              'clevels_year1': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150],
 #              'colormap': cmocean.cm.balance,
 #              'clevels': [-150, -125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150]},
-             {'name': 'surfaceBuoyancyForcing',
-              'mpasvarname': 'timeMonthly_avg_surfaceBuoyancyForcing',
-              'title': 'sfc buoyancy flux',
-              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
-              'factor': 1e8,
-              'colormap_year1': plt.get_cmap('BrBG_r'),
-              'clevels_year1': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
-              'colormap': cmocean.cm.balance,
-              'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4]},
+#             {'name': 'surfaceBuoyancyForcing',
+#              'mpasvarname': 'timeMonthly_avg_surfaceBuoyancyForcing',
+#              'title': 'sfc buoyancy flux',
+#              'units': '10$^{-8}$ m$^2$ s$^{-3}$',
+#              'factor': 1e8,
+#              'colormap_year1': plt.get_cmap('BrBG_r'),
+#              'clevels_year1': [-4.8, -4, -3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2, 4, 4.8],
+#              'colormap': cmocean.cm.balance,
+#              'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4]},
 #             {'name': 'MLD',
 #              'mpasvarname': 'timeMonthly_avg_dThreshMLD',
 #              'title': 'Mean MLD',
@@ -107,6 +134,15 @@ variables = [
 #              'clevels_year1': [10, 15, 30, 50, 80, 90, 95, 97, 98, 99, 100],
 #              'colormap': cmocean.cm.balance,
 #              'clevels': [-50.0, -40.0, -30.0, -20.0, -15.0, -5.0, 0.0, 5.0, 15.0, 20.0, 30.0, 40.0, 50.0]},
+#             {'name': 'iceVolume',
+#              'mpasvarname': 'timeMonthly_avg_iceVolumeCell',
+#              'title': 'Sea Ice Thickness',
+#              'units': 'm',
+#              'factor': 1,
+#              'colormap_year1': plt.get_cmap('YlGnBu_r'),
+#              'clevels_year1': [0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5],
+#              'colormap': cmocean.cm.balance,
+#              'clevels': [-1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2]},
 #           ]
 
 if isShortTermArchive:
@@ -152,6 +188,14 @@ for var in variables:
         rain = ds['timeMonthly_avg_rainFlux']
         snow = ds['timeMonthly_avg_snowFlux']
         fld = factor * (evap + rain + snow)
+    elif varname=='precip':
+        rain = ds['timeMonthly_avg_rainFlux']
+        snow = ds['timeMonthly_avg_snowFlux']
+        fld = factor * (rain + snow)
+    elif varname=='windStress':
+        ustress = ds['timeMonthly_avg_windStressZonal']
+        vstress = ds['timeMonthly_avg_windStressMeridional']
+        fld = factor * 0.5 * np.sqrt(ustress*ustress + vstress*vstress)
     else:
         fld = factor * ds[mpasvarname]
     fld = fld.mean(dim='Time')
@@ -202,6 +246,14 @@ for year in yearsToPlot:
             rain = ds['timeMonthly_avg_rainFlux']
             snow = ds['timeMonthly_avg_snowFlux']
             fld = factor * (evap + rain + snow)
+        elif varname=='precip':
+            rain = ds['timeMonthly_avg_rainFlux']
+            snow = ds['timeMonthly_avg_snowFlux']
+            fld = factor * (rain + snow)
+        elif varname=='windStress':
+            ustress = ds['timeMonthly_avg_windStressZonal']
+            vstress = ds['timeMonthly_avg_windStressMeridional']
+            fld = factor * 0.5 * np.sqrt(ustress*ustress + vstress*vstress)
         else:
             fld = factor * ds[mpasvarname]
         fld = fld.mean(dim='Time')
