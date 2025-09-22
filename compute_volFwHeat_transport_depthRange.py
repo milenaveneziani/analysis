@@ -38,30 +38,24 @@ def get_mask_short_names(mask):
 
 # Settings for nersc
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects4transports20250918.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arctic_subarctic_transects4transports20250918.geojson'
 outfile0 = 'arcticSubarcticSectionsTransports'
 #maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
 #outfile0 = 'atlanticZonalSectionsTransports'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
-#outfile0 = 'arcticSectionsTransports'
 casenameFull = 'E3SM-Arcticv2.1_historical0301'
 casename = 'E3SM-Arcticv2.1_historical0301'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
 #meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects20250902.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/arctic_subarctic_transects20250902.geojson'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_subarctic_transects4transports20250918.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/arctic_subarctic_transects4transports20250918.geojson'
 #outfile0 = 'arcticSubarcticSectionsTransports'
 #maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
 #outfile0 = 'atlanticZonalSectionsTransports'
-#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
-#outfile0 = 'arcticSectionsTransports'
 #casenameFull = 'E3SMv2.1B60to10rA02'
 #casename = 'E3SMv2.1B60to10rA02'
 #modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
@@ -78,7 +72,6 @@ year2 = 2014
 years = range(year1, year2+1)
 
 zmin = -400.0
-#zmin = -500.0
 zmax = 10.0
 
 figdir = f'./transports/{casename}'
@@ -152,11 +145,6 @@ nVertLevels = dsMesh.sizes['nVertLevels']
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for i in range(nTransects):
     edgeSigns[i, :] = dsMask.sel(nEdges=edgesToRead, shortNames=transectList[i]).squeeze().transectEdgeMaskSigns.values
-    # WARNING: The following is a quick hack valid only for the arcticSections mask file!
-    # I will need to change the geojson files to make *all* transects go from south to north
-    # or west to east, so that I can have the correct edgeSigns for all of them.
-    if transectNames[i]!='Bering Strait' and transectNames[i]!='Hudson Bay-Labrador Sea':
-        edgeSigns[i, :] = -edgeSigns[i, :]
 edgeSigns = xr.DataArray(data=edgeSigns, dims=('nTransect', 'nEdges'))
 refBottom = dsMesh.refBottomDepth
 latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()
@@ -371,17 +359,11 @@ saltTransect = dsIn['saltTransect'].values
 spiceTransect = dsIn['spiceTransect'].values
 
 # Define some dictionaries for transect plotting
-obsDict = {'Drake Passage':[120, 175], 'Tasmania-Ant':[147, 167], 'Africa-Ant':None, 'Antilles Inflow':[-23.1, -13.7], \
-           'Mona Passage':[-3.8, -1.4],'Windward Passage':[-7.2, -6.8], 'Florida-Cuba':[30, 33], 'Florida-Bahamas':[30, 33], \
-           'Indonesian Throughflow':[-21, -11], 'Agulhas':[-90, -50], 'Mozambique Channel':[-20, -8], \
-           'Bering Strait':[0.6, 1.0], 'Lancaster Sound':[-1.0, -0.5], 'Fram Strait':[-4.7, 0.7], \
-           'Robeson Channel':None, 'Davis Strait':[-1.6, -3.6], 'Barents Sea Opening':[1.4, 2.6], \
-           'Nares Strait':[-1.8, 0.2], 'Denmark Strait':None, 'Iceland-Faroe-Scotland':None}
 labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'africaAnt', 'Antilles Inflow':'antilles', \
              'Mona Passage':'monaPassage', 'Windward Passage':'windwardPassage', 'Florida-Cuba':'floridaCuba', \
              'Florida-Bahamas':'floridaBahamas', 'Indonesian Throughflow':'indonesia', 'Agulhas':'agulhas', \
              'Mozambique Channel':'mozambique', 'Bering Strait':'beringStrait', 'Lancaster Sound':'lancasterSound', \
-             'Fram Strait':'framStrait', 'Robeson Channel':'robeson', 'Davis Strait':'davisStrait', 'Barents Sea Opening':'barentsSea', \
+             'Fram Strait':'framStrait', 'Robeson Channel':'robeson', 'Davis Strait':'davisStrait', 'Barents Sea Opening':'barentsSeaOpening', \
              'Nares Strait':'naresStrait', 'Denmark Strait':'denmarkStrait', 'Iceland-Faroe-Scotland':'icelandFaroeScotland'}
 
 figsize = (16, 16)
@@ -398,11 +380,6 @@ for i in range(nTransects):
         transectName_forfigfile = labelDict[transectName]
     else:
         transectName_forfigfile = transectName.replace(" ", "")
-
-    if transectName in obsDict:
-        bounds = obsDict[transectName]
-    else:
-        bounds = None
 
     vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 12, center=True).mean()
     heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 12, center=True).mean()
@@ -423,8 +400,6 @@ for i in range(nTransects):
     ax1 = plt.subplot(421)
     ax1.plot(t, volTransport[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
     ax1.plot(t, vol_runavg, 'r', linewidth=2.2)
-    if bounds is not None:
-        ax1.fill_between(t, np.full_like(t, bounds[0]), np.full_like(t, bounds[1]), alpha=0.3, label='obs (net)')
     ax1.plot(t, np.zeros_like(t), 'k', linewidth=1)
     ax1.grid(color='k', linestyle=':', linewidth = 0.5)
     ax1.autoscale(enable=True, axis='x', tight=True)
