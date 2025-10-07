@@ -15,23 +15,23 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset
 
-#startYear = 1950
-#endYear = 2014
-startYear = 1
-#endYear = 1
-endYear = 50
+startYear = 1950
+endYear = 2014
+#startYear = 1
+##endYear = 1
+#endYear = 50
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0301'
-#runNameShort = 'E3SMv2.1-Arctic-historical0301'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -49,18 +49,18 @@ calendar = 'gregorian'
 #isShortTermArchive = True
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1G60to10_01'
-runNameShort = 'E3SMv2.1G60to10_01'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1G60to10_01'
+#runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
 #rundir = f'/p/cwfs/milena/{runName}'
-runName = 'E3SMv2.1B60to10rA07'
-runNameShort = 'E3SMv2.1B60to10rA07'
-rundir = f'/p/cwfs/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+#runName = 'E3SMv2.1B60to10rA07'
+#runNameShort = 'E3SMv2.1B60to10rA07'
+#rundir = f'/p/cwfs/apcraig/archive/{runName}'
+#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -74,17 +74,18 @@ isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed t
 sref = 34.8 # needed for Arctic fwc calculation
 
 # Quantities needed for plotting only
-movingAverageMonths = 12
-monthsToPlot = range(1, 13)
-titleMonthsToPlot = None
-#movingAverageMonths = 1
-#monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
-#titleMonthsToPlot = 'JFMA'
+#movingAverageMonths = 12
+#monthsToPlot = range(1, 13)
+#titleMonthsToPlot = None
+movingAverageMonths = 1
+monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
+titleMonthsToPlot = 'JFMA'
 
 # region mask file will be $meshname_$regionGroups.nc
 #regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-regionGroups = ['Arctic Regions']
+#regionGroups = ['Arctic Regions']
+regionGroups = ['ginSeas_new']
 ##regionGroups = ['OceanOHC Regions']
 ##regionGroups = ['Antarctic Regions']
 
@@ -95,17 +96,17 @@ regionGroups = ['Arctic Regions']
 #   Ocean variables
 mpasComp = 'mpaso'
 modelComp = 'ocn'
-#mpasFile = 'timeSeriesStatsMonthlyMax'
-#variables = [
-#             {'name': 'maxMLD',
-#              'title': 'Maximum MLD',
-#              'units': 'm',
-#              'factor': 1,
-#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-#            ]
-
-mpasFile = 'timeSeriesStatsMonthly'
+mpasFile = 'timeSeriesStatsMonthlyMax'
 variables = [
+             {'name': 'maxMLD',
+              'title': 'Maximum MLD',
+              'units': 'm',
+              'factor': 1,
+              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+            ]
+
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
 #             {'name': 'dThreshMLD',
 #              'title': 'Mean MLD',
 #              'units': 'm',
@@ -171,22 +172,22 @@ variables = [
 #              'units': 'm$^2$ s$^{-3}$',
 #              'factor': 1,
 #              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
-             {'name': 'totalHeatFlux',
-              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
-              'units': 'W/m$^2$',
-              'factor': 1,
-              'mpas': None},
-             {'name': 'totalFWFlux',
-              'title': 'Total FW Flux (E-P+Runoff+SeaIce)',
-              'units': 'kg m^$-2$ s^$-1$',
-              'factor': 1,
-              'mpas': None},
+#             {'name': 'totalHeatFlux',
+#              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
+#              'units': 'W/m$^2$',
+#              'factor': 1,
+#              'mpas': None},
+#             {'name': 'totalFWFlux',
+#              'title': 'Total FW Flux (E-P+Runoff+SeaIce)',
+#              'units': 'kg m^$-2$ s^$-1$',
+#              'factor': 1,
+#              'mpas': None},
 #             {'name': 'fwc',
 #              'title': 'Freshwater content',
 #              'units': '10$^3$ km$^3$',
 #              'factor': 1e-12,
 #              'mpas': None}
-            ]
+#            ]
 #   Sea ice variables
 #mpasComp = 'mpassi'
 #modelComp = 'ice'

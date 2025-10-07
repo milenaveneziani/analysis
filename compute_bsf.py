@@ -14,6 +14,12 @@ meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARR
 runname = 'E3SM-Arcticv2.1_historical0301'
 # Directories where fields for step 2) are stored:
 maindir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations'
+
+# Settings for erdc.hpc.mil
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runname = 'E3SMv2.1B60to10rA02'
+#maindir = f'/p/cwfs/milena'
+
 postprocmaindir = maindir
 isShortTermArchive = True
 
@@ -26,8 +32,10 @@ else:
 if not os.path.isdir(postprocdir):
     os.makedirs(postprocdir)
 
-startYear = 2000
-endYear = 2014
+#startYear = 2000
+#endYear = 2014
+startYear = 1
+endYear = 386
 ########################################################################
 
 dsMesh = xr.open_dataset(meshfile)

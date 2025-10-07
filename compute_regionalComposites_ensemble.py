@@ -68,11 +68,14 @@ titleClimoMonths = 'JFMA'
 
 # Information for region over which timeseriesVar is averaged
 # before computing the composites
-regionGroup = 'Arctic Regions'
+#regionGroup = 'Arctic Regions'
+regionGroup = 'ginSeas_new'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 # one region at a time, for now:
-region = 'Greenland Sea'
+#region = 'Greenland Sea'
 #region = 'Norwegian Sea'
+#region = 'Greenland Sea Interior'
+region = 'Norwegian Sea new'
 regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
 # Fields relevant for step 2):
