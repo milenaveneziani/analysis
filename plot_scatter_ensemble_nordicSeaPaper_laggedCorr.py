@@ -29,11 +29,11 @@ calendar = 'gregorian'
 
 # Settings for regional time series
 #regionName = 'Greenland Sea'
-#regionName = 'Norwegian Sea'
-#regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
-regionName = 'Greenland Sea Interior'
-regionName = 'Norwegian Sea new'
-regionGroup = 'ginSeas_new' # defines feature filename, as well as regional ts filenames
+regionName = 'Norwegian Sea'
+regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
+#regionName = 'Greenland Sea Interior'
+#regionName = 'Norwegian Sea new'
+#regionGroup = 'ginSeas_new' # defines feature filename, as well as regional ts filenames
 regionGroupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 
 # Settings for transect time series
@@ -48,6 +48,7 @@ if not os.path.isdir(figdir):
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
 years = range(startYear, endYear + 1)
+years_flat = np.tile(years, np.size(ensembleMemberNames))
 referenceDate = '0001-01-01'
 calendar = 'gregorian'
 
@@ -222,6 +223,10 @@ indheatTLow = np.less_equal(heatT_flat, heatTLow)
 indheatTHigh= np.greater_equal(heatT_flat, heatTHigh)
 indfwTLow = np.less_equal(fwT_flat, fwTLow)
 indfwTHigh= np.greater_equal(fwT_flat, fwTHigh)
+
+print(indMLDHigh*years_flat)
+#print(indvolTHigh*years_flat)
+print(indfwTHigh*years_flat)
 
 percentage = 100 * np.size(np.where(np.logical_and(indvolTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
 print(f'\nPercentage of HC years for the {regionName} also associated with high volume transport across {transectName}: {percentage}')

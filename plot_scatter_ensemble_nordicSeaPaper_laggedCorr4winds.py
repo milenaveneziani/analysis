@@ -28,13 +28,17 @@ endYear = 2014
 calendar = 'gregorian'
 
 # Settings for regional time series 1 (maxMLD)
-regionName1 = 'Greenland Sea'
+#regionName1 = 'Greenland Sea'
+regionName1 = 'Norwegian Sea'
 regionGroup1 = 'Arctic Regions'
 regionGroupName1 = regionGroup1[0].lower() + regionGroup1[1:].replace(' ', '')
 
 # Settings for regional time series 2 (winds)
-regionName2 = 'Nordic Seas west'
-regionGroup2 = 'nordicSeaswest' # defines feature filename, as well as regional ts filenames
+#regionName2 = 'Nordic Seas west'
+#regionGroup2 = 'nordicSeaswest' # defines feature filename, as well as regional ts filenames
+# Better for Norwegian Sea region:
+regionName2 = 'Nordic Seas east'
+regionGroup2 = 'nordicSeaseast' # defines feature filename, as well as regional ts filenames
 regionGroupName2 = regionGroup2[0].lower() + regionGroup2[1:].replace(' ', '')
 
 figdir = f'./timeseries/{ensembleName}'
@@ -44,6 +48,7 @@ if not os.path.isdir(figdir):
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
 years = range(startYear, endYear + 1)
+years_flat = np.tile(years, np.size(ensembleMemberNames))
 referenceDate1 = '0001-01-01' # for MPAS fields
 referenceDate2 = '1950-01-01' # for atm fields
 calendar = 'gregorian'
@@ -56,7 +61,9 @@ fontsize_titles = 12
 legend_properties = {'size':fontsize_smallLabels, 'weight':'bold'}
 ##############################################################
 
-climoMonths = [1, 2, 3, 4] # JFMA only (for regional maxMLD)
+climoMonths_ocn = [1, 2, 3, 4] # JFMA only (for regional maxMLD)
+climoMonths_atm = [1, 2, 3, 4] # JFMA only (for winds)
+#climoMonths_atm = [9, 10, 11, 12] # SOND only (for winds)
 regionNameShort1 = regionName1[0].lower() + regionName1[1:].replace(' ', '')
 regionNameShort2 = regionName2[0].lower() + regionName2[1:].replace(' ', '')
 
@@ -135,9 +142,8 @@ for nEns in np.arange(nEnsembles):
     for date in datetimes_atm.flat:
         timeyears_atm.append(date.year)
         timemonths_atm.append(date.month)
-    #annualmask = [i for i, x in enumerate(timemonths) if x in set(range(1, 13))] # all months
-    monthmask_ocn = [i for i, x in enumerate(timemonths_ocn) if x in set(climoMonths)] # winter months only
-    monthmask_atm = [i for i, x in enumerate(timemonths_atm) if x in set(climoMonths)] # winter months only
+    monthmask_ocn = [i for i, x in enumerate(timemonths_ocn) if x in set(climoMonths_ocn)]
+    monthmask_atm = [i for i, x in enumerate(timemonths_atm) if x in set(climoMonths_atm)]
 
     for iy, year in enumerate(years):
         yearmask_ocn = [i for i, x in enumerate(timeyears_ocn) if x==year]
@@ -156,6 +162,16 @@ for nEns in np.arange(nEnsembles):
         maxMLD_seasonal[nEns, iy] = np.nanmean(maxMLD[mask_ocn])
         vbot_seasonal[nEns, iy] = np.nanmean(vbot[mask_atm])
         u10_seasonal[nEns, iy] = np.nanmean(u10[mask_atm])
+        #vbot_seasonal[nEns, iy] = np.nanmedian(vbot[mask_atm])
+        #u10_seasonal[nEns, iy] = np.nanmedian(u10[mask_atm])
+        #vbot_seasonal[nEns, iy] = stats.mode(vbot[mask_atm]).mode
+        #u10_seasonal[nEns, iy] = stats.mode(u10[mask_atm]).mode
+        #print(np.nanmean(vbot[mask_atm]))
+        #print(np.nanmean(u10[mask_atm]))
+        #print(np.nanmedian(vbot[mask_atm]))
+        #print(np.nanmedian(u10[mask_atm]))
+        #print(stats.mode(vbot[mask_atm]).mode)
+        #print(stats.mode(u10[mask_atm]).mode)
 
     corr = []
     pval = []
@@ -164,13 +180,17 @@ for nEns in np.arange(nEnsembles):
         if lag<0:
             # correlate flipped a(t) with flipped b(t-tau), considering that python does 
             # *not* include last element of array (-lag-1 for spice_annual, for example):
-            pearson_corr = stats.pearsonr(vbot_seasonal[nEns, -1:-lag-1:-1], maxMLD_seasonal[nEns, -1+lag::-1])
+            fld = vbot_seasonal[nEns, -1:-lag-1:-1]
+            fld_lagging = maxMLD_seasonal[nEns, -1+lag::-1]
         if lag==0:
             # correlate a(t) with b(t)
-            pearson_corr = stats.pearsonr(vbot_seasonal[nEns, :], maxMLD_seasonal[nEns, :])
+            fld = vbot_seasonal[nEns, :]
+            fld_lagging = maxMLD_seasonal[nEns, :]
         if lag>0:
             # correlate a(t) with v(t+tau)
-            pearson_corr = stats.pearsonr(vbot_seasonal[nEns, 0:-lag], maxMLD_seasonal[nEns, lag::])
+            fld = vbot_seasonal[nEns, 0:-lag]
+            fld_lagging = maxMLD_seasonal[nEns, lag::]
+        pearson_corr = stats.pearsonr(fld, fld_lagging)
         corr = np.append(corr, pearson_corr.statistic)
         pval = np.append(pval, pearson_corr.pvalue)
         #conf = np.append(conf, pearson_corr.confidence_interval(confidence_level=0.95))
@@ -203,14 +223,26 @@ indvbotLow = np.less_equal(vbot_flat, vbotLow)
 indvbotHigh= np.greater_equal(vbot_flat, vbotHigh)
 indu10Low = np.less_equal(u10_flat, u10Low)
 indu10High= np.greater_equal(u10_flat, u10High)
+print(indMLDHigh*years_flat)
+print(indvbotLow*years_flat)
+print(indu10High*years_flat)
 
 percentage = 100 * np.size(np.where(np.logical_and(indvbotLow, indMLDHigh))) / np.size(np.where(indMLDHigh))
 print(f'\nPercentage of HC years for the {regionName1} also associated with high northerly winds for the {regionName2}: {percentage}')
+percentage = 100 * np.size(np.where(np.logical_and(indvbotHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
+print(f'Percentage of HC years for the {regionName1} also associated with high southerly winds for the {regionName2}: {percentage}')
+percentage = 100 * np.size(np.where(np.logical_and(indvbotLow,  indMLDLow))) / np.size(np.where(indMLDLow))
+print(f'Percentage of LC years for the {regionName1} also associated with high northerly winds for the {regionName2}: {percentage}')
 percentage = 100 * np.size(np.where(np.logical_and(indvbotHigh,  indMLDLow))) / np.size(np.where(indMLDLow))
 print(f'Percentage of LC years for the {regionName1} also associated with high southerly winds for the {regionName2}: {percentage}\n')
 
+#print(np.logical_and(indvbotLow, indMLDHigh)*years_flat)
 percentage = 100 * np.size(np.where(np.logical_and(indu10High, indMLDHigh))) / np.size(np.where(indMLDHigh))
 print(f'Percentage of HC years for the {regionName1} also associated with high wind amplitude for the {regionName2}: {percentage}')
+percentage = 100 * np.size(np.where(np.logical_and(indu10Low, indMLDHigh))) / np.size(np.where(indMLDHigh))
+print(f'Percentage of HC years for the {regionName1} also associated with low wind amplitude for the {regionName2}: {percentage}')
+percentage = 100 * np.size(np.where(np.logical_and(indu10High, indMLDLow))) / np.size(np.where(indMLDLow))
+print(f'Percentage of LC years for the {regionName1} also associated with high wind amplitude for the {regionName2}: {percentage}')
 percentage = 100 * np.size(np.where(np.logical_and(indu10Low,  indMLDLow))) / np.size(np.where(indMLDLow))
 print(f'Percentage of LC years for the {regionName1} also associated with low wind amplitude for the {regionName2}: {percentage}\n')
 

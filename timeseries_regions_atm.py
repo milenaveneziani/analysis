@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 from common_functions import timeseries_analysis_plot
 
-#startYear = 1950
-startYear = 2013
+startYear = 1950
+#startYear = 2013
 endYear = 2014
 #startYear = 1
 #endYear = 1
@@ -23,8 +23,8 @@ years = range(startYear, endYear + 1)
 calendar = 'gregorian_noleap'
 
 # Settings for nersc
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
+runName = 'E3SM-Arcticv2.1_historical0301'
+runNameShort = 'E3SMv2.1-Arctic-historical0301'
 rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
 isShortTermArchive = True
 if isShortTermArchive:
@@ -38,16 +38,21 @@ if isShortTermArchive:
 movingAverageMonths = 1
 monthsToPlot = range(1, 13)
 
-regionName = 'Beaufort Sea larger' # Siobhan's version
-lonmin = 180
-lonmax = -115 + 360
-latmin = 66
-latmax = 82
+#regionName = 'Beaufort Sea larger' # Siobhan's version
+#lonmin = 180
+#lonmax = -115 + 360
+#latmin = 66
+#latmax = 82
 #regionName = 'Nordic Seas west'
 #lonmin = -20 + 360 # approximately Greenland coast
 #lonmax = 360
 #latmin = 69 # only includes half of the Iceland Sea
 #latmax = 79 # Fram Strait
+regionName = 'Nordic Seas east'
+lonmin = 0
+lonmax = 17.5 # includes central Norwegian coast
+latmin = 62.5
+latmax = 79 # Fram Strait
 
 atmfile = 'h1'
 variables = [
