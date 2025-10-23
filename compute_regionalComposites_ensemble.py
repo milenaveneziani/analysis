@@ -20,6 +20,7 @@ import numpy as np
 import netCDF4
 import gsw
 from scipy.signal import detrend
+import re
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
@@ -29,9 +30,9 @@ from barotropicStreamfunction import compute_barotropic_streamfunction_vertex
 
 
 #matplotlib.use('TkAgg')
-matplotlib.rc('xtick', labelsize=14)
-matplotlib.rc('ytick', labelsize=14)
-plt.rc('font', weight='bold')
+matplotlib.rc('xtick', labelsize=12)
+matplotlib.rc('ytick', labelsize=12)
+#plt.rc('font', weight='bold')
 
 # Settings for nersc
 meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
@@ -68,14 +69,15 @@ titleClimoMonths = 'JFMA'
 
 # Information for region over which timeseriesVar is averaged
 # before computing the composites
-#regionGroup = 'Arctic Regions'
-regionGroup = 'ginSeas_new'
-groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
+regionGroup = 'Arctic Regions'
 # one region at a time, for now:
-#region = 'Greenland Sea'
+region = 'Greenland Sea'
 #region = 'Norwegian Sea'
+#
+#regionGroup = 'ginSeas_new'
 #region = 'Greenland Sea Interior'
-region = 'Norwegian Sea new'
+#region = 'Norwegian Sea new'
+groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
 
 # Fields relevant for step 2):
@@ -86,8 +88,8 @@ regionNameShort = region[0].lower() + region[1:].replace(' ', '').replace('(', '
 #   Ocean variables
 modelComp = 'ocn'
 modelName = 'mpaso'
-#mpasFile = 'timeSeriesStatsMonthly'
-#variables = [
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
 #             {'name': 'velocityZonalDepthAvg',
 #              'mpas': 'timeMonthly_avg_velocityZonal'},
 #             {'name': 'velocityMeridionalDepthAvg',
@@ -96,10 +98,10 @@ modelName = 'mpaso'
 #              'mpas': 'timeMonthly_avg_velocityZonal'},
 #             {'name': 'velocityMeridional',
 #              'mpas': 'timeMonthly_avg_velocityMeridional'},
-#             {'name': 'activeTracers_temperature',
-#              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
-#             {'name': 'activeTracers_salinity',
-#              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'activeTracers_temperature',
+              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
+             {'name': 'activeTracers_salinity',
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
 #             {'name': 'activeTracers_temperatureDepthAvg',
 #              'mpas': 'timeMonthly_avg_activeTracers_temperature'},
 #             {'name': 'activeTracers_salinityDepthAvg',
@@ -110,31 +112,35 @@ modelName = 'mpaso'
 #              'mpas': 'timeMonthly_avg_windStressZonal'},
 #             {'name': 'windStressMeridional',
 #              'mpas': 'timeMonthly_avg_windStressMeridional'},
+             {'name': 'windStressSpeed',
+              'mpas': 'windStressSpeed'},
 #             {'name': 'spiciness',
 #              'mpas': None},
-#             {'name': 'barotropicStreamfunction',
-#              'mpas': 'barotropicStreamfunction'},
-#             {'name': 'surfaceBuoyancyForcing',
-#              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+             {'name': 'barotropicStreamfunction',
+             'mpas': 'barotropicStreamfunction'},
+             {'name': 'surfaceBuoyancyForcing',
+              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+             {'name': 'totalHeatFlux',
+              'mpas': 'totalHeatFlux'},
+            {'name': 'seaIceFreshWaterFlux',
+              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
 #             {'name': 'shortWaveHeatFlux',
 #              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
 #             {'name': 'longWaveHeatFluxUp',
 #              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
 #             {'name': 'longWaveHeatFluxDown',
 #              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
-#             {'name': 'seaIceFreshWaterFlux',
-#              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
 #             {'name': 'sensibleHeatFlux',
 #              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
 #             {'name': 'latentHeatFlux',
 #              'mpas': 'timeMonthly_avg_latentHeatFlux'}
-#             ]
+             ]
 #
-mpasFile = 'timeSeriesStatsMonthlyMax'
-variables = [
-             {'name': 'maxMLD',
-              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-            ]
+#mpasFile = 'timeSeriesStatsMonthlyMax'
+#variables = [
+#             {'name': 'maxMLD',
+#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#            ]
 #   Sea ice variables
 #modelComp = 'ice'
 #modelName = 'mpassi'
@@ -144,12 +150,14 @@ variables = [
 #              'mpas': 'timeMonthly_avg_iceAreaCell'},
 #             {'name': 'iceVolume',
 #              'mpas': 'timeMonthly_avg_iceVolumeCell'},
-#             {'name': 'iceDivergence',
-#              'mpas': 'timeMonthly_avg_divergence'},
-#             {'name': 'uVelocityGeo',
-#              'mpas': 'timeMonthly_avg_uVelocityGeo'},
-#             {'name': 'vVelocityGeo',
-#              'mpas': 'timeMonthly_avg_vVelocityGeo'}
+#             {'name': 'iceSpeed',
+#              'mpas': 'iceSpeed'},
+##             {'name': 'iceDivergence',
+##              'mpas': 'timeMonthly_avg_divergence'},
+##             {'name': 'uVelocityGeo',
+##              'mpas': 'timeMonthly_avg_uVelocityGeo'},
+##             {'name': 'vVelocityGeo',
+##              'mpas': 'timeMonthly_avg_vVelocityGeo'}
 #            ]
 #   Atmosphere variables
 #modelComp = 'atm'
@@ -252,19 +260,36 @@ timeseries2 = np.quantile(timeseries_flat, 0.85)
 print('timeseries1 = ', timeseries1, 'timeseries2 = ', timeseries2)
 
 # Make histogram plot
-plt.figure(figsize=[10, 8], dpi=150)
+plt.figure(figsize=[10, 8], dpi=300)
 ax = plt.subplot()
-n, bins, patches = plt.hist(timeseries_flat, bins=12, color='#607c8e', alpha=0.7, rwidth=0.9)
-ax.set_xticks(bins)
-ax.set_xticklabels(np.int16(bins))
-ax.axvspan(np.min(timeseries_flat), np.quantile(timeseries_flat, 0.15), alpha=0.3, color='salmon')
-#ax.axvspan(np.min(timeseries_flat), np.quantile(timeseries_flat, 0.25), alpha=0.3, color='salmon')
-ax.axvspan(np.quantile(timeseries_flat, 0.85), np.max(timeseries_flat), alpha=0.3, color='salmon')
-#ax.axvspan(np.quantile(timeseries_flat, 0.75), np.max(timeseries_flat), alpha=0.3, color='salmon')
-ax.set_xlim(np.min(timeseries_flat), np.max(timeseries_flat))
-ax.set_xlabel(f'{titleClimoMonths}-avg {timeseriesVar} [{timeseriesUnits}]', fontsize=16, fontweight='bold', labelpad=10)
-ax.set_ylabel('# of years', fontsize=14, fontweight='bold', labelpad=10)
-ax.set_title(f'Distribution of {timeseriesVar} in the {region}', fontsize=18, fontweight='bold', pad=15)
+if region=='Greenland Sea':
+    edges = np.arange(40,1000,40)
+else:
+    edges = np.arange(150,450,12.5)
+#n, bins, patches = plt.hist(timeseries_flat, bins=12, color='#607c8e', alpha=0.7, rwidth=0.9)
+#n, bins, patches = plt.hist(timeseries_flat, bins=20, color='#607c8e', alpha=0.7, rwidth=0.9)
+n, bins, patches = plt.hist(timeseries_flat, bins=edges, color='#607c8e', alpha=0.7, rwidth=0.9)
+#ax.set_xticks(bins)
+#ax.set_xticklabels(np.int16(bins))
+for tick in ax.yaxis.get_ticklabels():
+    tick.set_fontsize(12)
+for tick in ax.xaxis.get_ticklabels():
+    tick.set_fontsize(12)
+#ax.axvspan(np.min(timeseries_flat), np.quantile(timeseries_flat, 0.15), alpha=0.3, color='salmon')
+#ax.axvspan(np.quantile(timeseries_flat, 0.85), np.max(timeseries_flat), alpha=0.3, color='salmon')
+#ax.set_xlim(np.min(timeseries_flat), np.max(timeseries_flat))
+ax.axvspan(0, np.quantile(timeseries_flat, 0.15), alpha=0.3, color='salmon')
+ax.axvspan(np.quantile(timeseries_flat, 0.85), 1000, alpha=0.3, color='salmon')
+ax.set_xlabel(f'{titleClimoMonths}-avg {timeseriesVar} [{timeseriesUnits}]', fontsize=14, labelpad=10)
+ax.set_ylabel('# of years', fontsize=14, labelpad=10)
+if region=='Greenland Sea':
+    ax.set_xlim(50, 1000)
+    ax.set_title(f'Distribution of model {timeseriesVar} in the Greenland/Iceland Seas', fontsize=14, fontweight='bold', pad=15)
+else:
+    ax.set_xlim(150, 450)
+    ax.set_title(f'Distribution of model {timeseriesVar} in the {region}', fontsize=14, fontweight='bold', pad=15)
+ax.text(0.9, 0.9, f'15% quantile of MLD: {timeseries1:4.0f} m', transform=ax.transAxes, fontsize=14, va='top', ha='right')
+ax.text(0.9, 0.85, f'85% quantile of MLD: {timeseries2:4.0f} m', transform=ax.transAxes, fontsize=14, va='top', ha='right')
 ax.yaxis.set_minor_locator(MultipleLocator(5))
 plt.grid(axis='y', alpha=0.75)
 #plt.grid(axis='y', which='both', alpha=0.75)
@@ -303,9 +328,10 @@ years2d = np.tile(years, (nEnsembles, 1))
 years_low  = np.int32(years2d*conditionLow)
 years_high = np.int32(years2d*conditionHigh)
 years_med  = np.int32(years2d*conditionMed)
-print(years_low)
-print(years_high)
-boh
+print(years_low[np.nonzero(years_low)])
+print(years_high[np.nonzero(years_high)])
+ndataLow  = np.size(years_low[np.nonzero(years_low)])
+ndataHigh = np.size(years_high[np.nonzero(years_high)])
 
 # Save this information to ascii files
 with open(f'{outdir}/years_{timeseriesVar}low_{regionNameShort}.dat', 'w') as outfile:
@@ -334,17 +360,24 @@ for im in range(1, 13):
         if modelName == 'mpaso' or modelName == 'mpassi':
             varmpasname = var['mpas']
 
+        anomalydir = f'{outdir}/{varname}'
+        if not os.path.isdir(anomalydir):
+            os.makedirs(anomalydir)
+
         if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
            varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
-            outfileLow  = f'{outdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
-            outfileHigh = f'{outdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+            filenameCommon = f'{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}'
         else:
-            outfileLow  = f'{outdir}/{varname}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
-            outfileHigh = f'{outdir}/{varname}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+            filenameCommon = f'{varname}'
+        outfileLow  = f'{outdir}/{filenameCommon}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+        outfileHigh = f'{outdir}/{filenameCommon}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}.nc'
+        outfileStdLow  = f'{outdir}/{filenameCommon}_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_M{im:02d}std.nc'
+        outfileStdHigh = f'{outdir}/{filenameCommon}_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_M{im:02d}std.nc'
 
-        if not os.path.isfile(outfileLow):
-            print(f'\nComposite file {outfileLow} does not exist. Creating it with ncea...')
+        # Low composites first
+        if (not os.path.isfile(outfileLow)) or (not os.path.isfile(outfileStdLow)):
             infiles = []
+            infiles_runname = []
             for nEns in range(nEnsembles):
                 runName = f'{ensembleName}{ensembleMemberNames[nEns]}'
                 if isShortTermArchive:
@@ -357,6 +390,7 @@ for im in range(1, 13):
                     postprocdir = f'{postprocmaindir}/{runName}/run'
                 if not os.path.isdir(postprocdir):
                     os.makedirs(postprocdir)
+
                 yLow = years_low[nEns, np.nonzero(years_low[nEns, :])][0]
                 if np.size(yLow)!=0:
                     for k in range(len(yLow)):
@@ -371,14 +405,13 @@ for im in range(1, 13):
                         if not os.path.isfile(datafile):
                             raise SystemExit(f'File {datafile} not found. Exiting...\n')
 
-                        # Compute complex variables before making composites
+                        # Compute postprocessing variables (if needed) before making composites
                         if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
                            varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
                             layerThickness = xr.open_dataset(datafile).timeMonthly_avg_layerThickness
                             fld = xr.open_dataset(datafile)[varmpasname]
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 # Depth-masked zmin-zmax layer thickness
                                 zMid = compute_zmid(depth, maxLevelCell, layerThickness)
@@ -393,9 +426,8 @@ for im in range(1, 13):
                         elif varname=='spiciness':
                             temp = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_temperature']
                             salt = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_salinity']
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 SA = gsw.SA_from_SP(salt, pressure, lon, lat)
                                 CT = gsw.CT_from_pt(SA, temp)
@@ -420,9 +452,8 @@ for im in range(1, 13):
                                 #dsOut.to_netcdf(datafile, mode='a')
                         elif varname=='barotropicStreamfunction':
                             dsIn = xr.open_dataset(datafile)
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 print(f'*** Low composite, datafile={datafile}')
                                 min_lat = -45.0
@@ -434,20 +465,96 @@ for im in range(1, 13):
                                 dsOut['barotropicStreamfunction'].attrs['long_name'] = 'Barotropic streamfunction'
                                 dsOut['barotropicStreamfunction'].attrs['units'] = 'Sv'
                                 dsOut.to_netcdf(datafile)
+                        elif varname=='totalHeatFlux':
+                            sensible = xr.open_dataset(datafile)['timeMonthly_avg_sensibleHeatFlux']
+                            latent = xr.open_dataset(datafile)['timeMonthly_avg_latentHeatFlux']
+                            longwave_down = xr.open_dataset(datafile)['timeMonthly_avg_longWaveHeatFluxDown']
+                            longwave_up = xr.open_dataset(datafile)['timeMonthly_avg_longWaveHeatFluxUp']
+                            shotwave_net = xr.open_dataset(datafile)['timeMonthly_avg_shortWaveHeatFlux']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = sensible + latent + longwave_down + longwave_up + shotwave_net
+                            dsOut = xr.Dataset()
+                            dsOut['totalHeatFlux'] = fld
+                            dsOut['totalHeatFlux'].attrs['long_name'] = 'Total heat flux (sum of sensible, latent, net longwave, and net shortwave)'
+                            dsOut['totalHeatFlux'].attrs['units'] = 'W/m^2'
+                            dsOut.to_netcdf(datafile)
+                        elif varname=='windStressSpeed':
+                            windStressU = xr.open_dataset(datafile)['timeMonthly_avg_windStressZonal']
+                            windStressV = xr.open_dataset(datafile)['timeMonthly_avg_windStressMeridional']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = 0.5 * np.sqrt(windStressU**2  + windStressV**2)
+                            dsOut = xr.Dataset()
+                            dsOut['windStressSpeed'] = fld
+                            dsOut['windStressSpeed'].attrs['long_name'] = 'Wind stress amplitude'
+                            dsOut['windStressSpeed'].attrs['units'] = 'N/m^2'
+                            dsOut.to_netcdf(datafile)
+                        elif varname=='iceSpeed':
+                            iceVelocityU = xr.open_dataset(datafile)['timeMonthly_avg_uVelocityGeo']
+                            iceVelocityV = xr.open_dataset(datafile)['timeMonthly_avg_vVelocityGeo']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = 0.5 * np.sqrt(iceVelocityU**2  + iceVelocityV**2)
+                            dsOut = xr.Dataset()
+                            dsOut['iceSpeed'] = fld
+                            dsOut['iceSpeed'].attrs['long_name'] = 'Ice speed'
+                            dsOut['iceSpeed'].attrs['units'] = 'm/s'
+                            dsOut.to_netcdf(datafile)
 
                         infiles.append(datafile)
-            if varname=='spiciness':
-                args = ['ncea', '-O', '-v', 'spiciness0']
-                #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
-            else:
-                args = ['ncea', '-O', '-v', varmpasname]
-            args.extend(infiles)
-            args.append(outfileLow)
-            subprocess.check_call(args)
+                        infiles_runname.append(runName)
 
-        if not os.path.isfile(outfileHigh):
-            print(f'\nComposite file {outfileHigh} does not exist. Creating it with ncea...')
+            if not os.path.isfile(outfileLow):
+                print(f'\nComposite file {outfileLow} does not exist. Creating it with ncea...')
+                if varname=='spiciness':
+                    args = ['ncea', '-O', '-v', 'spiciness0']
+                    #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
+                else:
+                    args = ['ncea', '-O', '-v', varmpasname]
+                args.extend(infiles)
+                args.append(outfileLow)
+                subprocess.check_call(args)
+
+            if not os.path.isfile(outfileStdLow):
+                print(f'\nStd composite file {outfileStdLow} does not exist. Creating it with ncbo/ncea...')
+                # First compute the anomalies wrt the composite means
+                infiles_anomalies = []
+                for i, datafile in enumerate(infiles):
+                    datafile_date = re.search(r'\d{4}-\d{2}-\d{2}', datafile).group()
+                    datafileAnomaly = f'{anomalydir}/{infiles_runname[i]}.{filenameCommon}anomaly_{timeseriesVar}low_{titleClimoMonths}_{regionNameShort}_{datafile_date}.nc'
+                    #print(datafile)
+                    #print(datafileAnomaly)
+                    if varname=='spiciness':
+                        args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', 'spiciness0']
+                        #args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', 'spiciness0,spiciness1,spiciness2']
+                    else:
+                        args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', varmpasname]
+                    args.append(datafile)
+                    args.append(outfileLow)
+                    args.append(datafileAnomaly)
+                    subprocess.check_call(args)
+                    infiles_anomalies.append(datafileAnomaly)
+                #print(infiles_anomalies)
+
+                # Then compute the standard deviation of the anomalies wrt the composite means
+                args = ['ncea', '-O', '-y', 'rmssdn']
+                args.extend(infiles_anomalies)
+                args.append(outfileStdLow)
+                subprocess.check_call(args)
+                string = f'nind_data={ndataLow}'
+                args = ['ncap2', '-A', '-s', string]
+                args.append(outfileStdLow)
+                args.append(outfileStdLow)
+                subprocess.check_call(args)
+                args = ['ncatted', '-a', 'long_name,nind_data,c,c,number of years used to compute the composite and std']
+                args.append(outfileStdLow)
+                subprocess.check_call(args)
+
+        # High composites second
+        if (not os.path.isfile(outfileHigh)) or (not os.path.isfile(outfileStdHigh)):
             infiles = []
+            infiles_runname = []
             for nEns in range(nEnsembles):
                 runName = f'{ensembleName}{ensembleMemberNames[nEns]}'
                 if isShortTermArchive:
@@ -473,14 +580,14 @@ for im in range(1, 13):
                         # Check if file exists
                         if not os.path.isfile(datafile):
                             raise SystemExit(f'File {datafile} not found. Exiting...\n')
-                        # Compute complex variables before making composites
+
+                        # Compute postprocessing variables (if needed) before making composites
                         if varname=='velocityZonalDepthAvg' or varname=='velocityMeridionalDepthAvg' or \
                            varname=='activeTracers_temperatureDepthAvg' or varname=='activeTracers_salinityDepthAvg':
                             layerThickness = xr.open_dataset(datafile).timeMonthly_avg_layerThickness
                             fld = xr.open_dataset(datafile)[varmpasname]
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 zMid = compute_zmid(depth, maxLevelCell, layerThickness)
                                 # Depth-masked zmin-zmax layer thickness
@@ -495,9 +602,8 @@ for im in range(1, 13):
                         elif varname=='spiciness':
                             temp = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_temperature']
                             salt = xr.open_dataset(datafile)['timeMonthly_avg_activeTracers_salinity']
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 SA = gsw.SA_from_SP(salt, pressure, lon, lat)
                                 CT = gsw.CT_from_pt(SA, temp)
@@ -522,9 +628,8 @@ for im in range(1, 13):
                                 #dsOut.to_netcdf(datafile, mode='a')
                         elif varname=='barotropicStreamfunction':
                             dsIn = xr.open_dataset(datafile)
-
                             # Compute post-processed field and write to file if datafile does not exist
-                            datafile = f'{postprocdir}/{varname}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
                             if not os.path.isfile(datafile):
                                 print(f'*** High composite, datafile={datafile}')
                                 min_lat = -45.0
@@ -536,13 +641,88 @@ for im in range(1, 13):
                                 dsOut['barotropicStreamfunction'].attrs['long_name'] = 'Barotropic streamfunction'
                                 dsOut['barotropicStreamfunction'].attrs['units'] = 'Sv'
                                 dsOut.to_netcdf(datafile)
+                        elif varname=='totalHeatFlux':
+                            sensible = xr.open_dataset(datafile)['timeMonthly_avg_sensibleHeatFlux']
+                            latent = xr.open_dataset(datafile)['timeMonthly_avg_latentHeatFlux']
+                            longwave_down = xr.open_dataset(datafile)['timeMonthly_avg_longWaveHeatFluxDown']
+                            longwave_up = xr.open_dataset(datafile)['timeMonthly_avg_longWaveHeatFluxUp']
+                            shotwave_net = xr.open_dataset(datafile)['timeMonthly_avg_shortWaveHeatFlux']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = sensible + latent + longwave_down + longwave_up + shotwave_net
+                            dsOut = xr.Dataset()
+                            dsOut['totalHeatFlux'] = fld
+                            dsOut['totalHeatFlux'].attrs['long_name'] = 'Total heat flux (sum of sensible, latent, net longwave, and net shortwave)'
+                            dsOut['totalHeatFlux'].attrs['units'] = 'W/m^2'
+                            dsOut.to_netcdf(datafile)
+                        elif varname=='windStressSpeed':
+                            windStressU = xr.open_dataset(datafile)['timeMonthly_avg_windStressZonal']
+                            windStressV = xr.open_dataset(datafile)['timeMonthly_avg_windStressMeridional']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = 0.5 * np.sqrt(windStressU**2  + windStressV**2)
+                            dsOut = xr.Dataset()
+                            dsOut['windStressSpeed'] = fld
+                            dsOut['windStressSpeed'].attrs['long_name'] = 'Wind stress amplitude'
+                            dsOut['windStressSpeed'].attrs['units'] = 'N/m^2'
+                            dsOut.to_netcdf(datafile)
+                        elif varname=='iceSpeed':
+                            iceVelocityU = xr.open_dataset(datafile)['timeMonthly_avg_uVelocityGeo']
+                            iceVelocityV = xr.open_dataset(datafile)['timeMonthly_avg_vVelocityGeo']
+                            # Compute post-processed field and write to file if datafile does not exist
+                            datafile = f'{postprocdir}/{filenameCommon}.{runName}.{modelName}.hist.am.{mpasFile}.{int(iy):04d}-{int(im):02d}-01.nc'
+                            fld = 0.5 * np.sqrt(iceVelocityU**2  + iceVelocityV**2)
+                            dsOut = xr.Dataset()
+                            dsOut['iceSpeed'] = fld
+                            dsOut['iceSpeed'].attrs['long_name'] = 'Ice speed'
+                            dsOut['iceSpeed'].attrs['units'] = 'm/s'
+                            dsOut.to_netcdf(datafile)
 
                         infiles.append(datafile)
-            if varname=='spiciness':
-                args = ['ncea', '-O', '-v', 'spiciness0']
-                #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
-            else:
-                args = ['ncea', '-O', '-v', varmpasname]
-            args.extend(infiles)
-            args.append(outfileHigh)
-            subprocess.check_call(args)
+                        infiles_runname.append(runName)
+
+            if not os.path.isfile(outfileHigh):
+                print(f'\nComposite file {outfileHigh} does not exist. Creating it with ncea...')
+                if varname=='spiciness':
+                    args = ['ncea', '-O', '-v', 'spiciness0']
+                    #args = ['ncea', '-O', '-v', 'spiciness0,spiciness1,spiciness2']
+                else:
+                    args = ['ncea', '-O', '-v', varmpasname]
+                args.extend(infiles)
+                args.append(outfileHigh)
+                subprocess.check_call(args)
+
+            if not os.path.isfile(outfileStdHigh):
+                print(f'\nStd composite file {outfileStdHigh} does not exist. Creating it with ncbo/ncea...')
+                # First compute the anomalies wrt the composite means
+                infiles_anomalies = []
+                for i, datafile in enumerate(infiles):
+                    datafile_date = re.search(r'\d{4}-\d{2}-\d{2}', datafile).group()
+                    datafileAnomaly = f'{anomalydir}/{infiles_runname[i]}.{filenameCommon}anomaly_{timeseriesVar}high_{titleClimoMonths}_{regionNameShort}_{datafile_date}.nc'
+                    #print(datafile)
+                    #print(datafileAnomaly)
+                    if varname=='spiciness':
+                        args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', 'spiciness0']
+                        #args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', 'spiciness0,spiciness1,spiciness2']
+                    else:
+                        args = ['ncbo', '-O', '-F', '-y', 'diff', '-v', varmpasname]
+                    args.append(datafile)
+                    args.append(outfileHigh)
+                    args.append(datafileAnomaly)
+                    subprocess.check_call(args)
+                    infiles_anomalies.append(datafileAnomaly)
+                #print(infiles_anomalies)
+
+                # Then compute the standard deviation of the anomalies wrt the composite means
+                args = ['ncea', '-O', '-y', 'rmssdn']
+                args.extend(infiles_anomalies)
+                args.append(outfileStdHigh)
+                subprocess.check_call(args)
+                string = f'nind_data={ndataHigh}'
+                args = ['ncap2', '-A', '-s', string]
+                args.append(outfileStdHigh)
+                args.append(outfileStdHigh)
+                subprocess.check_call(args)
+                args = ['ncatted', '-a', 'long_name,nind_data,c,c,number of years used to compute the composite and std']
+                args.append(outfileStdHigh)
+                subprocess.check_call(args)

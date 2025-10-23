@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
 import os
 import numpy as np
 import xarray as xr
+from scipy.io import loadmat
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import cmocean
@@ -15,35 +16,23 @@ from make_plots import make_scatter_plot, make_pcolormesh_plot, make_mosaic_desc
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 runname = 'E3SM-Arcticv2.1_historical'
 modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runname}/postprocessing'
-EN4dir = '/global/cfs/cdirs/m1199/milena/Obs/EN4/climatologies'
-WOAdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/WOA23'
-MLDdir = '/global/cfs/cdirs/e3sm/diagnostics/observations/Ocean/MLD'
-#SSMIdirname = 'Bootstrapv4'
-#SSMIfilename = 'NSIDC0079'
-SSMIdirname = 'SSMR_SSMIv2'
-SSMIfilename = 'NSIDC0051'
-SSMIdir = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/{SSMIdirname}_{SSMIfilename}/climatologies'
-SSMIgridfileNH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_N25km_v1.0.nc'
-SSMIgridfileSH = f'/global/cfs/cdirs/m1199/milena/Obs/Seaice_SSMI/NSIDC0771_LatLon_PS_S25km_v1.0.nc'
+obsdir = '/global/cfs/cdirs/m1199/milena/Obs/Brakstad_obs'
 
-figdir = f'./mpasClimo_native/{runname}'
-if not os.path.isdir(figdir):
-    os.makedirs(figdir)
+#figdir = f'./mpasClimo_native/{runname}'
+#if not os.path.isdir(figdir):
+#    os.makedirs(figdir)
 
-#climoyear1 = 1950
-#climoyear2 = 1999
 climoyear1 = 2000
 climoyear2 = 2014
 
 months = ['03', '09', '11', 'ANN']
 #months = ['ANN']
-#months = ['03']
+#months = ['09']
 
 depthlevels = [0., 50., 250.]
 #depthlevels = [50.]
 
 projection = 'NorthPolarStereo'
-SSMIgridfile = SSMIgridfileNH
 regionname = 'N25km' # change to 'S25km' for SH plots
 # Nordic Seas/northern subpolar close-up:
 figfileRegion = ''
@@ -144,6 +133,21 @@ variables = [
               'clevels': [15, 30, 50, 80, 90, 95, 97, 98, 99, 100]}
             ]
 ##############################################################################
+
+obsfile1 = f'{obsdir}/HistGeoChem_NordicSeas_1950_1979.mat'
+obsfile2 = f'{obsdir}/HistHyd_GeoChem_LateWinterClimatology_NordicSeas_2000_2019.mat'
+obsfile3 = f'{obsdir}/HistHyd_NordicSeas_1950_1979.mat'
+
+#data1 = loadmat(obsfile1, appendmat=False)
+#print('\n********* HistGeoChem_NordicSeas ************')
+#print(data1)
+data2 = loadmat(obsfile2, appendmat=False)
+print('\n********* HistHyd_GeoChem_LateWinterClimatology_NordicSeas ***********')
+print(data2)
+data3 = loadmat(obsfile3, appendmat=False)
+print('\n********* HistHyd_NordicSeas ***********')
+print(data3)
+boh
 
 t0 = time.time()
 
@@ -271,8 +275,8 @@ for month in months:
 
             fldMod = 100*dsMod[varnameMod]
             fldSSMI = 100*dsSSMI[varnameSSMI]
-            fldMod[np.where(fldMod<15)] = np.nan
-            fldSSMI[np.where(fldSSMI<15)] = np.nan
+            #fldMod[np.where(fldMod<15)] = np.nan
+            #fldSSMI[np.where(fldSSMI<15)] = np.nan
             fldMod = fldMod.where(fldMod>=15, drop=False)
             fldSSMI = fldSSMI.where(fldSSMI>=15, drop=False)
 

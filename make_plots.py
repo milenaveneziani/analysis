@@ -32,7 +32,7 @@ def make_mosaic_descriptor(dsMesh, projectionName):
     descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=True)
     return descriptor
 
-def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, showEdges=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, ttestMask=None, showEdges=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
     
     figdpi = 150
     figsize = [20, 20]
@@ -85,13 +85,19 @@ def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, showEdg
         #else:
         #    ax.tricontour(lon, lat, contourfld, levels=contourLevels, colors='k', transform=data_crs)
 
+    if ttestMask is not None:
+        # Add stipples to non-significant values
+        lon_stippled = lon[np.where(ttestMask)]
+        lat_stippled = lat[np.where(ttestMask)]
+        ax.scatter(lon_stippled, lat_stippled, s=0.5, c='black', marker='.', alpha=0.7, transform=data_crs)
+
     add_land_lakes_coastline(ax)
 
     ax.set_title(figTitle, y=1.08, fontsize=22)
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
 
-def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
+def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, ttestMask=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
     
     figdpi = 150
     figsize = [20, 20]
@@ -129,6 +135,14 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
             cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4)
         cbar.ax.tick_params(labelsize=20, labelcolor='black')
         cbar.set_label(cbarLabel, fontsize=20)
+
+        if ttestMask is not None:
+            # Add stipples to non-significant values
+            #mask = np.logical_and(fld<delta, fld>-delta)
+            lon_stippled = lon[np.where(ttestMask)]
+            lat_stippled = lat[np.where(ttestMask)]
+            #ax.scatter(lon_stippled, lat_stippled, s=0.5, c='w', marker='.', transform=data_crs)
+            ax.scatter(lon_stippled, lat_stippled, s=0.5, c='black', marker='.', alpha=0.7, transform=data_crs)
     else:
         sc = ax.scatter(lon, lat, s=dotSize, c='k', marker='D', transform=data_crs)
 

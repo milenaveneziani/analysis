@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import cmocean
 
-from make_plots import make_scatter_plot, make_streamline_plot, make_contourf_plot
+from make_plots import make_scatter_plot, make_streamline_plot, make_contourf_plot, make_mosaic_descriptor, make_mosaic_plot
 
 
 startYear = [1950]
@@ -63,10 +63,17 @@ if not os.path.isdir(figdir):
 
 regionGroup = 'Arctic Regions'
 groupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
-#regions = ['Greenland Sea']
-regions = ['Norwegian Sea']
+regions = ['Greenland Sea']
+#regions = ['Norwegian Sea']
 
 climoMonths = 'JFMA' # should be consistent with composites calculation
+
+# Critical value of t-test (from tables, depending on the max level of the p-value
+# (confidence level) and on the number of independent data)
+tcritical = 2.011 # for alpha=0.05 and nind=49-1
+#tcritical = 2.407 # for alpha=0.02 and nind=49-1
+#tcritical = 2.682 # for alpha=0.01 and nind=49-1
+#conf_level = 1.96 # 95% confidence level
 
 colorIndices = [0, 14, 28, 57, 85, 113, 125, 142, 155, 170, 198, 227, 242, 255]
 lon0 = -50.0
@@ -85,42 +92,42 @@ modelComp = 'ocn'
 modelName = 'mpaso'
 mpasFile = 'timeSeriesStatsMonthly'
 variables = [
-             {'name': 'barotropicStreamfunction',
-              'title': 'Barotropic streamfunction',
-              'units': 'Sv',
-              'factor': 1,
-              'isvar3d': False,
-              'mpas': 'barotropicStreamfunction',
-              'clevels': [-3.6, -3.0, -2.4, -1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8, 2.4, 3.0, 3.6],
-              'cIndices': colorIndices,
-              'colormap': cmocean.cm.balance},
-#             #{'name': 'velSpeed',
-#             # 'title': 'Velocity magnitude',
-#             # 'units': 'cm/s',
-#             # 'factor': 1e2,
-#             # 'isvar3d': True,
-#             # 'mpas': None,
-#             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
-#             # 'cIndices': colorIndices,
-#             # 'colormap': cmocean.cm.balance},
+#             {'name': 'barotropicStreamfunction',
+#              'title': 'Barotropic streamfunction',
+#              'units': 'Sv',
+#              'factor': 1,
+#              'isvar3d': False,
+#              'mpas': 'barotropicStreamfunction',
+#              'clevels': [-3.6, -3.0, -2.4, -1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8, 2.4, 3.0, 3.6],
+#              'cIndices': colorIndices,
+#              'colormap': cmocean.cm.balance},
+##             #{'name': 'velSpeed',
+##             # 'title': 'Velocity magnitude',
+##             # 'units': 'cm/s',
+##             # 'factor': 1e2,
+##             # 'isvar3d': True,
+##             # 'mpas': None,
+##             # 'clevels': [0.5, 1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
+##             # 'cIndices': colorIndices,
+##             # 'colormap': cmocean.cm.balance},
 #             {'name': 'windStressSpeed',
 #              'title': 'Wind stress magnitude',
 #              'units': 'N/m$^2$',
 #              'factor': 1,
 #              'isvar3d': False,
-#              'mpas': None,
+#              'mpas': 'windStressSpeed',
 #              'clevels': [-0.03, -0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03],
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
-#             {'name': 'spiciness',
-#              'title': 'Spiciness0',
-#              'units': '',
-#              'factor': 1,
-#              'isvar3d': True,
-#              'mpas': 'spiciness0',
-#              'clevels': [-0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75],
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.balance},
+##             {'name': 'spiciness',
+##              'title': 'Spiciness0',
+##              'units': '',
+##              'factor': 1,
+##              'isvar3d': True,
+##              'mpas': 'spiciness0',
+##              'clevels': [-0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75],
+##              'cIndices': colorIndices,
+##              'colormap': cmocean.cm.balance},
 #             {'name': 'activeTracers_temperature',
 #              'title': 'Potential Temperature',
 #              'units': '$^\circ$C',
@@ -148,32 +155,32 @@ variables = [
 #              'clevels': [-2.4, -2, -1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2, 2.4],
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
-#             {'name': 'sensibleHeatFlux',
-#              'title': 'Sensible Heat Flux',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
-#              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
-#              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.balance},
-#             {'name': 'latentHeatFlux',
-#              'title': 'Latent Heat Flux',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'isvar3d': False,
-#              'mpas': 'timeMonthly_avg_latentHeatFlux',
-#              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
-#              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
-#              'cIndices': colorIndices,
-#              'colormap': cmocean.cm.balance},
+##             {'name': 'sensibleHeatFlux',
+##              'title': 'Sensible Heat Flux',
+##              'units': 'W/m$^2$',
+##              'factor': 1,
+##              'isvar3d': False,
+##              'mpas': 'timeMonthly_avg_sensibleHeatFlux',
+##              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
+##              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
+##              'cIndices': colorIndices,
+##              'colormap': cmocean.cm.balance},
+##             {'name': 'latentHeatFlux',
+##              'title': 'Latent Heat Flux',
+##              'units': 'W/m$^2$',
+##              'factor': 1,
+##              'isvar3d': False,
+##              'mpas': 'timeMonthly_avg_latentHeatFlux',
+##              'clevels': [-120, -100, -80, -60, -40, -20, 0.0, 20, 40, 60, 80, 100, 120], # winter months
+##              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
+##              'cIndices': colorIndices,
+##              'colormap': cmocean.cm.balance},
 #             {'name': 'totalHeatFlux',
 #              'title': 'Total Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
 #              'isvar3d': False,
-#              'mpas': None,
+#              'mpas': 'totalHeatFlux',
 #              'clevels': [-180, -150, -120, -90, -60, -30, 0.0, 30, 60, 90, 120, 150, 180], # winter months
 #              #'clevels': [-60, -50, -40, -30, -20, -10, 0.0, 10, 20, 30, 40, 50, 60], # summer months
 #              'cIndices': colorIndices,
@@ -197,8 +204,8 @@ variables = [
 #              'factor': 1,
 #              'isvar3d': False,
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD',
-#              'clevels': [-120, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120], # summer months
-#              #'clevels': [-1200, -1000, -800, -600, -400, -200, 0, 200, 400, 600, 800, 1000, 1200], # winter months
+#              #'clevels': [-120, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 120], # summer months
+#              'clevels': [-1200, -1000, -800, -600, -400, -200, 0, 200, 400, 600, 800, 1000, 1200], # winter months
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
 #            ]
@@ -230,7 +237,7 @@ variables = [
 #              'units': 'm/s',
 #              'factor': 1,
 #              'isvar3d': False,
-#              'mpas': None,
+#              'mpas': 'iceSpeed',
 #              'clevels': [-0.06, -0.05, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06],
 #              'cIndices': colorIndices,
 #              'colormap': cmocean.cm.balance},
@@ -248,9 +255,9 @@ zmaxs = [0.]
 #zmins = [-600.]
 #zmaxs = [0.]
 # z levels [m] (relevant for 3d variables and if plotDepthAvg = False)
-#dlevels = [0.]
+dlevels = [50.]
 #dlevels = [50., 100.]
-dlevels = [0., 50., 100.]
+#dlevels = [0., 50., 100.]
 #dlevels = [300.]
 
 # Info about MPAS mesh
@@ -275,6 +282,12 @@ nVertLevels = dsMesh.sizes['nVertLevels']
 vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
 depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
+# For mosaic plots
+# restart files are missing this attribute that is needed for mosaic,
+# so for now adding this manually:
+dsMesh.attrs['is_periodic'] = 'NO'
+mosaic_descriptor = make_mosaic_descriptor(dsMesh, 'NorthPolarStereo')
+
 # Plot monthly climatologies associated with previously computed composites
 for regionName in regions:
     print(f'\nPlot composites based on {varRef} for region: {regionName}')
@@ -283,8 +296,8 @@ for regionName in regions:
     for im in range(1, 13):
     #for im in range(1, 5): # winter months
     #for im in range(5, 13): # summer months
-    #for im in range(3, 4):
-        print(f'  Month: {im}')
+    #for im in range(1, 2):
+        print(f'\n  Month: {im}')
         for var in variables:
             varname = var['name']
             print(f'    var: {varname}')
@@ -420,70 +433,77 @@ for regionName in regions:
                             args.append(infileHigh_vNative)
                             args.append(infileHigh_v)
                             subprocess.check_call(args)
-            elif varname=='windStressSpeed':
-                infileLow_u  = f'{indir}/windStressZonal_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_u):
-                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
-                infileLow_v  = f'{indir}/windStressMeridional_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_v):
-                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
-                infileHigh_u  = f'{indir}/windStressZonal_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_u):
-                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
-                infileHigh_v  = f'{indir}/windStressMeridional_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_v):
-                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
-            elif varname=='iceSpeed':
-                infileLow_u  = f'{indir}/uVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_u):
-                    raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
-                infileLow_v  = f'{indir}/vVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_v):
-                    raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
-                infileHigh_u  = f'{indir}/uVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_u):
-                    raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
-                infileHigh_v  = f'{indir}/vVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_v):
-                    raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
-            elif varname=='totalHeatFlux':
-                infileLow_sensible = f'{indir}/sensibleHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_sensible):
-                    raise IOError(f'File {infileLow_sensible} does not exist. Need to create it with compute_composites')
-                infileLow_latent = f'{indir}/latentHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_latent):
-                    raise IOError(f'File {infileLow_latent} does not exist. Need to create it with compute_composites')
-                infileLow_LRdown = f'{indir}/longWaveHeatFluxDown_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_LRdown):
-                    raise IOError(f'File {infileLow_LRdown} does not exist. Need to create it with compute_composites')
-                infileLow_LRup = f'{indir}/longWaveHeatFluxUp_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_LRup):
-                    raise IOError(f'File {infileLow_LRup} does not exist. Need to create it with compute_composites')
-                infileLow_SR = f'{indir}/shortWaveHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileLow_SR):
-                    raise IOError(f'File {infileLow_SR} does not exist. Need to create it with compute_composites')
-                infileHigh_sensible = f'{indir}/sensibleHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_sensible):
-                    raise IOError(f'File {infileHigh_sensible} does not exist. Need to create it with compute_composites')
-                infileHigh_latent = f'{indir}/latentHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_latent):
-                    raise IOError(f'File {infileHigh_latent} does not exist. Need to create it with compute_composites')
-                infileHigh_LRdown = f'{indir}/longWaveHeatFluxDown_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_LRdown):
-                    raise IOError(f'File {infileHigh_LRdown} does not exist. Need to create it with compute_composites')
-                infileHigh_LRup = f'{indir}/longWaveHeatFluxUp_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_LRup):
-                    raise IOError(f'File {infileHigh_LRup} does not exist. Need to create it with compute_composites')
-                infileHigh_SR = f'{indir}/shortWaveHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
-                if not os.path.isfile(infileHigh_SR):
-                    raise IOError(f'File {infileHigh_SR} does not exist. Need to create it with compute_composites')
+            # The following is no longer necessary because the complex fields are computed in compute_regionalComposites:
+            #elif varname=='windStressSpeed':
+            #    infileLow_u  = f'{indir}/windStressZonal_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_u):
+            #        raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
+            #    infileLow_v  = f'{indir}/windStressMeridional_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_v):
+            #        raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
+            #    infileHigh_u  = f'{indir}/windStressZonal_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_u):
+            #        raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
+            #    infileHigh_v  = f'{indir}/windStressMeridional_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_v):
+            #        raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
+            #elif varname=='iceSpeed':
+            #    infileLow_u  = f'{indir}/uVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_u):
+            #        raise IOError(f'File {infileLow_u} does not exist. Need to create it with compute_composites')
+            #    infileLow_v  = f'{indir}/vVelocityGeo_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_v):
+            #        raise IOError(f'File {infileLow_v} does not exist. Need to create it with compute_composites')
+            #    infileHigh_u  = f'{indir}/uVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_u):
+            #        raise IOError(f'File {infileHigh_u} does not exist. Need to create it with compute_composites')
+            #    infileHigh_v  = f'{indir}/vVelocityGeo_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_v):
+            #        raise IOError(f'File {infileHigh_v} does not exist. Need to create it with compute_composites')
+            #elif varname=='totalHeatFlux':
+            #    infileLow_sensible = f'{indir}/sensibleHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_sensible):
+            #        raise IOError(f'File {infileLow_sensible} does not exist. Need to create it with compute_composites')
+            #    infileLow_latent = f'{indir}/latentHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_latent):
+            #        raise IOError(f'File {infileLow_latent} does not exist. Need to create it with compute_composites')
+            #    infileLow_LRdown = f'{indir}/longWaveHeatFluxDown_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_LRdown):
+            #        raise IOError(f'File {infileLow_LRdown} does not exist. Need to create it with compute_composites')
+            #    infileLow_LRup = f'{indir}/longWaveHeatFluxUp_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_LRup):
+            #        raise IOError(f'File {infileLow_LRup} does not exist. Need to create it with compute_composites')
+            #    infileLow_SR = f'{indir}/shortWaveHeatFlux_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileLow_SR):
+            #        raise IOError(f'File {infileLow_SR} does not exist. Need to create it with compute_composites')
+            #    infileHigh_sensible = f'{indir}/sensibleHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_sensible):
+            #        raise IOError(f'File {infileHigh_sensible} does not exist. Need to create it with compute_composites')
+            #    infileHigh_latent = f'{indir}/latentHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_latent):
+            #        raise IOError(f'File {infileHigh_latent} does not exist. Need to create it with compute_composites')
+            #    infileHigh_LRdown = f'{indir}/longWaveHeatFluxDown_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_LRdown):
+            #        raise IOError(f'File {infileHigh_LRdown} does not exist. Need to create it with compute_composites')
+            #    infileHigh_LRup = f'{indir}/longWaveHeatFluxUp_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_LRup):
+            #        raise IOError(f'File {infileHigh_LRup} does not exist. Need to create it with compute_composites')
+            #    infileHigh_SR = f'{indir}/shortWaveHeatFlux_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
+            #    if not os.path.isfile(infileHigh_SR):
+            #        raise IOError(f'File {infileHigh_SR} does not exist. Need to create it with compute_composites')
             else: # other variables
                 infileLow  = f'{indir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileLow):
                     raise IOError(f'Native file {infileLow} does not exist. Need to create it with compute_composites')
+                infileLowStd  = f'{indir}/{varname}_{varRef}low_{climoMonths}_{regionNameShort}_M{im:02d}std.nc'
+                if not os.path.isfile(infileLowStd):
+                    raise IOError(f'Native file {infileLowStd} does not exist. Need to create it with compute_composites')
                 infileHigh = f'{indir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}.nc'
                 if not os.path.isfile(infileHigh):
                     raise IOError(f'Native file {infileHigh} does not exist. Need to create it with compute_composites')
+                infileHighStd = f'{indir}/{varname}_{varRef}high_{climoMonths}_{regionNameShort}_M{im:02d}std.nc'
+                if not os.path.isfile(infileHighStd):
+                    raise IOError(f'Native file {infileHighStd} does not exist. Need to create it with compute_composites')
 
             if isvar3d:
                 if plotDepthAvg:
@@ -535,10 +555,10 @@ for regionName in regions:
                             dotSize = 1.2 # this should go up as resolution decreases
                             make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                                               lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                                              fld=diff, ttestMask=None, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
                             #make_scatter_plot(x, y, dotSize, figtitle, figfilerel, projectionName='NorthPolarStereo',
                             #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                            #                  fld=diffrel, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
+                            #                  fld=diffrel, ttestMask=None, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
                 else:
                     for iz in range(len(dlevels)):
                         figtitle   = f'HC-LC difference, {vartitle} (z={z[zlevels[iz]]:5.1f} m), month={im}'
@@ -572,80 +592,129 @@ for regionName in regions:
                         else:
                             dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
                             dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0, nVertLevels=zlevels[iz])[varmpasname]
+                            dsFieldLowStd  = xr.open_dataset(infileLowStd).isel(Time=0, nVertLevels=zlevels[iz])
+                            dsFieldHighStd = xr.open_dataset(infileHighStd).isel(Time=0, nVertLevels=zlevels[iz])
 
                             topoMask = depthMask.isel(nVertLevels=zlevels[iz])
                             dsFieldLow  = dsFieldLow.where(topoMask, drop=False)
                             dsFieldHigh = dsFieldHigh.where(topoMask, drop=False)
+                            dsFieldLowStd  = dsFieldLowStd.where(topoMask, drop=False)
+                            dsFieldHighStd = dsFieldHighStd.where(topoMask, drop=False)
 
                             fldLow  = varfactor * dsFieldLow.values
                             fldHigh = varfactor * dsFieldHigh.values
                             diff = fldHigh-fldLow
                             #diffrel = diff/np.abs(0.5*(fldHigh+fldLow))
+                            fldLowStd  = varfactor * dsFieldLowStd[varmpasname].values
+                            fldHighStd = varfactor * dsFieldHighStd[varmpasname].values
+                            fldLowStd[np.where(fldLowStd<1e-15)] = np.nan
+                            fldHighStd[np.where(fldHighStd<1e-15)] = np.nan
+                            ndataLow = dsFieldLowStd.nind_data.values
+                            ndataHigh = dsFieldHighStd.nind_data.values
 
-                            dotSize = 1.2 # this should go up as resolution decreases
-                            make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
-                                              lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                              fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-                            #make_scatter_plot(x, y, dotSize, figtitle, figfilerel, projectionName='NorthPolarStereo',
+                            # two-sample t-test
+                            combinedStd = np.sqrt( ((ndataLow-1)*fldLowStd**2 + (ndataHigh-1)*fldHighStd**2) / (ndataLow+ndataHigh-2) )
+                            tvalue = (fldHigh - fldLow) / (combinedStd * np.sqrt(1/ndataLow+1/ndataHigh))
+                            mask_ttest = np.logical_and(tvalue<tcritical, tvalue>-tcritical)
+                            print('min(tvalue), max(tvalue)')
+                            print(np.nanmin(tvalue), np.nanmax(tvalue))
+                            print(np.shape(np.where(mask_ttest)))
+
+                            #dotSize = 1.2 # this should go up as resolution decreases
+                            #make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                             #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                            #                  fld=diffrel, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
+                            #                  fld=diff, ttestMask=mask_ttest, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                            ##make_scatter_plot(x, y, dotSize, figtitle, figfilerel, projectionName='NorthPolarStereo',
+                            ##                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+                            ##                  fld=diffrel, ttestMask=mask_ttest, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
+                            make_mosaic_plot(x, y, varfactor*(dsFieldHigh-dsFieldLow), mosaic_descriptor, figtitle, figfile, ttestMask=mask_ttest, showEdges=None,
+                                             cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
+                                             projectionName='NorthPolarStereo', lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)
             else:
                 figtitle = f'HC-LC difference, {vartitle}, month={im}'
                 figfile  = f'{figdir}/{varname}_{varRef}diff_{climoMonths}_{regionNameShort}_M{im:02d}.png'
                 #figfilerel  = f'{figdir}/{varname}_{varRef}diffrel_{climoMonths}_{regionNameShort}_M{im:02d}.png'
 
-                if varname=='windStressSpeed':
-                    dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
-                    dsFieldLow_v  = xr.open_dataset(infileLow_v).isel(Time=0)['timeMonthly_avg_windStressMeridional']
-                    dsFieldHigh_u = xr.open_dataset(infileHigh_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
-                    dsFieldHigh_v = xr.open_dataset(infileHigh_v).isel(Time=0)['timeMonthly_avg_windStressMeridional']
-                    fldLow  = varfactor * 0.5 * np.sqrt(dsFieldLow_u.values**2  + dsFieldLow_v.values**2)
-                    fldHigh = varfactor * 0.5 * np.sqrt(dsFieldHigh_u.values**2 + dsFieldHigh_v.values**2)
-                elif varname=='iceSpeed':
-                    dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_uVelocityGeo']
-                    dsFieldLow_v  = xr.open_dataset(infileLow_v).isel(Time=0)['timeMonthly_avg_vVelocityGeo']
-                    dsFieldHigh_u = xr.open_dataset(infileHigh_u).isel(Time=0)['timeMonthly_avg_uVelocityGeo']
-                    dsFieldHigh_v = xr.open_dataset(infileHigh_v).isel(Time=0)['timeMonthly_avg_vVelocityGeo']
-                    fldLow  = varfactor * 0.5 * np.sqrt(dsFieldLow_u.values**2  + dsFieldLow_v.values**2)
-                    fldHigh = varfactor * 0.5 * np.sqrt(dsFieldHigh_u.values**2 + dsFieldHigh_v.values**2)
-                elif varname=='barotropicStreamfunction':
-                   dsFieldLow  = xr.open_dataset(infileLow)[varmpasname]
-                   dsFieldHigh = xr.open_dataset(infileHigh)[varmpasname]
-                   fldLow  = varfactor * dsFieldLow.values
-                   fldHigh = varfactor * dsFieldHigh.values
-                elif varname=='totalHeatFlux':
-                   sensibleLow = xr.open_dataset(infileLow_sensible)['timeMonthly_avg_sensibleHeatFlux']
-                   latentLow = xr.open_dataset(infileLow_latent)['timeMonthly_avg_latentHeatFlux']
-                   LRdownLow = xr.open_dataset(infileLow_LRdown)['timeMonthly_avg_longWaveHeatFluxDown']
-                   LRupLow = xr.open_dataset(infileLow_LRup)['timeMonthly_avg_longWaveHeatFluxUp']
-                   SRLow = xr.open_dataset(infileLow_SR)['timeMonthly_avg_shortWaveHeatFlux']
-                   sensibleHigh = xr.open_dataset(infileHigh_sensible)['timeMonthly_avg_sensibleHeatFlux']
-                   latentHigh = xr.open_dataset(infileHigh_latent)['timeMonthly_avg_latentHeatFlux']
-                   LRdownHigh = xr.open_dataset(infileHigh_LRdown)['timeMonthly_avg_longWaveHeatFluxDown']
-                   LRupHigh = xr.open_dataset(infileHigh_LRup)['timeMonthly_avg_longWaveHeatFluxUp']
-                   SRHigh = xr.open_dataset(infileHigh_SR)['timeMonthly_avg_shortWaveHeatFlux']
-                   dsFieldLow = sensibleLow + latentLow + LRdownLow + LRupLow + SRLow
-                   dsFieldHigh = sensibleHigh + latentHigh + LRdownHigh + LRupHigh + SRHigh
-                   fldLow  = varfactor * dsFieldLow.values
-                   fldHigh = varfactor * dsFieldHigh.values
+                if varname=='barotropicStreamfunction':
+                    dsFieldLow  = xr.open_dataset(infileLow)[varmpasname]
+                    dsFieldHigh = xr.open_dataset(infileHigh)[varmpasname]
+                    dsFieldLowStd  = xr.open_dataset(infileLowStd)
+                    dsFieldHighStd = xr.open_dataset(infileHighStd)
+                # Piece of old code:
+                #if varname=='windStressSpeed':
+                #    dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
+                #    dsFieldLow_v  = xr.open_dataset(infileLow_v).isel(Time=0)['timeMonthly_avg_windStressMeridional']
+                #    dsFieldHigh_u = xr.open_dataset(infileHigh_u).isel(Time=0)['timeMonthly_avg_windStressZonal']
+                #    dsFieldHigh_v = xr.open_dataset(infileHigh_v).isel(Time=0)['timeMonthly_avg_windStressMeridional']
+                #    fldLow  = varfactor * 0.5 * np.sqrt(dsFieldLow_u.values**2  + dsFieldLow_v.values**2)
+                #    fldHigh = varfactor * 0.5 * np.sqrt(dsFieldHigh_u.values**2 + dsFieldHigh_v.values**2)
+                #elif varname=='iceSpeed':
+                #    dsFieldLow_u  = xr.open_dataset(infileLow_u).isel(Time=0)['timeMonthly_avg_uVelocityGeo']
+                #    dsFieldLow_v  = xr.open_dataset(infileLow_v).isel(Time=0)['timeMonthly_avg_vVelocityGeo']
+                #    dsFieldHigh_u = xr.open_dataset(infileHigh_u).isel(Time=0)['timeMonthly_avg_uVelocityGeo']
+                #    dsFieldHigh_v = xr.open_dataset(infileHigh_v).isel(Time=0)['timeMonthly_avg_vVelocityGeo']
+                #    fldLow  = varfactor * 0.5 * np.sqrt(dsFieldLow_u.values**2  + dsFieldLow_v.values**2)
+                #    fldHigh = varfactor * 0.5 * np.sqrt(dsFieldHigh_u.values**2 + dsFieldHigh_v.values**2)
+                #elif varname=='barotropicStreamfunction':
+                #   dsFieldLow  = xr.open_dataset(infileLow)[varmpasname]
+                #   dsFieldHigh = xr.open_dataset(infileHigh)[varmpasname]
+                #   fldLow  = varfactor * dsFieldLow.values
+                #   fldHigh = varfactor * dsFieldHigh.values
+                #elif varname=='totalHeatFlux':
+                #   sensibleLow = xr.open_dataset(infileLow_sensible)['timeMonthly_avg_sensibleHeatFlux']
+                #   latentLow = xr.open_dataset(infileLow_latent)['timeMonthly_avg_latentHeatFlux']
+                #   LRdownLow = xr.open_dataset(infileLow_LRdown)['timeMonthly_avg_longWaveHeatFluxDown']
+                #   LRupLow = xr.open_dataset(infileLow_LRup)['timeMonthly_avg_longWaveHeatFluxUp']
+                #   SRLow = xr.open_dataset(infileLow_SR)['timeMonthly_avg_shortWaveHeatFlux']
+                #   sensibleHigh = xr.open_dataset(infileHigh_sensible)['timeMonthly_avg_sensibleHeatFlux']
+                #   latentHigh = xr.open_dataset(infileHigh_latent)['timeMonthly_avg_latentHeatFlux']
+                #   LRdownHigh = xr.open_dataset(infileHigh_LRdown)['timeMonthly_avg_longWaveHeatFluxDown']
+                #   LRupHigh = xr.open_dataset(infileHigh_LRup)['timeMonthly_avg_longWaveHeatFluxUp']
+                #   SRHigh = xr.open_dataset(infileHigh_SR)['timeMonthly_avg_shortWaveHeatFlux']
+                #   dsFieldLow = sensibleLow + latentLow + LRdownLow + LRupLow + SRLow
+                #   dsFieldHigh = sensibleHigh + latentHigh + LRdownHigh + LRupHigh + SRHigh
+                #   fldLow  = varfactor * dsFieldLow.values
+                #   fldHigh = varfactor * dsFieldHigh.values
                 else:
                    dsFieldLow  = xr.open_dataset(infileLow).isel(Time=0)[varmpasname]
                    dsFieldHigh = xr.open_dataset(infileHigh).isel(Time=0)[varmpasname]
-                   fldLow  = varfactor * dsFieldLow.values
-                   fldHigh = varfactor * dsFieldHigh.values
+                   dsFieldLowStd  = xr.open_dataset(infileLowStd).isel(Time=0)
+                   dsFieldHighStd = xr.open_dataset(infileHighStd).isel(Time=0)
+
+                fldLow  = varfactor * dsFieldLow.values
+                fldHigh = varfactor * dsFieldHigh.values
                 diff = fldHigh-fldLow
                 #diffrel = diff/np.abs(0.5*(fldHigh+fldLow))
+                fldLowStd  = varfactor * dsFieldLowStd[varmpasname].values
+                fldHighStd = varfactor * dsFieldHighStd[varmpasname].values
+                fldLowStd[np.where(fldLowStd<1e-15)] = np.nan
+                fldHighStd[np.where(fldHighStd<1e-15)] = np.nan
+                ndataLow = dsFieldLowStd.nind_data.values
+                ndataHigh = dsFieldHighStd.nind_data.values
+
+                # two-sample t-test
+                combinedStd = np.sqrt( ((ndataLow-1)*fldLowStd**2 + (ndataHigh-1)*fldHighStd**2) / (ndataLow+ndataHigh-2) )
+                tvalue = (fldHigh - fldLow) / (combinedStd * np.sqrt(1/ndataLow+1/ndataHigh))
+                mask_ttest = np.logical_and(tvalue<tcritical, tvalue>-tcritical)
+                print('min(tvalue), max(tvalue)')
+                print(np.nanmin(tvalue), np.nanmax(tvalue))
+                print(np.shape(np.where(mask_ttest)))
 
                 # Mask areas with effective no ice
                 if varname=='iceArea' or varname=='iceVolume' or varname=='iceDivergence' or varname=='iceSpeed' or varname=='seaIceFreshWaterFlux':
                     fldLow[np.where(np.abs(fldLow)<1e-15)]    = np.nan
                     fldHigh[np.where(np.abs(fldHigh)<1e-15)]  = np.nan
                     diff = fldHigh-fldLow
+                    dsFieldLow = dsFieldLow.where(np.abs(dsFieldLow)>1e-15)
+                    dsFieldHigh = dsFieldHigh.where(np.abs(dsFieldHigh)>1e-15)
 
-                dotSize = 1.2 # this should go up as resolution decreases
-                make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
-                                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                                  fld=diff, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
-                #make_scatter_plot(x, y, dotSize, figtitle, figfilerel, projectionName='NorthPolarStereo',
+                #dotSize = 1.2 # this should go up as resolution decreases
+                #make_scatter_plot(x, y, dotSize, figtitle, figfile, projectionName='NorthPolarStereo',
                 #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
-                #                  fld=diffrel, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
+                #                  fld=diff, ttestMask=mask_ttest, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                ##make_scatter_plot(x, y, dotSize, figtitle, figfilerel, projectionName='NorthPolarStereo',
+                ##                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat,
+                ##                  fld=diffrel, ttestMask=mask_ttest, cmap=colormap, clevels=clevelsrel, cindices=colorIndices, cbarLabel='%')
+                make_mosaic_plot(x, y, varfactor*(dsFieldHigh-dsFieldLow), mosaic_descriptor, figtitle, figfile, ttestMask=mask_ttest, showEdges=None,
+                                 cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
+                                 projectionName='NorthPolarStereo', lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat)

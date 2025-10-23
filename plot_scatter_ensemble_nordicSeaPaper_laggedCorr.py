@@ -224,9 +224,9 @@ indheatTHigh= np.greater_equal(heatT_flat, heatTHigh)
 indfwTLow = np.less_equal(fwT_flat, fwTLow)
 indfwTHigh= np.greater_equal(fwT_flat, fwTHigh)
 
-print(indMLDHigh*years_flat)
+#print(indMLDHigh*years_flat)
 #print(indvolTHigh*years_flat)
-print(indfwTHigh*years_flat)
+#print(indfwTHigh*years_flat)
 
 percentage = 100 * np.size(np.where(np.logical_and(indvolTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
 print(f'\nPercentage of HC years for the {regionName} also associated with high volume transport across {transectName}: {percentage}')
@@ -249,13 +249,34 @@ percentage = 100 * np.size(np.where(np.logical_and(np.logical_and(indvolTHigh, i
 print(f'Percentage of HC years for the {regionName} also associated with high volume and saltwater transport across {transectName}: {percentage}\n')
 
 figdpi = 300
-figsize = (20, 5)
+figsize = (18, 5)
 # Make scatter plot for a range of lags
 for lag in np.arange(0, 7, dtype=np.int16):
     # First do one scatter plot for *all* ensemble members 
+    if lag==0:
+        fld0 = volT_annual.flatten()
+        fld1 = heatT_annual.flatten()
+        fld2 = fwT_annual.flatten()
+        #fld3 = spice_annual.flatten()
+        mld = maxMLD_seasonal.flatten()
+    if lag>0:
+        fld0 = volT_annual[:, 0:-lag].flatten()
+        fld1 = heatT_annual[:, 0:-lag].flatten()
+        fld2 = fwT_annual[:, 0:-lag].flatten()
+        #fld3 = spice_annual[:, 0:-lag].flatten()
+        mld = maxMLD_seasonal[:, lag::].flatten()
+    if lag<0:
+        fld0 = volT_annual[:, -1:-lag-1:-1].flatten()
+        fld1 = heatT_annual[:, -1:-lag-1:-1].flatten()
+        fld2 = fwT_annual[:, -1:-lag-1:-1].flatten()
+        #fld3 = spice_annual[:, -1:-lag-1:-1].flatten()
+        mld = maxMLD_seasonal[:, -1+lag::-1].flatten()
+    ind_maxMLDLC = np.less_equal(mld, maxMLDLC)
+    ind_maxMLDHC = np.greater_equal(mld, maxMLDHC)
+
     figfile = f'{figdir}/{transectNameShort}_maxMLD{regionNameShort}_scatterLag{lag:02d}.png'
-    fig, ax = plt.subplots(1, 4, figsize=figsize)
-    for i in np.arange(4):
+    fig, ax = plt.subplots(1, 3, figsize=figsize)
+    for i in np.arange(3):
         for tick in ax[i].xaxis.get_ticklabels():
             tick.set_fontsize(fontsize_smallLabels)
             tick.set_weight('bold')
@@ -264,83 +285,71 @@ for lag in np.arange(0, 7, dtype=np.int16):
             tick.set_weight('bold')
         ax[i].yaxis.get_offset_text().set_fontsize(fontsize_smallLabels)
         ax[i].yaxis.get_offset_text().set_weight('bold')
-    ax[0].set_ylabel('JFMA maxMLD', fontsize=fontsize_labels, fontweight='bold')
-    ax[0].set_xlabel('Annual spice0', fontsize=fontsize_labels, fontweight='bold')
-    figtitle = f'lag={lag:02d}-year'
-    ax[0].set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
-    ax[1].set_xlabel('Annual net volume transport', fontsize=fontsize_labels, fontweight='bold')
-    figtitle = f'lag={lag:02d}-year'
-    ax[1].set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
-    ax[2].set_xlabel('Annual net heat trasnport (Tref=0)', fontsize=fontsize_labels, fontweight='bold')
-    figtitle = f'lag={lag:02d}-year'
-    ax[2].set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
-    ax[3].set_xlabel('Annual net saltwater transport (Sref=34.8)', fontsize=fontsize_labels, fontweight='bold')
-    figtitle = f'lag={lag:02d}-year'
-    ax[3].set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
-
-    if lag==0:
-        fld0 = spice_annual.flatten()
-        fld1 = volT_annual.flatten()
-        fld2 = heatT_annual.flatten()
-        fld3 = fwT_annual.flatten()
-        mld = maxMLD_seasonal.flatten()
-    if lag>0:
-        fld0 = spice_annual[:, 0:-lag].flatten()
-        fld1 = volT_annual[:, 0:-lag].flatten()
-        fld2 = heatT_annual[:, 0:-lag].flatten()
-        fld3 = fwT_annual[:, 0:-lag].flatten()
-        mld = maxMLD_seasonal[:, lag::].flatten()
-    if lag<0:
-        fld0 = spice_annual[:, -1:-lag-1:-1].flatten()
-        fld1 = volT_annual[:, -1:-lag-1:-1].flatten()
-        fld2 = heatT_annual[:, -1:-lag-1:-1].flatten()
-        fld3 = fwT_annual[:, -1:-lag-1:-1].flatten()
-        mld = maxMLD_seasonal[:, -1+lag::-1].flatten()
-
-    ind_maxMLDLC = np.less_equal(mld, maxMLDLC)
-    ind_maxMLDHC = np.greater_equal(mld, maxMLDHC)
+    if regionName=='Greenland Sea':
+        panelLabel0 = 'a)'
+        panelLabel1 = 'b)'
+        panelLabel2 = 'c)'
+    else:
+        panelLabel0 = 'd)'
+        panelLabel1 = 'e)'
+        panelLabel2 = 'f)'
 
     pearson_corr = stats.pearsonr(fld0, mld)
     corr = pearson_corr.statistic
     pval = pearson_corr.pvalue
-    #print(corr, pval)
-    ax[0].scatter(fld0, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
+    print('\nlag=', lag, 'corr mld-volT=', corr, 'pvalue=', pval)
+    linear_fit = stats.linregress(fld0, mld)
+    ax[0].set_ylabel('JFMA maxMLD (m)', fontsize=fontsize_labels, fontweight='bold')
+    ax[0].set_xlabel('Annual net volume transport (Sv)', fontsize=fontsize_labels, fontweight='bold')
+    ax[0].grid(visible=True, which='both')
+    ax[0].plot(fld0, linear_fit.intercept + linear_fit.slope*fld0, 'dimgrey', linewidth=1.5)
+    ax[0].scatter(fld0, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')
     ax[0].scatter(fld0[ind_maxMLDLC], mld[ind_maxMLDLC], s=20, c='b', marker='d')
     ax[0].scatter(fld0[ind_maxMLDHC], mld[ind_maxMLDHC], s=20, c='r', marker='d')
-    ax[0].grid(visible=True, which='both')
-    ax[0].legend(prop=legend_properties)
+    ax[0].legend(prop=legend_properties, handlelength=0, markerscale=0)
+    ax[0].text(0.08, 0.95, panelLabel0, transform=ax[0].transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
 
     pearson_corr = stats.pearsonr(fld1, mld)
     corr = pearson_corr.statistic
     pval = pearson_corr.pvalue
-    #print(corr, pval)
-    ax[1].scatter(fld1, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
+    print('corr mld-heatT=', corr, 'pvalue=', pval)
+    linear_fit = stats.linregress(fld1, mld)
+    ax[1].set_xlabel('Annual net heat transport (Tref=0; TW)', fontsize=fontsize_labels, fontweight='bold')
+    ax[1].grid(visible=True, which='both')
+    ax[1].plot(fld1, linear_fit.intercept + linear_fit.slope*fld1, 'dimgrey', linewidth=1.5)
+    ax[1].scatter(fld1, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')
     ax[1].scatter(fld1[ind_maxMLDLC], mld[ind_maxMLDLC], s=20, c='b', marker='d')
     ax[1].scatter(fld1[ind_maxMLDHC], mld[ind_maxMLDHC], s=20, c='r', marker='d')
-    ax[1].grid(visible=True, which='both')
-    ax[1].legend(prop=legend_properties)
+    ax[1].legend(prop=legend_properties, handlelength=0, markerscale=0)
+    ax[1].text(0.08, 0.95, panelLabel1, transform=ax[1].transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
 
     pearson_corr = stats.pearsonr(fld2, mld)
     corr = pearson_corr.statistic
     pval = pearson_corr.pvalue
-    #print(corr, pval)
-    ax[2].scatter(fld2, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
+    print('corr mld-saltT=', corr, 'pvalue=', pval)
+    linear_fit = stats.linregress(fld2, mld)
+    ax[2].set_xlabel('Annual net saltwater transport (Sref=34.8; mSv)', fontsize=fontsize_labels, fontweight='bold')
+    ax[2].grid(visible=True, which='both')
+    ax[2].plot(fld2, linear_fit.intercept + linear_fit.slope*fld2, 'dimgrey', linewidth=1.5)
+    ax[2].scatter(fld2, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')
     ax[2].scatter(fld2[ind_maxMLDLC], mld[ind_maxMLDLC], s=20, c='b', marker='d')
     ax[2].scatter(fld2[ind_maxMLDHC], mld[ind_maxMLDHC], s=20, c='r', marker='d')
-    ax[2].grid(visible=True, which='both')
-    ax[2].legend(prop=legend_properties)
+    ax[2].legend(prop=legend_properties, handlelength=0, markerscale=0)
+    ax[2].text(0.08, 0.95, panelLabel2, transform=ax[2].transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
 
-    pearson_corr = stats.pearsonr(fld3, mld)
-    corr = pearson_corr.statistic
-    pval = pearson_corr.pvalue
-    #print(corr, pval)
-    ax[3].scatter(fld3, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
-    ax[3].scatter(fld3[ind_maxMLDLC], mld[ind_maxMLDLC], s=20, c='b', marker='d')
-    ax[3].scatter(fld3[ind_maxMLDHC], mld[ind_maxMLDHC], s=20, c='r', marker='d')
-    ax[3].grid(visible=True, which='both')
-    ax[3].legend(prop=legend_properties)
+    #pearson_corr = stats.pearsonr(fld3, mld)
+    #corr = pearson_corr.statistic
+    #pval = pearson_corr.pvalue
+    #linear_fit = stats.linregress(fld3, mld)
+    #ax[3].set_xlabel('Annual spice0', fontsize=fontsize_labels, fontweight='bold')
+    #ax[3].grid(visible=True, which='both')
+    #ax[3].scatter(fld3, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}')
+    #ax[3].scatter(fld3[ind_maxMLDLC], mld[ind_maxMLDLC], s=20, c='b', marker='d')
+    #ax[3].scatter(fld3[ind_maxMLDHC], mld[ind_maxMLDHC], s=20, c='r', marker='d')
+    #ax[3].plot(fld3, linear_fit.intercept + linear_fit.slope*fld3, 'k', linewidth=1.5)
+    #ax[3].legend(prop=legend_properties)
 
-    fig.suptitle(f'Scatter plot between JFMA-maxMLD in the {regionName} and\n 0-400 m integrated quantities across the {transectName} transect', fontsize=12, fontweight='bold', y=1.04)
+    fig.suptitle(f'Scatter plot between JFMA-maxMLD in the {regionName} and\n0-400 m integrated quantities across the {transectName} transect\nlag={lag:02d}-year', fontsize=12, fontweight='bold', y=1.02)
     fig.savefig(figfile, dpi=figdpi, bbox_inches='tight', pad_inches=0.1)
 
     # Then do one scatter plot for each ensemble member 

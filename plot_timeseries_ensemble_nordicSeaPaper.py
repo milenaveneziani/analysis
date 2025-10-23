@@ -28,6 +28,8 @@ calendar = 'gregorian'
 regionName = 'Greenland Sea'
 #regionName = 'Norwegian Sea'
 regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
+#regionName = 'Greenland Sea Interior'
+#regionGroup = 'ginSeas_new'
 regionGroupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 
 # Settings for transect time series
@@ -38,6 +40,9 @@ transectGroupName = transectGroup[0].lower() + transectGroup[1:].replace(' ', ''
 figdir = f'./timeseries/{ensembleName}'
 if not os.path.isdir(figdir):
     os.makedirs(figdir)
+
+regionName4file = regionName.replace(' ', '')
+mld_obsfile = f'/global/cfs/cdirs/m1199/milena/Obs/MLD_fromAnna/timeseries_{regionName4file}.txt'
 
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
@@ -52,6 +57,20 @@ fontsize_labels = 20
 fontsize_titles = 22
 legend_properties = {'size':fontsize_smallLabels, 'weight':'bold'}
 ##############################################################
+
+# Read in MLD observations
+f = open(mld_obsfile, 'r')
+years_obs = []
+maxMLDobs = []
+if regionName=='Greenland Sea':
+    meanMLDobs = []
+for line in f:
+    line = line.split(',')
+    if line[0]!='year':
+        years_obs.append(np.int16(line[0]))
+        maxMLDobs.append(np.float64(line[1]))
+        if regionName=='Greenland Sea':
+            meanMLDobs.append(np.float64(line[2]))
 
 climoMonths = [1, 2, 3, 4] # JFMA only
 regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '')
@@ -93,6 +112,18 @@ ax1.set_ylabel('maxMLD [m]', fontsize=fontsize_labels, fontweight='bold')
 ax1.set_title(figtitle1, fontsize=fontsize_titles, fontweight='bold')
 ax1.set_xlim(years[0], years[-1])
 ax1.grid(visible=True, which='both', alpha=0.75)
+# Add MLD obs
+ax1obs = ax1.twinx()
+ax1obs_color = 'salmon'
+ax1obs.bar(years_obs, maxMLDobs, color=ax1obs_color, alpha=0.5)
+#if regionName=='Greenland Sea':
+#    ax1obs.plot(years_obs, meanMLDobs, 'red', marker='o', linewidth=1.5, label='obs (mean MLD)')
+ax1obs.tick_params(axis='y', labelcolor=ax1obs_color)
+ax1obs.spines['right'].set_color(ax1obs_color)
+for tick in ax1obs.yaxis.get_ticklabels():
+    tick.set_fontsize(fontsize_smallLabels)
+    tick.set_weight('bold')
+ax1obs.set_ylabel(f'obs (max MLD)', fontsize=fontsize_labels, fontweight='bold', color=ax1obs_color)
 
 fig2 = plt.figure(figsize=figsize, dpi=figdpi)
 ax2 = fig2.add_subplot()
@@ -278,7 +309,7 @@ for nEns in range(nEnsembles):
 maxMLD_flat = maxMLD_seasonal.flatten()
 maxMLDLC = np.quantile(maxMLD_flat, 0.15)
 maxMLDHC = np.quantile(maxMLD_flat, 0.85)
-#print('maxMLDLC, maxMLDHC = ', maxMLDLC, maxMLDHC)
+print('maxMLDLC, maxMLDHC = ', maxMLDLC, maxMLDHC)
 
 ax1.axhspan(maxMLDLC, maxMLDHC, alpha=0.3, color='grey')
 
@@ -299,6 +330,7 @@ plt.close(fig3)
 plt.close(fig4)
 plt.close(fig5)
 
+######################################################################
 #if climoMonths is not None:
 #    ensembleMean = np.nanmean(timeseries_seasonal, axis=0)
 #    ensembleTrend = ensembleMean - detrend(ensembleMean, type='linear')
