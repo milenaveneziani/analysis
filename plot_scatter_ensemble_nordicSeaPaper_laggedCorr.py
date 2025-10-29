@@ -96,7 +96,7 @@ ax.axhline(y=0, color='k', linestyle='-')
 
 nEnsembles = len(ensembleMemberNames)
 maxMLD_seasonal  = np.zeros((nEnsembles, len(years)))
-spice_annual = np.zeros((nEnsembles, len(years)))
+#spice_annual = np.zeros((nEnsembles, len(years)))
 volT_annual = np.zeros((nEnsembles, len(years)))
 heatT_annual = np.zeros((nEnsembles, len(years)))
 fwT_annual = np.zeros((nEnsembles, len(years)))
@@ -110,7 +110,8 @@ for nEns in np.arange(nEnsembles):
     timeseriesFiles2 = []
     for year in years:
         timeseriesFiles1.append(f'{timeseriesDir1}/{regionGroupName}_max_year{year:04d}.nc')
-        timeseriesFiles2.append(f'{timeseriesDir2}/{transectGroupName}Transports_z0000-0400_{ensembleName}{ensembleMemberName}_year{year:04d}.nc')
+        timeseriesFiles2.append(f'{timeseriesDir2}/{transectGroupName}Transports_{ensembleName}{ensembleMemberName}_year{year:04d}.nc')
+        #timeseriesFiles2.append(f'{timeseriesDir2}/{transectGroupName}Transports_z0000-0400_{ensembleName}{ensembleMemberName}_year{year:04d}.nc')
     ds1 = xr.open_mfdataset(timeseriesFiles1, combine='nested',
                             concat_dim='Time', decode_times=False)
     ds2 = xr.open_mfdataset(timeseriesFiles2, combine='nested',
@@ -120,16 +121,20 @@ for nEns in np.arange(nEnsembles):
     dsvar1 = ds1['maxMLD'].isel(nRegions=regionIndex)
     transectNames = ds2.transectNames[0].values
     transectIndex = np.where(transectNames==transectName)[0]
-    dsvar2 = ds2['spiceTransect'].isel(nTransects=transectIndex)
-    dsvar3 = ds2['volTransport'].isel(nTransects=transectIndex)
-    dsvar4 = ds2['heatTransport'].isel(nTransects=transectIndex)
-    dsvar5 = ds2['FWTransportSref'].isel(nTransects=transectIndex)
+    #dsvar2 = ds2['spiceTransect'].isel(nTransects=transectIndex)
+    #dsvar3 = ds2['volTransport'].isel(nTransects=transectIndex)
+    dsvar3 = ds2['volTransportIn'].isel(nTransects=transectIndex)
+    #dsvar4 = ds2['heatTransport'].isel(nTransects=transectIndex)
+    dsvar4 = ds2['heatTransportIn'].isel(nTransects=transectIndex)
+    #dsvar4 = ds2['heatTransportTfp'].isel(nTransects=transectIndex)
+    #dsvar5 = ds2['FWTransportSref'].isel(nTransects=transectIndex)
+    dsvar5 = ds2['FWTransportSrefIn'].isel(nTransects=transectIndex)
 
     # Compute and plot seasonal averages
     #  (note: this approach only works for the regional
     #   time series, not for the transport time series)
     maxMLD = np.squeeze(dsvar1.values)
-    spice = np.squeeze(dsvar2.values)
+    #spice = np.squeeze(dsvar2.values)
     volT = np.squeeze(dsvar3.values)
     heatT = np.squeeze(dsvar4.values)
     fwT = np.squeeze(dsvar5.values)
@@ -151,51 +156,51 @@ for nEns in np.arange(nEnsembles):
         if np.size(mask2)==0:
            raise ValueError('Something is wrong with time mask2')
         maxMLD_seasonal[nEns, iy] = np.nanmean(maxMLD[mask1])
-        spice_annual[nEns, iy] = np.nanmean(spice[mask2])
+        #spice_annual[nEns, iy] = np.nanmean(spice[mask2])
         volT_annual[nEns, iy] = np.nanmean(volT[mask2])
         heatT_annual[nEns, iy] = np.nanmean(heatT[mask2])
         fwT_annual[nEns, iy] = np.nanmean(fwT[mask2])
 
-    corr = []
-    pval = []
-    #conf = []
-    # for debugging:
-    #print(spice_seasonal[nEns, :])
-    #print(maxMLD_seasonal[nEns, :])
-    for lag in lags:
-        if lag<0:
-            # for debugging:
-            #print(spice_annual[nEns, -1:-lag-1:-1])
-            #print(maxMLD_seasonal[nEns, -1+lag::-1])
-            # correlate flipped a(t) with flipped b(t-tau), considering that python does 
-            # *not* include last element of array (-lag-1 for spice_annual, for example):
-            pearson_corr = stats.pearsonr(spice_annual[nEns, -1:-lag-1:-1], maxMLD_seasonal[nEns, -1+lag::-1])
-        if lag==0:
-            # correlate a(t) with b(t)
-            pearson_corr = stats.pearsonr(spice_annual[nEns, :], maxMLD_seasonal[nEns, :])
-        if lag>0:
-            # for debugging:
-            #print(spice_annual[nEns, 0:-lag])
-            #print(maxMLD_annual[nEns, lag::])
-            # correlate a(t) with v(t+tau)
-            pearson_corr = stats.pearsonr(spice_annual[nEns, 0:-lag], maxMLD_seasonal[nEns, lag::])
-        corr = np.append(corr, pearson_corr.statistic)
-        pval = np.append(pval, pearson_corr.pvalue)
-        #conf = np.append(conf, pearson_corr.confidence_interval(confidence_level=0.95))
+    #corr = []
+    #pval = []
+    ##conf = []
+    ## for debugging:
+    ##print(spice_seasonal[nEns, :])
+    ##print(maxMLD_seasonal[nEns, :])
+    #for lag in lags:
+    #    if lag<0:
+    #        # for debugging:
+    #        #print(spice_annual[nEns, -1:-lag-1:-1])
+    #        #print(maxMLD_seasonal[nEns, -1+lag::-1])
+    #        # correlate flipped a(t) with flipped b(t-tau), considering that python does 
+    #        # *not* include last element of array (-lag-1 for spice_annual, for example):
+    #        pearson_corr = stats.pearsonr(spice_annual[nEns, -1:-lag-1:-1], maxMLD_seasonal[nEns, -1+lag::-1])
+    #    if lag==0:
+    #        # correlate a(t) with b(t)
+    #        pearson_corr = stats.pearsonr(spice_annual[nEns, :], maxMLD_seasonal[nEns, :])
+    #    if lag>0:
+    #        # for debugging:
+    #        #print(spice_annual[nEns, 0:-lag])
+    #        #print(maxMLD_annual[nEns, lag::])
+    #        # correlate a(t) with v(t+tau)
+    #        pearson_corr = stats.pearsonr(spice_annual[nEns, 0:-lag], maxMLD_seasonal[nEns, lag::])
+    #    corr = np.append(corr, pearson_corr.statistic)
+    #    pval = np.append(pval, pearson_corr.pvalue)
+    #    #conf = np.append(conf, pearson_corr.confidence_interval(confidence_level=0.95))
 
-    #print(corr)
-    #print(pval)
-    sigValues = np.where(pval < .01) # choose pvalue<1%
-    insigValues = np.where(pval >= .01)
-    #ax.plot(years, spice_annual[nEns, :], colors[nEns], marker='o', linewidth=1.5, label=f'{ensembleMemberName}, r={corr.statistic:5.2f}')
-    #ax.scatter(maxMLD_seasonal[nEns, :], spice_annual[nEns, :], s=5, c=colors[nEns], marker='o', label=ensembleMemberName)
-    ax.plot(lags, corr, colors[nEns], linewidth=1, label=ensembleMemberName)
-    ax.scatter(lags[sigValues], corr[sigValues], s=20, c=colors[nEns], marker='o')
-    ax.scatter(lags[insigValues], corr[insigValues], s=20, c=colors[nEns], marker='o', alpha=0.3)
+    ##print(corr)
+    ##print(pval)
+    #sigValues = np.where(pval < .01) # choose pvalue<1%
+    #insigValues = np.where(pval >= .01)
+    ##ax.plot(years, spice_annual[nEns, :], colors[nEns], marker='o', linewidth=1.5, label=f'{ensembleMemberName}, r={corr.statistic:5.2f}')
+    ##ax.scatter(maxMLD_seasonal[nEns, :], spice_annual[nEns, :], s=5, c=colors[nEns], marker='o', label=ensembleMemberName)
+    #ax.plot(lags, corr, colors[nEns], linewidth=1, label=ensembleMemberName)
+    #ax.scatter(lags[sigValues], corr[sigValues], s=20, c=colors[nEns], marker='o')
+    #ax.scatter(lags[insigValues], corr[insigValues], s=20, c=colors[nEns], marker='o', alpha=0.3)
 
-ax.grid(visible=True, which='both')
-ax.legend(prop=legend_properties)
-fig.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
+#ax.grid(visible=True, which='both')
+#ax.legend(prop=legend_properties)
+#fig.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
 
 ########################################################################
 
@@ -203,9 +208,9 @@ fwT_annual = -fwT_annual # convert FW transport to salt water transport (makes m
 maxMLD_flat = maxMLD_seasonal.flatten()
 maxMLDLC = np.quantile(maxMLD_flat, 0.15)
 maxMLDHC = np.quantile(maxMLD_flat, 0.85)
-spice_flat = spice_annual.flatten()
-spiceLow = np.quantile(spice_flat, 0.15)
-spiceHigh= np.quantile(spice_flat, 0.85)
+#spice_flat = spice_annual.flatten()
+#spiceLow = np.quantile(spice_flat, 0.15)
+#spiceHigh= np.quantile(spice_flat, 0.85)
 volT_flat = volT_annual.flatten()
 volTLow = np.quantile(volT_flat, 0.15)
 volTHigh= np.quantile(volT_flat, 0.85)
@@ -228,25 +233,25 @@ indfwTHigh= np.greater_equal(fwT_flat, fwTHigh)
 #print(indvolTHigh*years_flat)
 #print(indfwTHigh*years_flat)
 
-percentage = 100 * np.size(np.where(np.logical_and(indvolTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
-print(f'\nPercentage of HC years for the {regionName} also associated with high volume transport across {transectName}: {percentage}')
-percentage = 100 * np.size(np.where(np.logical_and(indvolTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
-print(f'Percentage of LC years for the {regionName} also associated with low volume transport across {transectName}: {percentage}\n')
-
-percentage = 100 * np.size(np.where(np.logical_and(indheatTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
-print(f'Percentage of HC years for the {regionName} also associated with high heat transport across {transectName}: {percentage}')
-percentage = 100 * np.size(np.where(np.logical_and(indheatTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
-print(f'Percentage of LC years for the {regionName} also associated with low heat transport across {transectName}: {percentage}\n')
-percentage = 100 * np.size(np.where(np.logical_and(indfwTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
-
-print(f'Percentage of HC years for the {regionName} also associated with high saltwater transport across {transectName}: {percentage}')
-percentage = 100 * np.size(np.where(np.logical_and(indfwTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
-print(f'Percentage of LC years for the {regionName} also associated with low saltwater transport across {transectName}: {percentage}\n')
-
-percentage = 100 * np.size(np.where(np.logical_and(np.logical_and(indvolTHigh, indMLDHigh), indheatTHigh))) / np.size(np.where(indMLDHigh))
-print(f'Percentage of HC years for the {regionName} also associated with high volume and heat transport across {transectName}: {percentage}')
-percentage = 100 * np.size(np.where(np.logical_and(np.logical_and(indvolTHigh, indMLDHigh), indfwTHigh))) / np.size(np.where(indMLDHigh))
-print(f'Percentage of HC years for the {regionName} also associated with high volume and saltwater transport across {transectName}: {percentage}\n')
+#percentage = 100 * np.size(np.where(np.logical_and(indvolTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
+#print(f'\nPercentage of HC years for the {regionName} also associated with high volume transport across {transectName}: {percentage}')
+#percentage = 100 * np.size(np.where(np.logical_and(indvolTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
+#print(f'Percentage of LC years for the {regionName} also associated with low volume transport across {transectName}: {percentage}\n')
+#
+#percentage = 100 * np.size(np.where(np.logical_and(indheatTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
+#print(f'Percentage of HC years for the {regionName} also associated with high heat transport across {transectName}: {percentage}')
+#percentage = 100 * np.size(np.where(np.logical_and(indheatTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
+#print(f'Percentage of LC years for the {regionName} also associated with low heat transport across {transectName}: {percentage}\n')
+#percentage = 100 * np.size(np.where(np.logical_and(indfwTHigh, indMLDHigh))) / np.size(np.where(indMLDHigh))
+#
+#print(f'Percentage of HC years for the {regionName} also associated with high saltwater transport across {transectName}: {percentage}')
+#percentage = 100 * np.size(np.where(np.logical_and(indfwTLow,  indMLDLow))) / np.size(np.where(indMLDLow))
+#print(f'Percentage of LC years for the {regionName} also associated with low saltwater transport across {transectName}: {percentage}\n')
+#
+#percentage = 100 * np.size(np.where(np.logical_and(np.logical_and(indvolTHigh, indMLDHigh), indheatTHigh))) / np.size(np.where(indMLDHigh))
+#print(f'Percentage of HC years for the {regionName} also associated with high volume and heat transport across {transectName}: {percentage}')
+#percentage = 100 * np.size(np.where(np.logical_and(np.logical_and(indvolTHigh, indMLDHigh), indfwTHigh))) / np.size(np.where(indMLDHigh))
+#print(f'Percentage of HC years for the {regionName} also associated with high volume and saltwater transport across {transectName}: {percentage}\n')
 
 figdpi = 300
 figsize = (18, 5)
@@ -300,7 +305,8 @@ for lag in np.arange(0, 7, dtype=np.int16):
     print('\nlag=', lag, 'corr mld-volT=', corr, 'pvalue=', pval)
     linear_fit = stats.linregress(fld0, mld)
     ax[0].set_ylabel('JFMA maxMLD (m)', fontsize=fontsize_labels, fontweight='bold')
-    ax[0].set_xlabel('Annual net volume transport (Sv)', fontsize=fontsize_labels, fontweight='bold')
+    #ax[0].set_xlabel('Annual net volume transport (Sv)', fontsize=fontsize_labels, fontweight='bold')
+    ax[0].set_xlabel('Annual incoming volume transport (Sv)', fontsize=fontsize_labels, fontweight='bold')
     ax[0].grid(visible=True, which='both')
     ax[0].plot(fld0, linear_fit.intercept + linear_fit.slope*fld0, 'dimgrey', linewidth=1.5)
     ax[0].scatter(fld0, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')
@@ -314,7 +320,9 @@ for lag in np.arange(0, 7, dtype=np.int16):
     pval = pearson_corr.pvalue
     print('corr mld-heatT=', corr, 'pvalue=', pval)
     linear_fit = stats.linregress(fld1, mld)
-    ax[1].set_xlabel('Annual net heat transport (Tref=0; TW)', fontsize=fontsize_labels, fontweight='bold')
+    #ax[1].set_xlabel('Annual net heat transport (Tref=0; TW)', fontsize=fontsize_labels, fontweight='bold')
+    ax[1].set_xlabel('Annual incoming heat transport (Tref=0; TW)', fontsize=fontsize_labels, fontweight='bold')
+    #ax[1].set_xlabel('Annual net heat transport (Tref=Tfp; TW)', fontsize=fontsize_labels, fontweight='bold')
     ax[1].grid(visible=True, which='both')
     ax[1].plot(fld1, linear_fit.intercept + linear_fit.slope*fld1, 'dimgrey', linewidth=1.5)
     ax[1].scatter(fld1, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')
@@ -328,7 +336,8 @@ for lag in np.arange(0, 7, dtype=np.int16):
     pval = pearson_corr.pvalue
     print('corr mld-saltT=', corr, 'pvalue=', pval)
     linear_fit = stats.linregress(fld2, mld)
-    ax[2].set_xlabel('Annual net saltwater transport (Sref=34.8; mSv)', fontsize=fontsize_labels, fontweight='bold')
+    #ax[2].set_xlabel('Annual net saltwater transport (Sref=34.8; mSv)', fontsize=fontsize_labels, fontweight='bold')
+    ax[2].set_xlabel('Annual incoming saltwater transport (Sref=34.8; mSv)', fontsize=fontsize_labels, fontweight='bold')
     ax[2].grid(visible=True, which='both')
     ax[2].plot(fld2, linear_fit.intercept + linear_fit.slope*fld2, 'dimgrey', linewidth=1.5)
     ax[2].scatter(fld2, mld, s=20, c='k', marker='d', label=f'r={corr:5.2f}\npvalue={pval:5.1e}')

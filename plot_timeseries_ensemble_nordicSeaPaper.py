@@ -25,8 +25,8 @@ endYear = 2014
 calendar = 'gregorian'
 
 # Settings for regional time series
-regionName = 'Greenland Sea'
-#regionName = 'Norwegian Sea'
+#regionName = 'Greenland Sea'
+regionName = 'Norwegian Sea'
 regionGroup = 'Arctic Regions' # defines feature filename, as well as regional ts filenames
 #regionName = 'Greenland Sea Interior'
 #regionGroup = 'ginSeas_new'
