@@ -20,7 +20,7 @@ import pandas as pd
 import xarray as xr
 from datetime import datetime, timedelta
 from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta
+from dateutil.relativedelta import relativedelta # usage: datetime.object + relativedelta(years=shiftyear), when wanting to shif by a certain number of years
 import netCDF4
 import cftime
 mpl.use('Agg')
@@ -88,13 +88,12 @@ regionNames = ['Irminger Sea']
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-year2 = 1
-#year2 = 50
+year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
 calendar = 'noleap'
-shiftyear = 1900
+#shiftyear = 1900
 
 makePlots = True
 
@@ -117,6 +116,8 @@ if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
 else:
     raise IOError('No feature file found for this region group')
+
+legend_properties = {'size':10, 'weight':'bold'}
 
 ###
 ### PART 1 -- Read/compute mesh and regional mask quantities
@@ -268,20 +269,18 @@ for n in range(nRegions):
         if not os.path.exists(outfile):
             print(f'  Compute budget terms for year = {year:04d} ({kyear} out of {len(years)} years total)')
             dsOut = []
-            #newTime = np.empty(12, dtype=datetime)
+            newTime = np.empty(12, dtype=datetime)
             for month in range(1, 13):
                 im = month-1
                 print(f'  Month= {month:02d}')
                 modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
 
-                #dsIn = xr.open_dataset(modelfile)
                 dsIn = xr.open_dataset(modelfile, decode_times=False)
-                #days = dsIn['Time']
-                #datetimes = netCDF4.num2date(days, 'days since {}'.format(referenceDate), calendar=calendar)
-                #newTime[im] = datetimes
-                #newTime[im] = start + timedelta(days=int((end - start).days / 2))
-                #start, end = [parse(dsIn[f'xtime_{name}Monthly'].astype(str).values[0].split('_')[0]) for name in ('start', 'end')]
-                #newTime[im] = start + timedelta(days=int((end - start).days / 2))
+                start, end = [parse(dsIn[f'xtime_{name}Monthly'].astype(str).values[0].split('_')[0]) for name in ('start', 'end')]
+                if start.year < 1000:
+                    newTime[im] = dsIn['Time'].values
+                else:
+                    newTime[im] = start + timedelta(days=int((end - start).days / 2))
                 dsOutMonthly = xr.Dataset()
 
                 #####
@@ -533,18 +532,7 @@ for n in range(nRegions):
 
             dsOut = xr.concat(dsOut, dim='Time')
             #dsOut = dsOut.assign_coords(Time=('Time', newTime))
-            #dsOut = dsOut.assign_coords(Time=('Time', newTime + relativedelta(years=shiftyear)))
-            #dsOut['time_datetime'] = xr.DataArray(
-            #    data=newTime,
-            #    dims=('Time', ),
-            #    attrs=dict(description=f'days since {referenceDate}',
-            #               units='days', calendar=calendar)
-            #    )
-            #print(dsOut)
             dsOut.to_netcdf(outfile)
-            #write_netcdf_with_fill(dsOut, outfile)
-
-
         else:
             print(f'  File for year = {year:04d} ({kyear} out of {len(years)} years total) already exists. Moving to the next one...')
 
@@ -553,11 +541,27 @@ for n in range(nRegions):
     ###
     if makePlots is True:
         dsBudgets = xr.open_mfdataset(outfiles)
-        #t = dsBudgets['Time']/365
-        #t = np.hstack(dsBudgets['Time'])-relativedelta(years=shiftyear)
-        t = np.hstack(dsBudgets['Time'])
-        t = cftime.date2num(t, f'days since {referenceDate}', calendar=calendar)
-        t = t/365
+        #t = np.hstack(dsBudgets['Time']) # days
+        t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
+        #hours = 24*(t-np.int64(t))
+        #minutes = 60*(hours-np.int64(hours))
+        #seconds = 60*(minutes-np.int64(minutes))
+        print(t)
+        #dt = timedelta(days=int(t[0]), hours=int(hours[0]), minutes=int(minutes[0]), seconds=int(seconds[0]))
+        #print(datetime(year=1, month=1, day=1) + dt - timedelta(days=1))
+
+        weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+        months = np.empty(np.shape(t), dtype=np.int64)
+        datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
+        for i, date in enumerate(datetimes.flat):
+            months[i] = date.month
+        monthlyMask = np.empty(np.shape(t), dtype=np.float64)
+        for im in range(1, 13):
+            monthlyMask[months==im] = weights[im-1]
+        print(monthlyMask)
+
+        t = t/365 # from days to years
+
         # Read in previously computed volume budget quantities
         volNetLateralFlux = dsBudgets['volNetLateralFlux']
         evapFlux = dsBudgets['evapFlux']
@@ -634,7 +638,16 @@ for n in range(nRegions):
         figsize = (16, 16)
         figfile = f'{figdir}/volBudget_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig, ax = plt.subplots(5, 2, figsize=figsize)
-        print(t)
+
+        #for tick in ax.xaxis.get_ticklabels():
+        #    tick.set_fontsize(14)
+        #    tick.set_weight('bold')
+        #for tick in ax.yaxis.get_ticklabels():
+        #    tick.set_fontsize(14)
+        #    tick.set_weight('bold')
+        #ax.yaxis.get_offset_text().set_fontsize(14)
+        #ax.yaxis.get_offset_text().set_weight('bold')
+
         ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
         ax[0, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
         ax[1, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
@@ -679,16 +692,16 @@ for n in range(nRegions):
         ax[4, 0].autoscale(enable=True, axis='x', tight=True)
         ax[4, 1].autoscale(enable=True, axis='x', tight=True)
 
-        ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5)
-        ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
 
         ax[0, 0].set_title(f'mean={volNetLateralFluxMean:.2e}', fontsize=16, fontweight='bold')
         ax[0, 1].set_title(f'mean={evapFluxMean:.2e}', fontsize=16, fontweight='bold')
@@ -725,6 +738,16 @@ for n in range(nRegions):
         figfile = f'{figdir}/volBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
+
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+
         if movingAverageMonths==1:
             emp = evapFlux + rainFlux + snowFlux
             runoff = riverRunoffFlux + iceRunoffFlux
@@ -746,8 +769,8 @@ for n in range(nRegions):
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
-        ax.grid(color='k', linestyle=':', linewidth=0.5)
-        ax.legend(loc='lower left')
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(loc='lower left', prop=legend_properties)
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
         ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
@@ -761,15 +784,26 @@ for n in range(nRegions):
         figfile = f'{figdir}/saltBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
+
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+
         if movingAverageMonths==1:
-            ax.plot(t, factor_psuPerDay*saltHadvTend, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltVadvTend, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltVmixTend, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltNonLocalTend, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltHmixTend, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltSurfaceFluxTend, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltTend, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay*saltRes, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltNonLocalTend), 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHmixTend), 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+            ax.set_ylabel('psu', fontsize=12, fontweight='bold')
         else:
             ax.plot(t, factor_psuPerDay*saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltVadvTend_runavg, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
@@ -780,14 +814,13 @@ for n in range(nRegions):
             ax.plot(t, factor_psuPerDay*saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
+            ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
-        ax.grid(color='k', linestyle=':', linewidth=0.5)
-        ax.legend(loc='lower left')
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(loc='lower left', prop=legend_properties)
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
-        #ax.set_ylabel('1e-3 s$^{-1}$', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
                      fontsize=14, fontweight='bold', y=1.025)
