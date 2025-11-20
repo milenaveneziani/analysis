@@ -88,7 +88,7 @@ regionNames = ['Irminger Sea']
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-year2 = 50
+year2 = 40
 #year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
@@ -287,6 +287,7 @@ for n in range(nRegions):
                 ##### Volume budget terms
                 #####
                 # Compute net lateral fluxes
+                print('Reading velocities')
                 if 'timeMonthly_avg_normalTransportVelocity' in dsIn.keys():
                     vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(nEdges=openBryEdges)
                 elif 'timeMonthly_avg_normalVelocity' in dsIn.keys():
@@ -315,6 +316,7 @@ for n in range(nRegions):
                 #output_dict['volNetLateralFlux']['units'] = 'Sv'
 
                 # Compute net surface fluxes
+                print('Reading fluxes')
                 if 'timeMonthly_avg_evaporationFlux' in dsIn.keys():
                     flux = dsIn.timeMonthly_avg_evaporationFlux.where(cellMask, drop=True)
                     evapFlux = (flux * regionArea).sum(dim='nCells')
@@ -400,6 +402,7 @@ for n in range(nRegions):
                         )
 
                 # Compute layer thickness tendencies
+                print('Reading layer thickness tendency')
                 if 'timeMonthly_avg_tendLayerThickness' in dsIn.keys():
                     layerThickTend = dsIn.timeMonthly_avg_tendLayerThickness.where(cellMask, drop=True)
                     layerThickTend = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
@@ -427,6 +430,7 @@ for n in range(nRegions):
                 #####
                 dzOnCells = dsIn.timeMonthly_avg_layerThickness
                 depth = dzOnCells.where(depthMask, drop=False).sum(dim='nVertLevels')
+                print('Reading salinity budget terms (salinityTend)')
                 if 'timeMonthly_avg_activeTracersTend_salinityTend' in dsIn.keys():
                     # This is actually salinity tendency weighted by layer thickness
                     salinityTend = dsIn.timeMonthly_avg_activeTracersTend_salinityTend
@@ -444,6 +448,7 @@ for n in range(nRegions):
                 else:
                     raise KeyError('no salinity time tendency variable found')
                 # The following activeTracerTendency terms are *not* weighted by layer thickness
+                print('Reading salinity budget terms (horizontalAdv)')
                 if 'timeMonthly_avg_activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -456,6 +461,7 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity horizontal advection tendency variable found')
+                print('Reading salinity budget terms (verticalAdv)')
                 if 'timeMonthly_avg_activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -468,6 +474,7 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity vertical advection tendency variable found')
+                print('Reading salinity budget terms (horizontalMix)')
                 if 'timeMonthly_avg_activeTracerHorMixTendency_salinityHorMixTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerHorMixTendency_salinityHorMixTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -480,6 +487,7 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity horizontal mixing tendency variable found')
+                print('Reading salinity budget terms (nonlocal)')
                 if 'timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -492,6 +500,7 @@ for n in range(nRegions):
                         )
                 else:   
                     raise KeyError('no salinity non local tendency variable found')
+                print('Reading salinity budget terms (verticalMix)')
                 if 'timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -504,6 +513,7 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity vertical mixing tendency variable found')
+                print('Reading salinity budget terms (surfaceFlux)')
                 if 'timeMonthly_avg_activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -516,6 +526,16 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity surface flux tendency variable found')
+                print('Reading salinity')
+                salinity = dsIn.timeMonthly_avg_activeTracers_salinity
+                salinity = (salinity * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
+                salinity = salinity.where(cellMask, drop=True)
+                salinity = (salinity * regionArea).sum(dim='nCells') / regionAreaTot
+                dsOutMonthly['salinity'] = xr.DataArray(
+                    data=salinity,
+                    dims=('Time', ),
+                    attrs=dict(description='Averaged regional salinity', units='1.e-3', )
+                    )
 
 
                 #####
@@ -584,6 +604,7 @@ for n in range(nRegions):
         saltSurfaceFluxTend = dsBudgets['saltSurfaceFluxTendency']
         tot = saltHadvTend + saltVadvTend + saltHmixTend + saltVmixTend + saltNonLocalTend + saltSurfaceFluxTend
         saltRes = saltTend - tot
+        salt = dsBudgets['salinity']
         # Read in previously computed heat budget quantities
 
         # Compute running averages
@@ -608,6 +629,7 @@ for n in range(nRegions):
             saltNonLocalTend_runavg = pd.Series(saltNonLocalTend).rolling(window, center=True).mean()
             saltSurfaceFluxTend_runavg = pd.Series(saltSurfaceFluxTend).rolling(window, center=True).mean()
             saltRes_runavg = pd.Series(saltRes).rolling(window, center=True).mean()
+            salt_runavg = pd.Series(salt).rolling(window, center=True).mean()
             #
 
         # Compute long-term means
@@ -794,6 +816,15 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
 
+        axsalt = ax.twinx()
+        axsalt_color = 'black'
+        axsalt.tick_params(axis='y', labelcolor=axsalt_color)
+        axsalt.spines['right'].set_color(axsalt_color)
+        for tick in axsalt.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        axsalt.set_ylabel('salinity', fontsize=12, fontweight='bold', color=axsalt_color)
+
         if movingAverageMonths==1:
             ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
             ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
@@ -803,6 +834,7 @@ for n in range(nRegions):
             ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+            axsalt.plot(t, salt, color=axsalt_color, linewidth=2)
             ax.set_ylabel('psu', fontsize=12, fontweight='bold')
         else:
             ax.plot(t, factor_psuPerDay*saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
@@ -813,6 +845,7 @@ for n in range(nRegions):
             ax.plot(t, factor_psuPerDay*saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+            axsalt.plot(t, salt_runavg, color=axsalt_color, linewidth=2)
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
             ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
