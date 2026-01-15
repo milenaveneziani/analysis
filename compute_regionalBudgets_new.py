@@ -20,9 +20,6 @@ import pandas as pd
 import xarray as xr
 from datetime import datetime, timedelta
 from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta # usage: datetime.object + relativedelta(years=shiftyear), when wanting to shif by a certain number of years
-import netCDF4
-import cftime
 mpl.use('Agg')
 
 from mpas_analysis.shared.io.utility import decode_strings
@@ -77,6 +74,11 @@ casenameFull = 'E3SMv2.1B60to10rA07'
 casename = 'E3SMv2.1B60to10rA07'
 modeldir = f'/p/cwfs/apcraig/archive/{casenameFull}/ocn/hist'
 
+# Conversion factors
+m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
+rho0 = 1027.0 # kg/m^3
+psuPerSec_to_psuPerDay = 86400.0 # psu/second to psu/day
+
 #regionNames = ['all']
 regionNames = ['Irminger Sea']
 #regionNames = ['Irminger Sea', 'Labrador Sea']
@@ -88,12 +90,12 @@ regionNames = ['Irminger Sea']
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-year2 = 40
+year2 = 1
+#year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
 calendar = 'noleap'
-#shiftyear = 1900
 
 makePlots = True
 
@@ -101,9 +103,17 @@ movingAverageMonths = 1
 #movingAverageMonths = 12
 #movingAverageMonths = 5*12
 
-m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
-rho0 = 1027.0 # kg/m^3
-factor_psuPerDay = 86400.0 # psu/s to psu/day
+# Build dictionary for volume budget variables
+vars_volBudget = [
+                  {'': [],
+                   'description': '',
+                   'units': ''},
+
+                 ]
+
+# Build dictionary for salinity budget variables
+
+# Build dictionary for temperature budget variables
 
 figdir = f'./budgets/{casename}'
 if not os.path.isdir(figdir):
@@ -116,8 +126,6 @@ if os.path.exists(featurefile):
     fcAll = read_feature_collection(featurefile)
 else:
     raise IOError('No feature file found for this region group')
-
-legend_properties = {'size':10, 'weight':'bold'}
 
 ###
 ### PART 1 -- Read/compute mesh and regional mask quantities
@@ -269,43 +277,57 @@ for n in range(nRegions):
         if not os.path.exists(outfile):
             print(f'  Compute budget terms for year = {year:04d} ({kyear} out of {len(years)} years total)')
             dsOut = []
-            newTime = np.empty(12, dtype=datetime)
+            coords = {'Time': []}
+            #print(coords)
             for month in range(1, 13):
                 im = month-1
                 print(f'  Month= {month:02d}')
                 modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
 
-                dsIn = xr.open_dataset(modelfile, decode_times=False)
+                #dsIn = xr.open_dataset(modelfile, decode_times=False)
+                dsIn = xr.open_dataset(modelfile)
                 start, end = [parse(dsIn[f'xtime_{name}Monthly'].astype(str).values[0].split('_')[0]) for name in ('start', 'end')]
-                if start.year < 1000:
-                    newTime[im] = dsIn['Time'].values
-                else:
-                    newTime[im] = start + timedelta(days=int((end - start).days / 2))
+                t = start + timedelta(days=int((end - start).days / 2))
                 dsOutMonthly = xr.Dataset()
+                coords['Time'].append(t)
+
+                #dsOutMonthly['Time'] = xr.DataArray(
+                #    #data=[dsIn.timeMonthly_avg_daysSinceStartOfSim.isel(Time=0)/365.],
+                #    #attrs=dict(description='days since start of simulation (assumes 365-day year)',
+                #    #data=[dsIn.Time.isel(Time=0)/365.],
+                #    data=[t],
+                #    dims=('Time', ),
+                #    attrs=dict(description=f'days since {referenceDate}',
+                #               units='days', calendar=calendar)
+                #    )
 
                 #####
                 ##### Volume budget terms
                 #####
                 # Compute net lateral fluxes
-                print('Reading velocities')
-                if 'timeMonthly_avg_normalTransportVelocity' in dsIn.keys():
-                    vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(nEdges=openBryEdges)
-                elif 'timeMonthly_avg_normalVelocity' in dsIn.keys():
-                    vel = dsIn.timeMonthly_avg_normalVelocity.isel(nEdges=openBryEdges)
-                    if 'timeMonthly_avg_normalGMBolusVelocity' in dsIn.keys():
-                        vel = vel + dsIn.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=openBryEdges)
-                    if 'timeMonthly_avg_normalMLEvelocity' in dsIn.keys():
-                        vel = vel + dsIn.timeMonthly_avg_normalMLEvelocity.isel(nEdges=openBryEdges)
-                else:
-                    raise KeyError('no appropriate normalVelocity variable found')
-                #  First, get dz's from two neighboring cells for each edge
-                dzOnCells0 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe0)
-                dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe1)
-                #  Then, interpolate dz's onto edges
-                dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
-                dArea = dvEdge * dzOnEdges
-                normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
-                lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
+                for var in vars_volBudget:
+                    varname = var['name']
+                    factor = var['factor']
+
+                    if varname=='volNetLateralFlux':
+                        if 'timeMonthly_avg_normalTransportVelocity' in dsIn.keys():
+                            vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(nEdges=openBryEdges)
+                        elif 'timeMonthly_avg_normalVelocity' in dsIn.keys():
+                            vel = dsIn.timeMonthly_avg_normalVelocity.isel(nEdges=openBryEdges)
+                        if 'timeMonthly_avg_normalGMBolusVelocity' in dsIn.keys():
+                            vel = vel + dsIn.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=openBryEdges)
+                        if 'timeMonthly_avg_normalMLEvelocity' in dsIn.keys():
+                            vel = vel + dsIn.timeMonthly_avg_normalMLEvelocity.isel(nEdges=openBryEdges)
+                        else:
+                            raise KeyError('no appropriate normalVelocity variable found')
+                        #  First, get dz's from two neighboring cells for each edge
+                        dzOnCells0 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe0)
+                        dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe1)
+                        #  Then, interpolate dz's onto edges
+                        dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
+                        dArea = dvEdge * dzOnEdges
+                        normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
+                        lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
                 dsOutMonthly['volNetLateralFlux'] = xr.DataArray(
                     data=m3ps_to_Sv * lateralFlux,
                     dims=('Time', ),
@@ -316,7 +338,6 @@ for n in range(nRegions):
                 #output_dict['volNetLateralFlux']['units'] = 'Sv'
 
                 # Compute net surface fluxes
-                print('Reading fluxes')
                 if 'timeMonthly_avg_evaporationFlux' in dsIn.keys():
                     flux = dsIn.timeMonthly_avg_evaporationFlux.where(cellMask, drop=True)
                     evapFlux = (flux * regionArea).sum(dim='nCells')
@@ -402,7 +423,6 @@ for n in range(nRegions):
                         )
 
                 # Compute layer thickness tendencies
-                print('Reading layer thickness tendency')
                 if 'timeMonthly_avg_tendLayerThickness' in dsIn.keys():
                     layerThickTend = dsIn.timeMonthly_avg_tendLayerThickness.where(cellMask, drop=True)
                     layerThickTend = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
@@ -430,7 +450,6 @@ for n in range(nRegions):
                 #####
                 dzOnCells = dsIn.timeMonthly_avg_layerThickness
                 depth = dzOnCells.where(depthMask, drop=False).sum(dim='nVertLevels')
-                print('Reading salinity budget terms (salinityTend)')
                 if 'timeMonthly_avg_activeTracersTend_salinityTend' in dsIn.keys():
                     # This is actually salinity tendency weighted by layer thickness
                     salinityTend = dsIn.timeMonthly_avg_activeTracersTend_salinityTend
@@ -448,7 +467,6 @@ for n in range(nRegions):
                 else:
                     raise KeyError('no salinity time tendency variable found')
                 # The following activeTracerTendency terms are *not* weighted by layer thickness
-                print('Reading salinity budget terms (horizontalAdv)')
                 if 'timeMonthly_avg_activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -461,7 +479,6 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity horizontal advection tendency variable found')
-                print('Reading salinity budget terms (verticalAdv)')
                 if 'timeMonthly_avg_activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -474,7 +491,6 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity vertical advection tendency variable found')
-                print('Reading salinity budget terms (horizontalMix)')
                 if 'timeMonthly_avg_activeTracerHorMixTendency_salinityHorMixTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerHorMixTendency_salinityHorMixTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -487,7 +503,6 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity horizontal mixing tendency variable found')
-                print('Reading salinity budget terms (nonlocal)')
                 if 'timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerNonLocalTendency_salinityNonLocalTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -500,7 +515,6 @@ for n in range(nRegions):
                         )
                 else:   
                     raise KeyError('no salinity non local tendency variable found')
-                print('Reading salinity budget terms (verticalMix)')
                 if 'timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerVertMixTendency_salinityVertMixTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -513,7 +527,6 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity vertical mixing tendency variable found')
-                print('Reading salinity budget terms (surfaceFlux)')
                 if 'timeMonthly_avg_activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency' in dsIn.keys():
                     salinityTend = dsIn.timeMonthly_avg_activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency
                     salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
@@ -526,16 +539,6 @@ for n in range(nRegions):
                         )
                 else:
                     raise KeyError('no salinity surface flux tendency variable found')
-                print('Reading salinity')
-                salinity = dsIn.timeMonthly_avg_activeTracers_salinity
-                salinity = (salinity * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                salinity = salinity.where(cellMask, drop=True)
-                salinity = (salinity * regionArea).sum(dim='nCells') / regionAreaTot
-                dsOutMonthly['salinity'] = xr.DataArray(
-                    data=salinity,
-                    dims=('Time', ),
-                    attrs=dict(description='Averaged regional salinity', units='1.e-3', )
-                    )
 
 
                 #####
@@ -551,8 +554,13 @@ for n in range(nRegions):
                 dsOut.append(dsOutMonthly)
 
             dsOut = xr.concat(dsOut, dim='Time')
-            #dsOut = dsOut.assign_coords(Time=('Time', newTime))
+            print(dsOut)
+            dsOut = dsOut.assign_coords(coords=coords)
+            print(dsOut)
             dsOut.to_netcdf(outfile)
+            #write_netcdf_with_fill(dsOut, outfile)
+
+
         else:
             print(f'  File for year = {year:04d} ({kyear} out of {len(years)} years total) already exists. Moving to the next one...')
 
@@ -561,27 +569,10 @@ for n in range(nRegions):
     ###
     if makePlots is True:
         dsBudgets = xr.open_mfdataset(outfiles)
-        #t = np.hstack(dsBudgets['Time']) # days
-        t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
-        #hours = 24*(t-np.int64(t))
-        #minutes = 60*(hours-np.int64(hours))
-        #seconds = 60*(minutes-np.int64(minutes))
-        print(t)
-        #dt = timedelta(days=int(t[0]), hours=int(hours[0]), minutes=int(minutes[0]), seconds=int(seconds[0]))
-        #print(datetime(year=1, month=1, day=1) + dt - timedelta(days=1))
-
-        weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-        months = np.empty(np.shape(t), dtype=np.int64)
-        datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
-        for i, date in enumerate(datetimes.flat):
-            months[i] = date.month
-        monthlyMask = np.empty(np.shape(t), dtype=np.float64)
-        for im in range(1, 13):
-            monthlyMask[months==im] = weights[im-1]
-        print(monthlyMask)
-
-        t = t/365 # from days to years
-
+        #t = dsBudgets['Time']/365
+        t = np.hstack(dsBudgets['Time'])
+        t = cftime.date2num(t, f'days since {referenceDate}', calendar=calendar)
+        t = t/365
         # Read in previously computed volume budget quantities
         volNetLateralFlux = dsBudgets['volNetLateralFlux']
         evapFlux = dsBudgets['evapFlux']
@@ -602,10 +593,8 @@ for n in range(nRegions):
         saltVmixTend = dsBudgets['saltVMixTendency']
         saltNonLocalTend = dsBudgets['saltNonLocalTendency']
         saltSurfaceFluxTend = dsBudgets['saltSurfaceFluxTendency']
-        # At the moment we are missing saltFrazilTend
-        tot = saltHadvTend + saltVadvTend + saltHmixTend + saltNonLocalTend + saltSurfaceFluxTend # vmix not included
+        tot = saltHadvTend + saltVadvTend + saltHmixTend + saltVmixTend + saltNonLocalTend + saltSurfaceFluxTend
         saltRes = saltTend - tot
-        salt = dsBudgets['salinity']
         # Read in previously computed heat budget quantities
 
         # Compute running averages
@@ -630,7 +619,6 @@ for n in range(nRegions):
             saltNonLocalTend_runavg = pd.Series(saltNonLocalTend).rolling(window, center=True).mean()
             saltSurfaceFluxTend_runavg = pd.Series(saltSurfaceFluxTend).rolling(window, center=True).mean()
             saltRes_runavg = pd.Series(saltRes).rolling(window, center=True).mean()
-            salt_runavg = pd.Series(salt).rolling(window, center=True).mean()
             #
 
         # Compute long-term means
@@ -661,16 +649,7 @@ for n in range(nRegions):
         figsize = (16, 16)
         figfile = f'{figdir}/volBudget_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig, ax = plt.subplots(5, 2, figsize=figsize)
-
-        #for tick in ax.xaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #for tick in ax.yaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #ax.yaxis.get_offset_text().set_fontsize(14)
-        #ax.yaxis.get_offset_text().set_weight('bold')
-
+        print(t)
         ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
         ax[0, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
         ax[1, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
@@ -715,16 +694,16 @@ for n in range(nRegions):
         ax[4, 0].autoscale(enable=True, axis='x', tight=True)
         ax[4, 1].autoscale(enable=True, axis='x', tight=True)
 
-        ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5)
+        ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5)
 
         ax[0, 0].set_title(f'mean={volNetLateralFluxMean:.2e}', fontsize=16, fontweight='bold')
         ax[0, 1].set_title(f'mean={evapFluxMean:.2e}', fontsize=16, fontweight='bold')
@@ -761,16 +740,6 @@ for n in range(nRegions):
         figfile = f'{figdir}/volBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
-
-        for tick in ax.xaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        for tick in ax.yaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        ax.yaxis.get_offset_text().set_fontsize(14)
-        ax.yaxis.get_offset_text().set_weight('bold')
-
         if movingAverageMonths==1:
             emp = evapFlux + rainFlux + snowFlux
             runoff = riverRunoffFlux + iceRunoffFlux
@@ -792,8 +761,8 @@ for n in range(nRegions):
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
-        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax.legend(loc='lower left', prop=legend_properties)
+        ax.grid(color='k', linestyle=':', linewidth=0.5)
+        ax.legend(loc='lower left')
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
         ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
@@ -807,36 +776,15 @@ for n in range(nRegions):
         figfile = f'{figdir}/saltBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
-
-        for tick in ax.xaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        for tick in ax.yaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        ax.yaxis.get_offset_text().set_fontsize(14)
-        ax.yaxis.get_offset_text().set_weight('bold')
-
-        axsalt = ax.twinx()
-        axsalt_color = 'orange'
-        axsalt.tick_params(axis='y', labelcolor=axsalt_color)
-        axsalt.spines['right'].set_color(axsalt_color)
-        for tick in axsalt.yaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        axsalt.set_ylabel('salinity', fontsize=12, fontweight='bold', color=axsalt_color)
-
         if movingAverageMonths==1:
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltNonLocalTend), 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHmixTend), 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-            axsalt.plot(t, salt, color=axsalt_color, linewidth=2)
-            ax.set_ylabel('psu', fontsize=12, fontweight='bold')
+            ax.plot(t, factor_psuPerDay*saltHadvTend, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltVadvTend, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltVmixTend, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltNonLocalTend, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltHmixTend, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltSurfaceFluxTend, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltTend, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
+            ax.plot(t, factor_psuPerDay*saltRes, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
         else:
             ax.plot(t, factor_psuPerDay*saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltVadvTend_runavg, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
@@ -846,15 +794,15 @@ for n in range(nRegions):
             ax.plot(t, factor_psuPerDay*saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
             ax.plot(t, factor_psuPerDay*saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-            axsalt.plot(t, salt_runavg, color=axsalt_color, linewidth=2)
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
-            ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
-        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax.legend(loc='upper left', prop=legend_properties)
+        ax.grid(color='k', linestyle=':', linewidth=0.5)
+        ax.legend(loc='lower left')
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
+        #ax.set_ylabel('1e-3 s$^{-1}$', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
                      fontsize=14, fontweight='bold', y=1.025)
