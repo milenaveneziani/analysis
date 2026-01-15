@@ -10,8 +10,6 @@ Author: Milena Veneziani
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 import os
-import cartopy
-import cartopy.crs as ccrs
 import matplotlib.ticker as mticker
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -30,6 +28,48 @@ from mpas_analysis.shared.io import write_netcdf_with_fill
 
 from common_functions import extract_openBoundaries, add_inset, plot_xtick_format
 from geometric_features import FeatureCollection, read_feature_collection
+
+
+################################
+def _vertical_transmission_function(z, attenuationCoefficient):
+    # vertical distribution function for external surface fluxes
+    transmissionCoefficient = np.exp( np.maximum(z/attenuationCoefficient, -100.0) )
+    return transmissionCoefficient
+
+def _apply_attCoef_to_externalFlux(layerThickness, attenuationCoefficient, externalFlux):
+
+    z = layerThickness.cumsum(dim='nVertLevels')
+    # Create a zero dataset with the same metadata for concatenation
+    zero_z = z.isel(nVertLevels=[0]).astype(z.dtype) * 0
+    # Concatenate the zero dataset at the beginning of z
+    z = xr.concat([zero_z, z], dim='nVertLevels')
+    nLevels = z.sizes['nVertLevels']
+    transmissionCoeff = _vertical_transmission_function(-z, attenuationCoefficient)
+    fractionAbsorbed = transmissionCoeff.isel(nVertLevels=range(0, nLevels-1)) - \
+                       transmissionCoeff.isel(nVertLevels=range(1, nLevels))
+    #zTop = 0.0
+    #transmissionCoeffTop = vertical_transmission_function(zTop, attenuationCoefficient)
+    #do k = minLevelCell(iCell), maxLevelCell(iCell)
+    #   zBot = zTop - layerThickness(k,iCell)
+    #   transmissionCoeffBot = ocn_forcing_transmission(zBot, sfcFlxAttCoeff(iCell))
+    #   fractionAbsorbed(k, iCell) = transmissionCoeffTop - transmissionCoeffBot
+    #   zTop = zBot
+    #   transmissionCoeffTop = transmissionCoeffBot
+    #end do
+
+    externalFlux = externalFlux * fractionAbsorbed
+
+    #remainingFlux = 1.0
+    #do k = minLevelCell(iCell), maxLevelCell(iCell)
+    #  remainingFlux = remainingFlux - transmissionCoefficient(k, iCell)
+    #  surfaceThicknessFlux(iCell) * transmissionCoefficient(k, iCell) # thicknessTend
+    #end do
+    #if(maxLevelCell(iCell) > 0 .and. remainingFlux > 0.0_RKIND) then
+    #  tend(maxLevelCell(iCell), iCell) = tend(maxLevelCell(iCell), iCell) + remainingFlux * surfaceThicknessFlux(iCell)
+    #end if
+
+    return externalFlux
+################################
 
 
 # Settings for lcrc:
@@ -110,7 +150,10 @@ movingAverageMonths = 1
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1027.0 # kg/m^3
-factor_psuPerDay = 86400.0 # psu/s to psu/day
+perSec_to_perDay = 86400.0 # 1/s to 1/day
+# Consider depth redistribution of surface fluxes only if attCoef is greater 
+# than attCoefMax, set to 1 mm by default (as in MPAS-O)
+attCoefMax = 0.001
 
 figdir = f'./budgets/{casename}'
 if not os.path.isdir(figdir):
@@ -146,98 +189,6 @@ nVertLevels = dsMesh.sizes['nVertLevels']
 vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',), 'data': np.arange(nVertLevels)})
 depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 
-## The following was originally created to properly mask points on land and 
-## topography when computing the lateral fluxes. But I believe this is no
-## longer necessary because 1) we only consider the open boundary edges
-## (which are open ocean edges by definition) and 2) the layerThickness is
-## already masked (nan) below maxLevelCell.
-##
-## Create land/bathymetry mask separately for the two neighboring cells of each edge
-##  Landmask
-##cellsOnEdge = dsMesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
-##coe0 = cellsOnEdge.isel(TWO=0).values - 1
-##coe1 = cellsOnEdge.isel(TWO=1).values - 1
-##landmask0 = coe0==0
-##landmask1 = coe1==0
-##  Topomask
-##nLevels = dsMesh.dims['nVertLevels']
-##maxLevelCell = dsMesh.maxLevelCell.values
-##kmaxOnCells0 = maxLevelCell[coe0]
-##kmaxOnCells1 = maxLevelCell[coe1]
-##karray = np.array(range(nLevels))
-##topomask0 = np.ones((len(landmask0), nLevels)) * karray[np.newaxis, :]
-##topomask1 = np.ones((len(landmask1), nLevels)) * karray[np.newaxis, :]
-##for k in range(len(kmaxOnCells0)):
-##    topomask0[k, kmaxOnCells0[k]:] = 0
-##for k in range(len(kmaxOnCells1)):
-##    topomask1[k, kmaxOnCells1[k]:] = 0
-## Save to mesh dataset
-##dsMesh['cellsOnEdge0'] = (('nEdges'), coe0)
-##dsMesh['cellsOnEdge1'] = (('nEdges'), coe1)
-##dsMesh['landmask0'] = (('nEdges'), landmask0)
-##dsMesh['landmask1'] = (('nEdges'), landmask1)
-##dsMesh['topomask0'] = (('nEdges', 'nVertLevels'), topomask0)
-##dsMesh['topomask1'] = (('nEdges', 'nVertLevels'), topomask1)
-
-# Commenting this out after regions have been verified
-#print('\nPlotting region masks...')
-#for n in range(nRegions):
-#    regionName = regionNames[n]
-#    rname = regionName.replace(' ', '').replace('(', '').replace(')', '')
-#    regionIndex = regions.index(regionName)
-#    print(f'  Region: {regionName}  (rname={rname})')
-#
-#    #### Plot regional masks
-#    lonCell = 180./np.pi * dsMesh.lonCell
-#    latCell = 180./np.pi * dsMesh.latCell
-#    lonEdge = 180./np.pi * dsMesh.lonEdge
-#    latEdge = 180./np.pi * dsMesh.latEdge
-#    dsMask = dsRegionMask.isel(nRegions=regionIndex)
-#    [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
-#    landEdges = np.where(landEdges)[0]
-#    lonRegion = lonCell.where(dsMask.regionCellMasks==1, drop=True)
-#    latRegion = latCell.where(dsMask.regionCellMasks==1, drop=True)
-#    data_crs = ccrs.PlateCarree()
-#    plt.figure(figsize=[20, 20], dpi=300)
-#    if regionName=='Greater Arctic' or regionName=='Nordic Seas':
-#        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-#        ax.set_extent([-180, 180, 50, 90], crs=data_crs)
-#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 40))
-#        gl.ylocator = mticker.FixedLocator(np.arange(50, 90, 5))
-#    elif regionName=='North Atlantic subpolar gyre' or \
-#         regionName=='North Atlantic subtropical (north of 27.2N)' or \
-#         regionName=='North Atlantic subtropical gyre':
-#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-#        ax.set_extent([-100, 40, 5, 80], crs=data_crs)
-#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 10))
-#        gl.ylocator = mticker.FixedLocator(np.arange(5, 85, 5))
-#    elif regionName=='Atlantic tropical' or regionName=='South Atlantic subtropical gyre':
-#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-#        ax.set_extent([-65, 25, -40, 10], crs=data_crs)
-#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 10))
-#        gl.ylocator = mticker.FixedLocator(np.arange(-40, 15, 5))
-#    else:
-#        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-#        ax.set_extent([-180, 180, -90, 90], crs=data_crs)
-#        gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-#        gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 40))
-#        gl.ylocator = mticker.FixedLocator(np.arange(-80, 90, 10))
-#    gl.n_steps = 100
-#    gl.right_labels = False
-#    gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
-#    gl.yformatter = cartopy.mpl.gridliner.LATITUDE_FORMATTER
-#    gl.rotate_labels = False
-#    ax.scatter(lonEdge.values[landEdges], latEdge.values[landEdges], s=0.3, c='k', marker='*', transform=data_crs)
-#    ax.scatter(lonCell, latCell, s=0.1, c='g', marker='*', transform=data_crs)
-#    ax.scatter(lonRegion, latRegion, s=0.1, c='b', marker='*', transform=data_crs)
-#    ax.scatter(lonEdge.isel(nEdges=openBryEdges), latEdge.isel(nEdges=openBryEdges), s=0.02, c='r', marker='*', transform=data_crs)
-#    ax.set_title(f'{regionName} region mask (blue) and openbry edges (red dots)', y=1.04, fontsize=16)
-#    plt.savefig(f'{figdir}/{rname}_regionMaskOpenbry.png', bbox_inches='tight')
-#    plt.close()
-
 for n in range(nRegions):
     regionName = regionNames[n]
     print(f'\n**** Regional budgets for: {regionName} ****')
@@ -250,9 +201,9 @@ for n in range(nRegions):
     [openBryEdges, openBrySigns, landEdges] = extract_openBoundaries(dsMask, dsMesh)
     cellMask = dsMask.regionCellMasks == 1
     regionArea = areaCell.where(cellMask, drop=True)
+    #regionArea3d = areaCell.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
+    #regionArea3d = regionArea3d.where(cellMask, drop=True)
     regionAreaTot = regionArea.sum(dim='nCells')
-    regionLon = dsMesh.lonCell.where(cellMask, drop=True)
-    regionLat = dsMesh.latCell.where(cellMask, drop=True)
     dvEdge = dsMesh.dvEdge[openBryEdges]
     coe0 = dsMesh.cellsOnEdge.isel(TWO=0, nEdges=openBryEdges) - 1
     coe1 = dsMesh.cellsOnEdge.isel(TWO=1, nEdges=openBryEdges) - 1
@@ -280,322 +231,491 @@ for n in range(nRegions):
             #for month in range(1, 13):
             for month in range(1, 2):
                 im = month-1
-                print(f'  Month= {month:02d}')
+                print(f'  Month= {month:02d}\n')
                 modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.{mpasFileType}.{year:04d}-{month:02d}-01{mpasFileTimestamp}.nc'
+                #modelfile = f'{modeldir}/{casenameFull}.mpaso.hist.am.{mpasFileType}.{year:04d}-{month:02d}-01{mpasFileTimestamp}_old.nc'
 
                 dsIn = xr.open_dataset(modelfile, decode_times=False)
                 newTime = dsIn['Time'].values
-                #print(newTime)
-                #print(dsIn)
-                #start, end = [parse(dsIn[f'xtime_{name}Monthly'].astype(str).values[0].split('_')[0]) for name in ('start', 'end')]
-                #if start.year < 1000:
-                #    newTime[im] = dsIn['Time'].values
-                #else:
-                #    newTime[im] = start + timedelta(days=int((end - start).days / 2))
+                attCoef = dsIn.attrs.get('config_flux_attenuation_coefficient')
+                attCoefRunoff = dsIn.attrs.get('config_flux_attenuation_coefficient_runoff')
 
-                #dsOutMonthly = xr.Dataset()
-
-                #####
-                ##### Volume budget terms
-                #####
-                # Compute net lateral fluxes
-#                print('Reading velocities')
-#                if f'{mpasVarType}normalTransportVelocity' in dsIn.keys():
-#                    vel = dsIn[f'{mpasVarType}normalTransportVelocity'].isel(nEdges=openBryEdges)
-#                elif f'{mpasVarType}normalVelocity' in dsIn.keys():
-#                    vel = dsIn[f'{mpasVarType}normalVelocity'].isel(nEdges=openBryEdges)
-#                    if f'{mpasVarType}normalGMBolusVelocity' in dsIn.keys():
-#                        vel = vel + dsIn[f'{mpasVarType}normalGMBolusVelocity'].isel(nEdges=openBryEdges)
-#                    if f'{mpasVarType}normalMLEvelocity' in dsIn.keys():
-#                        vel = vel + dsIn[f'{mpasVarType}normalMLEvelocity'].isel(nEdges=openBryEdges)
-#                else:
-#                    raise KeyError('no appropriate normalVelocity variable found')
-#                #  First, get dz's from two neighboring cells for each edge
-#                dzOnCells0 = dsIn[f'{mpasVarType}layerThickness'].isel(nCells=coe0)
-#                dzOnCells1 = dsIn[f'{mpasVarType}layerThickness'].isel(nCells=coe1)
-#                #  Then, interpolate dz's onto edges
-#                dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
-#                dArea = dvEdge * dzOnEdges
-#                normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
-#                lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
-#                dsOutMonthly['volNetLateralFlux'] = xr.DataArray(
-#                    data=m3ps_to_Sv * lateralFlux,
-#                    dims=('Time', ),
-#                    attrs=dict(description='Net lateral volume transport across all open boundaries', units='Sv', )
-#                    )
-#                #output_dict['volNetLateralFlux'].append(m3ps_to_Sv * lateralFlux)
-#                #output_dict['volNetLateralFlux']['description'] = 'Net lateral volume transport across all open boundaries'
-#                #output_dict['volNetLateralFlux']['units'] = 'Sv'
-#
-#                # Compute net surface fluxes
-#                print('Reading fluxes')
-#                if f'{mpasVarType}evaporationFlux' in dsIn.keys():
-#                    flux = dsIn[f'{mpasVarType}evaporationFlux'].where(cellMask, drop=True)
-#                    evapFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['evapFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * evapFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated evaporation', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no evaporation flux variable found')
-#
-#                if 'timeMonthly_avg_rainFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_rainFlux.where(cellMask, drop=True)
-#                    rainFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['rainFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * rainFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated rain precipitation', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no rain flux variable found')
-#
-#                if 'timeMonthly_avg_snowFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_snowFlux.where(cellMask, drop=True)
-#                    snowFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['snowFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * snowFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated snow precipitation', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no snow flux variable found')
-#
-#                if 'timeMonthly_avg_riverRunoffFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_riverRunoffFlux.where(cellMask, drop=True)
-#                    riverRunoffFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['riverRunoffFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * riverRunoffFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated liquid runoff', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no river runoff flux variable found')
-#
-#                if 'timeMonthly_avg_iceRunoffFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_iceRunoffFlux.where(cellMask, drop=True)
-#                    iceRunoffFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['iceRunoffFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * iceRunoffFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated solid runoff', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no ice runoff flux variable found')
-#
-#                if 'timeMonthly_avg_seaIceFreshWaterFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_seaIceFreshWaterFlux.where(cellMask, drop=True)
-#                    seaIceFreshWaterFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['seaIceFreshWaterFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated sea-ice freshwater flux', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no sea ice freshwater flux variable found')
-#
-#                if 'timeMonthly_avg_icebergFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_icebergFlux.where(cellMask, drop=True)
-#                    icebergFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['icebergFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * icebergFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated iceberg flux', units='Sv', )
-#                        )
-#
-#                if 'timeMonthly_avg_landIceFlux' in dsIn.keys():
-#                    flux = dsIn.timeMonthly_avg_landIceFlux.where(cellMask, drop=True)
-#                    landIceFlux = (flux * regionArea).sum(dim='nCells')
-#                    dsOutMonthly['landIceFlux'] = xr.DataArray(
-#                        data=1/rho0 * m3ps_to_Sv * landIceFlux,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to region integrated land ice flux', units='Sv', )
-#                        )
-#
-#                # Compute layer thickness tendencies
-#                print('Reading layer thickness tendency')
-#                if 'timeMonthly_avg_tendLayerThickness' in dsIn.keys():
-#                    layerThickTend = dsIn.timeMonthly_avg_tendLayerThickness.where(cellMask, drop=True)
-#                    layerThickTend = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
-#                    dsOutMonthly['thicknessTendency'] = xr.DataArray(
-#                        data=m3ps_to_Sv * layerThickTend,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to total water column tendency (SSH changes)', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no layer thickness tendency variable found')
-#
-#                if 'timeMonthly_avg_frazilLayerThicknessTendency' in dsIn.keys():
-#                    frazilThickTend = dsIn.timeMonthly_avg_frazilLayerThicknessTendency.where(cellMask, drop=True)
-#                    frazilThickTend = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
-#                    dsOutMonthly['frazilTendency'] = xr.DataArray(
-#                        data=m3ps_to_Sv * frazilThickTend,
-#                        dims=('Time', ),
-#                        attrs=dict(description='Volume change due to frazil ice formation (included in thickTend)', units='Sv', )
-#                        )
-#                else:
-#                    raise KeyError('no frazil layer thickness tendency variable found')
-
-                #####
-                ##### Salinity budget terms
-                #####
                 for index in range(len(dsIn['Time'].values)):
-                    print('time index=', index)
+                    print('\n*** Time index=', index)
                     dsOutMonthly = xr.Dataset()
                     dzOnCells = dsIn[f'{mpasVarType}layerThickness'].isel(Time=[index])
                     depth = dzOnCells.where(depthMask, drop=False).sum(dim='nVertLevels')
-                    print('Reading salinity budget terms (salinityTend)')
-                    #if f'{mpasVarType}activeTracersTend_salinityTend' in dsIn.keys():
-                    if f'{mpasVarType}salinityTend' in dsIn.keys():
-                        # This is actually salinity tendency weighted by layer thickness
-                        #salinityTend = dsIn[f'{mpasVarType}activeTracersTend_salinityTend']
-                        salinityTend = dsIn[f'{mpasVarType}salinityTend'].isel(Time=index)
-                        # Compute sum(sTend)/sum(dz), applying depth mask on sTend first
-                        salinityTend = salinityTend.where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        # Apply region mask
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        # Compute sum(sTend*dArea)/int(dArea)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltTendency'] = xr.DataArray(
-                            data=salinityTend,
+
+                    #####
+                    ##### Volume budget terms
+                    #####
+                    print('Compute volume budget terms')
+                    # Compute net lateral fluxes
+                    print('  net lateral fluxes')
+                    if f'{mpasVarType}normalTransportVelocity' in dsIn.keys():
+                        vel = dsIn[f'{mpasVarType}normalTransportVelocity'].isel(nEdges=openBryEdges, Time=[index])
+                    elif f'{mpasVarType}normalVelocity' in dsIn.keys():
+                        vel = dsIn[f'{mpasVarType}normalVelocity'].isel(nEdges=openBryEdges, Time=[index])
+                        if f'{mpasVarType}normalGMBolusVelocity' in dsIn.keys():
+                             vel = vel + dsIn[f'{mpasVarType}normalGMBolusVelocity'].isel(nEdges=openBryEdges, Time=[index])
+                        if f'{mpasVarType}normalMLEvelocity' in dsIn.keys():
+                            vel = vel + dsIn[f'{mpasVarType}normalMLEvelocity'].isel(nEdges=openBryEdges, Time=[index])
+                    else:
+                        raise KeyError('no normalVelocity variable found')
+                    #  First, get dz's from two neighboring cells for each edge
+                    dzOnCells0 = dsIn[f'{mpasVarType}layerThickness'].isel(nCells=coe0, Time=[index])
+                    dzOnCells1 = dsIn[f'{mpasVarType}layerThickness'].isel(nCells=coe1, Time=[index])
+                    #  Then, interpolate dz's onto edges
+                    dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
+                    dArea = dvEdge * dzOnEdges
+                    normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
+                    lateralFlux = (normalVel * dArea).sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
+                    dsOutMonthly['volNetLateralFlux'] = xr.DataArray(
+                        data=m3ps_to_Sv * lateralFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Net lateral volume transport across all open boundaries', units='Sv', )
+                        )
+
+                    # Compute net vertical fluxes
+                    # Note: vertAleTransportTop is not routinely saved as monthly output,
+                    # but this should be OK for regional budgets because the net vertical
+                    # advection of mass over the whole water column is very small compared
+                    # to the net lateral advection.
+                    if f'{mpasVarType}vertAleTransportTop' in dsIn.keys():
+                        print('  net vertical fluxes (using vertAleTransportTop)')
+                        vel = dsIn[f'{mpasVarType}vertAleTransportTop'].isel(Time=[index])
+                        dvel = vel.isel(nVertLevelsP1=range(1, nVertLevels+1)) - vel.isel(nVertLevelsP1=range(0, nVertLevels))
+                        dvel = dvel.rename({'nVertLevelsP1': 'nVertLevels'})
+                        dvel = dvel.where(depthMask, drop=False).where(cellMask, drop=True)
+                        verticalFlux = (dvel * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
+                        dsOutMonthly['volNetVerticalFlux'] = xr.DataArray(
+                            data=m3ps_to_Sv * verticalFlux,
                             dims=('Time', ),
-                            attrs=dict(description='Salinity change due to salinity time tendency', units='1.e-3 s^-1', )
+                            attrs=dict(description='Net vertical volume transport', units='Sv', )
                             )
                     else:
+                        print('  WARNING: variable vertAleTransportTop unavailable: skipping net vertical fluxes')
+
+                    # Compute net surface fluxes
+                    print('  surface fluxes (evaporation)')
+                    if not f'{mpasVarType}evaporationFlux' in dsIn.keys():
+                        raise KeyError('no evaporation flux variable found')
+                    flux = dsIn[f'{mpasVarType}evaporationFlux'].isel(Time=[index])
+                    if attCoef > attCoefMax:
+                        flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
+                        flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
+                        flux = flux.sum('nVertLevels')
+                    flux = flux.where(cellMask, drop=True)
+                    evapFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['evapFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * evapFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated evaporation', units='Sv', )
+                        )
+
+                    print('  surface fluxes (rain)')
+                    if not f'{mpasVarType}rainFlux' in dsIn.keys():
+                        raise KeyError('no rain flux variable found')
+                    flux = dsIn[f'{mpasVarType}rainFlux'].isel(Time=[index])
+                    if attCoef > attCoefMax:
+                        flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
+                        flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
+                        flux = flux.sum('nVertLevels')
+                    flux = flux.where(cellMask, drop=True)
+                    rainFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['rainFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * rainFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated rain precipitation', units='Sv', )
+                        )
+
+                    print('  surface fluxes (snow)')
+                    if not f'{mpasVarType}snowFlux' in dsIn.keys():
+                        raise KeyError('no snow flux variable found')
+                    flux = dsIn[f'{mpasVarType}snowFlux'].isel(Time=[index])
+                    if attCoef > attCoefMax:
+                        flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
+                        flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
+                        flux = flux.sum('nVertLevels')
+                    flux = flux.where(cellMask, drop=True)
+                    snowFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['snowFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * snowFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated snow precipitation', units='Sv', )
+                        )
+
+                    print('  surface fluxes (river runoff)')
+                    if not f'{mpasVarType}riverRunoffFlux' in dsIn.keys():
+                        raise KeyError('no river runoff flux variable found')
+                    flux = dsIn[f'{mpasVarType}riverRunoffFlux'].isel(Time=[index])
+                    if attCoefRunoff > attCoefMax:
+                        flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
+                        flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoefRunoff, flux)
+                        flux = flux.sum('nVertLevels')
+                    flux = flux.where(cellMask, drop=True)
+                    riverRunoffFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['riverRunoffFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * riverRunoffFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated liquid runoff', units='Sv', )
+                        )
+
+                    print('  surface fluxes (ice runoff)')
+                    if not f'{mpasVarType}iceRunoffFlux' in dsIn.keys():
+                        raise KeyError('no ice runoff flux variable found')
+                    flux = dsIn[f'{mpasVarType}iceRunoffFlux'].isel(Time=[index])
+                    flux = flux.where(cellMask, drop=True)
+                    iceRunoffFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['iceRunoffFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * iceRunoffFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated solid runoff', units='Sv', )
+                        )
+
+                    print('  surface fluxes (sea ice freshwater)')
+                    if not f'{mpasVarType}seaIceFreshWaterFlux' in dsIn.keys():
+                        raise KeyError('no sea ice freshwater flux variable found')
+                    flux = dsIn[f'{mpasVarType}seaIceFreshWaterFlux'].isel(Time=[index])
+                    flux = flux.where(cellMask, drop=True)
+                    seaIceFreshWaterFlux = (flux * regionArea).sum(dim='nCells')
+                    dsOutMonthly['seaIceFreshWaterFlux'] = xr.DataArray(
+                        data=1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to region integrated sea-ice freshwater flux', units='Sv', )
+                        )
+
+                    if f'{mpasVarType}icebergFlux' in dsIn.keys():
+                        print('  surface fluxes (iceberg freshwater)')
+                        flux = dsIn[f'{mpasVarType}icebergFlux'].isel(Time=[index])
+                        flux = flux.where(cellMask, drop=True)
+                        icebergFlux = (flux * regionArea).sum(dim='nCells')
+                        dsOutMonthly['icebergFlux'] = xr.DataArray(
+                            data=1/rho0 * m3ps_to_Sv * icebergFlux,
+                            dims=('Time', ),
+                            attrs=dict(description='Volume change due to region integrated iceberg flux', units='Sv', )
+                            )
+
+                    if f'{mpasVarType}landIceFlux' in dsIn.keys():
+                        print('  surface fluxes (land ice freshwater)')
+                        flux = dsIn[f'{mpasVarType}landIceFlux'].isel(Time=[index])
+                        flux = flux.where(cellMask, drop=True)
+                        landIceFlux = (flux * regionArea).sum(dim='nCells')
+                        dsOutMonthly['landIceFlux'] = xr.DataArray(
+                            data=1/rho0 * m3ps_to_Sv * landIceFlux,
+                            dims=('Time', ),
+                            attrs=dict(description='Volume change due to region integrated land ice flux', units='Sv', )
+                            )
+
+                    # Compute layer thickness tendencies
+                    print('  layer thickness tendency')
+                    if not f'{mpasVarType}tendLayerThickness' in dsIn.keys():
+                        raise KeyError('no layer thickness tendency variable found')
+                    layerThickTend = dsIn[f'{mpasVarType}tendLayerThickness'].isel(Time=[index])
+                    layerThickTend = layerThickTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                    layerThickTend = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
+                    dsOutMonthly['thicknessTendency'] = xr.DataArray(
+                        data=m3ps_to_Sv * layerThickTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to total water column tendency (SSH changes)', units='Sv', )
+                        )
+
+                    print('  frazil layer thickness tendency')
+                    if not f'{mpasVarType}frazilLayerThicknessTendency' in dsIn.keys():
+                        raise KeyError('no frazil layer thickness tendency variable found')
+                    frazilThickTend = dsIn[f'{mpasVarType}frazilLayerThicknessTendency'].isel(Time=[index])
+                    frazilThickTend = frazilThickTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                    frazilThickTend = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
+                    dsOutMonthly['frazilTendency'] = xr.DataArray(
+                        data=m3ps_to_Sv * frazilThickTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Volume change due to frazil ice formation (included in thickTend)', units='Sv', )
+                        )
+
+                    #####
+                    ##### Salinity budget terms
+                    #####
+                    print('Compute salinity budget terms')
+                    print('  salinity tendency')
+                    if not f'{mpasVarType}salinityTend' in dsIn.keys():
                         raise KeyError('no salinity time tendency variable found')
-                    print('Reading salinity budget terms (frazil)')
+                    # This is actually salinity tendency weighted by layer thickness
+                    salinityTend = dsIn[f'{mpasVarType}salinityTend'].isel(Time=[index])
+                    salinityTend = salinityTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed, i.e. d(hS)/dt) due to salinity time tendency', units='m 1e-3 s^-1', )
+                        )
+
+                    # Note: unfortunately, this is not routinely added to monthly output.
+                    # So, considering it an option at the moment.
                     if f'{mpasVarType}frazilSalinityTendency' in dsIn.keys():
+                        print('  frazil salinity tendency')
                         # This is actually tendency weighted by layer thickness
                         salinityTend = dsIn[f'{mpasVarType}frazilSalinityTendency'].isel(Time=[index])
-                        salinityTend = salinityTend.where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
+                        salinityTend = salinityTend.where(depthMask, drop=False).where(cellMask, drop=True)
                         salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                        salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
                         dsOutMonthly['saltFrazilTendency'] = xr.DataArray(
                             data=salinityTend,
                             dims=('Time', ),
-                            attrs=dict(description='Salinity change due to frazil ice', units='1.e-3 s^-1', )
+                            attrs=dict(description='Salinity change (depth weigthed) due to frazil ice', units='m 1e-3 s^-1', )
                             )
                     else:
-                        raise KeyError('no salinity frazil tendency variable found')
+                        print('  WARNING: variable frazilSalinityTendency unavailable: skipping frazil salinity tendency')
+
                     # The following activeTracerTendency terms are *not* weighted by layer thickness
-                    print('Reading salinity budget terms (horizontalAdv)')
-                    #if f'{mpasVarType}activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerHorizontalAdvectionTendency_salinityHorizontalAdvectionTendency']
-                    if f'{mpasVarType}salinityHorizontalAdvectionTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinityHorizontalAdvectionTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltHAdvTendency'] = xr.DataArray(
-                            data=salinityTend,
-                            dims=('Time', ),
-                            attrs=dict(description='Salinity change due to horizontal advection', units='1.e-3 s^-1', )
-                            )
-                    else:
+                    print('  horizontal advection (includes GM and MLE)')
+                    if not f'{mpasVarType}salinityHorizontalAdvectionTendency' in dsIn.keys():
                         raise KeyError('no salinity horizontal advection tendency variable found')
-                    print('Reading salinity budget terms (verticalAdv)')
-                    #if f'{mpasVarType}activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerVerticalAdvectionTendency_salinityVerticalAdvectionTendency']
-                    if f'{mpasVarType}salinityVerticalAdvectionTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinityVerticalAdvectionTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltVAdvTendency'] = xr.DataArray(
-                            data=salinityTend,
-                            dims=('Time', ),
-                            attrs=dict(description='Salinity change due to vertical advection', units='1.e-3 s^-1', )
-                            )
-                    else:
+                    salinityTend = dsIn[f'{mpasVarType}salinityHorizontalAdvectionTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltHAdvTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to horizontal advection (including GM and MLE contributions)', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  vertical advection')
+                    if not f'{mpasVarType}salinityVerticalAdvectionTendency' in dsIn.keys():
                         raise KeyError('no salinity vertical advection tendency variable found')
-                    print('Reading salinity budget terms (horizontalMix)')
-                    #if f'{mpasVarType}activeTracerHorMixTendency_salinityHorMixTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerHorMixTendency_salinityHorMixTendency']
-                    if f'{mpasVarType}salinityHorMixTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinityHorMixTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltHMixTendency'] = xr.DataArray(
-                            data=salinityTend,
-                            dims=('Time', ),
-                            attrs=dict(description='Salinity change due to horizontal mixing (including Redi)', units='1.e-3 s^-1', )
-                            )
-                    else:
+                    salinityTend = dsIn[f'{mpasVarType}salinityVerticalAdvectionTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltVAdvTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to vertical advection', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  horizontal mixing (includes Redi)')
+                    if not f'{mpasVarType}salinityHorMixTendency' in dsIn.keys():
                         raise KeyError('no salinity horizontal mixing tendency variable found')
-                    print('Reading salinity budget terms (nonlocal)')
-                    #if f'{mpasVarType}activeTracerNonLocalTendency_salinityNonLocalTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerNonLocalTendency_salinityNonLocalTendency']
-                    if f'{mpasVarType}salinityNonLocalTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinityNonLocalTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltNonLocalTendency'] = xr.DataArray(
-                            data=salinityTend,
-                            dims=('Time', ),
-                            attrs=dict(description='Salinity change due to non local mixing', units='1.e-3 s^-1', )
-                            )
-                    else:   
+                    salinityTend = dsIn[f'{mpasVarType}salinityHorMixTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltHMixTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to horizontal mixing (including del2, del4, and Redi)', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  nonlocal tendency')
+                    if not f'{mpasVarType}salinityNonLocalTendency' in dsIn.keys():
                         raise KeyError('no salinity non local tendency variable found')
-                    print('Reading salinity budget terms (verticalMix)')
-                    #if f'{mpasVarType}activeTracerVertMixTendency_salinityVertMixTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerVertMixTendency_salinityVertMixTendency']
-                    if f'{mpasVarType}salinityVertMixTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinityVertMixTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
-                        salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltVMixTendency'] = xr.DataArray(
-                            data=salinityTend,
-                            dims=('Time', ),
-                            attrs=dict(description='Salinity change due to vertical mixing', units='1.e-3 s^-1', )
-                            )
-                    else:
+                    salinityTend = dsIn[f'{mpasVarType}salinityNonLocalTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltNonLocalTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to non local mixing', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  vertical mixing')
+                    if not f'{mpasVarType}salinityVertMixTendency' in dsIn.keys():
                         raise KeyError('no salinity vertical mixing tendency variable found')
-                    print('Reading salinity budget terms (surfaceFlux)')
-                    #if f'{mpasVarType}activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency' in dsIn.keys():
-                    #    salinityTend = dsIn[f'{mpasVarType}activeTracerSurfaceFluxTendency_salinitySurfaceFluxTendency']
-                    if f'{mpasVarType}salinitySurfaceFluxTendency' in dsIn.keys():
-                        salinityTend = dsIn[f'{mpasVarType}salinitySurfaceFluxTendency'].isel(Time=[index])
-                        salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                        salinityTend = salinityTend.where(cellMask, drop=True)
+                    salinityTend = dsIn[f'{mpasVarType}salinityVertMixTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltVMixTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to vertical mixing', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  surface fluxes (sea ice salinity flux and SSS retoring if present)')
+                    if not f'{mpasVarType}salinitySurfaceFluxTendency' in dsIn.keys():
+                        raise KeyError('no salinity surface flux tendency variable found')
+                    salinityTend = dsIn[f'{mpasVarType}salinitySurfaceFluxTendency'].isel(Time=[index])
+                    salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['saltSurfaceFluxTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to surface fluxes (sea ice salinity flux and SSS restoring if present', units='m 1e-3 s^-1', )
+                        )
+
+                    if f'{mpasVarType}salinitySurfaceRestoringTendency' in dsIn.keys():
+                        print('  SSS-restoring salinity tendency')
+                        # This is actually tendency weighted by layer thickness
+                        salinityTend = dsIn[f'{mpasVarType}salinitySurfaceRestoringTendency'].isel(Time=[index])
+                        salinityTend = salinityTend.where(depthMask, drop=False).where(cellMask, drop=True)
                         salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        dsOutMonthly['saltSurfaceFluxTendency'] = xr.DataArray(
+                        salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
+                        dsOutMonthly['saltFrazilTendency'] = xr.DataArray(
                             data=salinityTend,
                             dims=('Time', ),
-                            attrs=dict(description='Salinity change due to surface fluxes', units='1.e-3 s^-1', )
+                            attrs=dict(description='Salinity change (depth weigthed) due to frazil ice', units='m 1e-3 s^-1', )
                             )
                     else:
-                        raise KeyError('no salinity surface flux tendency variable found')
-                    print('Reading salinity')
-                    #salinity = dsIn[f'{mpasVarType}activeTracers_salinity']
+                        print('  WARNING: variable frazilSalinityTendency unavailable: skipping frazil salinity tendency')
+
+                    print('  salinity')
                     salinity = dsIn[f'{mpasVarType}salinity'].isel(Time=[index])
-                    salinity = (salinity * dzOnCells).where(depthMask, drop=False).sum(dim='nVertLevels') / depth
-                    salinity = salinity.where(cellMask, drop=True)
+                    salinity = (salinity * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
                     salinity = (salinity * regionArea).sum(dim='nCells') / regionAreaTot
+                    salinity = salinity.sum(dim='nVertLevels', skipna=True)
                     dsOutMonthly['salinity'] = xr.DataArray(
                         data=salinity,
                         dims=('Time', ),
-                        attrs=dict(description='Averaged regional salinity', units='1.e-3', )
+                        attrs=dict(description='Averaged regional salinity (depth weigthed)', units='m 1e-3', )
                         )
 
+                    #####
+                    ##### Temperature budget terms
+                    #####
+                    print('Compute temperature budget terms')
+                    print('  temperature tendency')
+                    if not f'{mpasVarType}temperatureTend' in dsIn.keys():
+                        raise KeyError('no temperature time tendency variable found')
+                    # This is actually temperature tendency weighted by layer thickness
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureTend'].isel(Time=[index])
+                    temperatureTend = temperatureTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed, i.e. d(hS)/dt) due to temperature time tendency', units='m C s^-1', )
+                        )
 
-                #####
-                ##### Heat budget terms
-                #####
-                #timeMonthly_avg_activeTracersTend_temperatureTend # time tendency of potential temperature C s^-1
-                #timeMonthly_avg_activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency # potential temperature tendency due to horizontal advection
-                #timeMonthly_avg_activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency # potential temperature tendency due to vertical advection
-                #timeMonthly_avg_activeTracerVertMixTendency_temperatureVertMixTendency # potential temperature tendency due to vertical mixing
-                #timeMonthly_avg_activeTracerHorMixTendency_temperatureHorMixTendency # potential temperature tendency due to horizontal mixing (including Redi)
-                #timeMonthly_avg_activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency # potential temperature tendency due to surface fluxes
+                    print('  frazil temperature tendency')
+                    if not f'{mpasVarType}frazilTemperatureTendency' in dsIn.keys():
+                        raise KeyError('no temperature frazil tendency variable found')
+                    # This is actually tendency weighted by layer thickness
+                    temperatureTend = dsIn[f'{mpasVarType}frazilTemperatureTendency'].isel(Time=[index])
+                    temperatureTend = temperatureTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempFrazilTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to frazil ice', units='m C s^-1', )
+                        )
+
+                    # The following activeTracerTendency terms are *not* weighted by layer thickness
+                    print('  horizontal advection (includes GM and MLE)')
+                    if not f'{mpasVarType}temperatureHorizontalAdvectionTendency' in dsIn.keys():
+                        raise KeyError('no temperature horizontal advection tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureHorizontalAdvectionTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempHAdvTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to horizontal advection (including GM and MLE contributions)', units='m C s^-1', )
+                        )
+
+                    print('  vertical advection')
+                    if not f'{mpasVarType}temperatureVerticalAdvectionTendency' in dsIn.keys():
+                        raise KeyError('no temperature vertical advection tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureVerticalAdvectionTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempVAdvTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to vertical advection', units='m C s^-1', )
+                        )
+
+                    print('  horizontal mixing (includes Redi)')
+                    if not f'{mpasVarType}temperatureHorMixTendency' in dsIn.keys():
+                        raise KeyError('no temperature horizontal mixing tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureHorMixTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempHMixTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to horizontal mixing (including del2, del4, and Redi)', units='m C s^-1', )
+                        )
+
+                    print('  nonlocal tendency')
+                    if not f'{mpasVarType}temperatureNonLocalTendency' in dsIn.keys():
+                        raise KeyError('no temperature non local tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureNonLocalTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempNonLocalTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to non local mixing', units='m C s^-1', )
+                        )
+
+                    print('  vertical mixing')
+                    if not f'{mpasVarType}temperatureVertMixTendency' in dsIn.keys():
+                        raise KeyError('no temperature vertical mixing tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureVertMixTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempVMixTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to vertical mixing', units='m C s^-1', )
+                        )
+
+                    print('  surface fluxes')
+                    if not f'{mpasVarType}temperatureSurfaceFluxTendency' in dsIn.keys():
+                        raise KeyError('no temperature surface flux tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureSurfaceFluxTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempSurfaceFluxTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to surface fluxes', units='m C s^-1', )
+                        )
+
+                    print('  shortwave tendency')
+                    if not f'{mpasVarType}temperatureShortWaveTendency' in dsIn.keys():
+                        raise KeyError('no temperature shortwave tendency variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}temperatureShortWaveTendency'].isel(Time=[index])
+                    temperatureTend = (temperatureTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperatureTend = temperatureTend.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['tempShortWaveTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to shortwave tendency', units='m C s^-1', )
+                        )
+
+                    print('  temperature')
+                    temperature = dsIn[f'{mpasVarType}temperature'].isel(Time=[index])
+                    temperature = (temperature * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
+                    temperature = (temperature * regionArea).sum(dim='nCells') / regionAreaTot
+                    temperature = temperature.sum(dim='nVertLevels', skipna=True)
+                    dsOutMonthly['temperature'] = xr.DataArray(
+                        data=temperature,
+                        dims=('Time', ),
+                        attrs=dict(description='Averaged regional temperature (depth weigthed)', units='m C', )
+                        )
+
+                    dsOutMonthly['depth'] = xr.DataArray(
+                        data=depth,
+                        dims=('Time', 'nCells', ),
+                        attrs=dict(description='Averaged depth for each cell in the region', units='m', )
+                        )
 
                     dsOut.append(dsOutMonthly)
 
             dsOut = xr.concat(dsOut, dim='Time')
-            #dsOut = dsOut.assign_coords(Time=('Time', newTime))
             dsOut.to_netcdf(outfile)
         else:
             print(f'  File for year = {year:04d} ({kyear} out of {len(years)} years total) already exists. Moving to the next one...')
@@ -606,96 +726,81 @@ for n in range(nRegions):
     dt = 1/48 # 30 minutes in days
     if makePlots is True:
         dsBudgets = xr.open_mfdataset(outfiles)
-        #t = np.hstack(dsBudgets['Time']) # days
-        #t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
         t = np.hstack(dsBudgets['Time'])*dt
-        #hours = 24*(t-np.int64(t))
-        #minutes = 60*(hours-np.int64(hours))
-        #seconds = 60*(minutes-np.int64(minutes))
-        #print(t)
-        #dt = timedelta(days=int(t[0]), hours=int(hours[0]), minutes=int(minutes[0]), seconds=int(seconds[0]))
-        #print(datetime(year=1, month=1, day=1) + dt - timedelta(days=1))
-
-        #weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-        #months = np.empty(np.shape(t), dtype=np.int64)
-        #datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
-        #for i, date in enumerate(datetimes.flat):
-        #    months[i] = date.month
-        #monthlyMask = np.empty(np.shape(t), dtype=np.float64)
-        #for im in range(1, 13):
-        #    monthlyMask[months==im] = weights[im-1]
-        #print(monthlyMask)
-
-        #t = t/365 # from days to years
+        monthlyMask = 1/48 # 30 minutes in days
+        depthRegion = dsBudgets['depth'].mean('nCells')
+        # Factor to apply for time-integrated tracer tendency summary plots:
+        fac = perSec_to_perDay / depthRegion
 
         # Read in previously computed volume budget quantities
-        #volNetLateralFlux = dsBudgets['volNetLateralFlux']
-        #evapFlux = dsBudgets['evapFlux']
-        #rainFlux = dsBudgets['rainFlux']
-        #snowFlux = dsBudgets['snowFlux']
-        #riverRunoffFlux = dsBudgets['riverRunoffFlux']
-        #iceRunoffFlux = dsBudgets['iceRunoffFlux']
-        #seaIceFreshWaterFlux = dsBudgets['seaIceFreshWaterFlux']
-        #thickTend = dsBudgets['thicknessTendency']
-        #frazilTend = dsBudgets['frazilTendency']
-        #tot = volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
-        #volRes = thickTend - tot
+        volNetLateralFlux = dsBudgets['volNetLateralFlux']
+        evapFlux = dsBudgets['evapFlux']
+        rainFlux = dsBudgets['rainFlux']
+        snowFlux = dsBudgets['snowFlux']
+        riverRunoffFlux = dsBudgets['riverRunoffFlux']
+        iceRunoffFlux = dsBudgets['iceRunoffFlux']
+        seaIceFreshWaterFlux = dsBudgets['seaIceFreshWaterFlux']
+        thickTend = dsBudgets['thicknessTendency']
+        frazilTend = dsBudgets['frazilTendency']
+        if 'volNetVerticalFlux' in dsBudgets.keys():
+            volNetVerticalFlux = dsBudgets['volNetVerticalFlux']
+            tot = volNetLateralFlux + volNetVerticalFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
+        else:
+            tot = volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
+        volRes = thickTend - tot
+
         # Read in previously computed salinity budget quantities
         saltTend = dsBudgets['saltTendency']
-        saltFrazilTend = dsBudgets['saltFrazilTendency']
         saltHadvTend = dsBudgets['saltHAdvTendency']
         saltVadvTend = dsBudgets['saltVAdvTendency']
         saltHmixTend = dsBudgets['saltHMixTendency']
         saltVmixTend = dsBudgets['saltVMixTendency']
         saltNonLocalTend = dsBudgets['saltNonLocalTendency']
         saltSurfaceFluxTend = dsBudgets['saltSurfaceFluxTendency']
-        tot = saltHadvTend + saltVadvTend + saltHmixTend + saltNonLocalTend + saltSurfaceFluxTend + saltFrazilTend # vmix not included
+        if 'saltFrazilTend' in dsBudgets.keys():
+            saltFrazilTend = dsBudgets['saltFrazilTendency']
+            # vmix is not included in the MPAS salinityTendency term, so do not add it to tot:
+            tot = saltHadvTend + saltVadvTend + saltHmixTend + saltNonLocalTend + saltSurfaceFluxTend + saltFrazilTend
+        else:
+            # vmix is not included in the MPAS salinityTendency term, so do not add it to tot:
+            tot = saltHadvTend + saltVadvTend + saltHmixTend + saltNonLocalTend + saltSurfaceFluxTend
         saltRes = saltTend - tot
         salt = dsBudgets['salinity']
-        #print(salt.values)
-        # Read in previously computed heat budget quantities
 
-        # Compute running averages
-        #if movingAverageMonths!=1:
-        #    window = int(movingAverageMonths)
-        #    volNetLateralFlux_runavg = pd.Series(volNetLateralFlux).rolling(window, center=True).mean()
-        #    evapFlux_runavg = pd.Series(evapFlux).rolling(window, center=True).mean()
-        #    rainFlux_runavg = pd.Series(rainFlux).rolling(window, center=True).mean()
-        #    snowFlux_runavg = pd.Series(snowFlux).rolling(window, center=True).mean()
-        #    riverRunoffFlux_runavg = pd.Series(riverRunoffFlux).rolling(window, center=True).mean()
-        #    iceRunoffFlux_runavg = pd.Series(iceRunoffFlux).rolling(window, center=True).mean()
-        #    seaIceFreshWaterFlux_runavg = pd.Series(seaIceFreshWaterFlux).rolling(window, center=True).mean()
-        #    thickTend_runavg = pd.Series(thickTend).rolling(window, center=True).mean()
-        #    frazilTend_runavg = pd.Series(frazilTend).rolling(window, center=True).mean()
-        #    volRes_runavg = pd.Series(volRes).rolling(window, center=True).mean()
-        #    #
-        #    saltTend_runavg = pd.Series(saltTend).rolling(window, center=True).mean()
-        #    saltHadvTend_runavg = pd.Series(saltHadvTend).rolling(window, center=True).mean()
-        #    saltVadvTend_runavg = pd.Series(saltVadvTend).rolling(window, center=True).mean()
-        #    saltHmixTend_runavg = pd.Series(saltHmixTend).rolling(window, center=True).mean()
-        #    saltVmixTend_runavg = pd.Series(saltVmixTend).rolling(window, center=True).mean()
-        #    saltNonLocalTend_runavg = pd.Series(saltNonLocalTend).rolling(window, center=True).mean()
-        #    saltSurfaceFluxTend_runavg = pd.Series(saltSurfaceFluxTend).rolling(window, center=True).mean()
-        #    saltRes_runavg = pd.Series(saltRes).rolling(window, center=True).mean()
-        #    salt_runavg = pd.Series(salt).rolling(window, center=True).mean()
-        #    #
+        # Read in previously computed temperature budget quantities
+        tempTend = dsBudgets['tempTendency']
+        tempFrazilTend = dsBudgets['tempFrazilTendency']
+        tempHadvTend = dsBudgets['tempHAdvTendency']
+        tempVadvTend = dsBudgets['tempVAdvTendency']
+        tempHmixTend = dsBudgets['tempHMixTendency']
+        tempVmixTend = dsBudgets['tempVMixTendency']
+        tempNonLocalTend = dsBudgets['tempNonLocalTendency']
+        tempSurfaceFluxTend = dsBudgets['tempSurfaceFluxTendency']
+        tempShortWaveTend = dsBudgets['tempShortWaveTendency']
+        # vmix is not included in the MPAS temperatureTendency term, so do not add it to tot:
+        tot = tempHadvTend + tempVadvTend + tempHmixTend + tempNonLocalTend + tempSurfaceFluxTend + tempShortWaveTend + tempFrazilTend
+        tempRes = tempTend - tot
+        temp = dsBudgets['temperature']
 
         # Compute long-term means
-        #volNetLateralFluxMean = volNetLateralFlux.mean().values
-        #evapFluxMean = evapFlux.mean().values
-        #rainFluxMean = rainFlux.mean().values
-        #snowFluxMean = snowFlux.mean().values
-        #empMean = (evapFlux + rainFlux + snowFlux).mean().values
-        #riverRunoffFluxMean = riverRunoffFlux.mean().values
-        #iceRunoffFluxMean = iceRunoffFlux.mean().values
-        #runoffMean = (riverRunoffFlux + iceRunoffFlux).mean().values
-        #seaIceFreshWaterFluxMean = seaIceFreshWaterFlux.mean().values
-        #frazilTendMean = frazilTend.mean().values
-        #thickTendMean = thickTend.mean().values
-        #volResMean = volRes.mean().values
+        volNetLateralFluxMean = volNetLateralFlux.mean().values
+        if 'volNetVerticalFlux' in locals():
+            volNetVerticalFluxMean = volNetVerticalFlux.mean().values
+        evapFluxMean = evapFlux.mean().values
+        rainFluxMean = rainFlux.mean().values
+        snowFluxMean = snowFlux.mean().values
+        empMean = (evapFlux + rainFlux + snowFlux).mean().values
+        riverRunoffFluxMean = riverRunoffFlux.mean().values
+        iceRunoffFluxMean = iceRunoffFlux.mean().values
+        runoffMean = (riverRunoffFlux + iceRunoffFlux).mean().values
+        seaIceFreshWaterFluxMean = seaIceFreshWaterFlux.mean().values
+        frazilTendMean = frazilTend.mean().values
+        thickTendMean = thickTend.mean().values
+        volResMean = volRes.mean().values
         #
         saltTendMean = saltTend.mean().values
-        saltFrazilTendMean = saltFrazilTend.mean().values
+        if 'saltFrazilTend' in dsBudgets.keys():
+            saltFrazilTendMean = saltFrazilTend.mean().values
         saltHadvTendMean = saltHadvTend.mean().values
         saltVadvTendMean = saltVadvTend.mean().values
         saltHmixTendMean = saltHmixTend.mean().values
@@ -704,158 +809,108 @@ for n in range(nRegions):
         saltSurfaceFluxTendMean = saltSurfaceFluxTend.mean().values
         saltResMean = saltRes.mean().values
         #
+        tempTendMean = tempTend.mean().values
+        tempFrazilTendMean = tempFrazilTend.mean().values
+        tempHadvTendMean = tempHadvTend.mean().values
+        tempVadvTendMean = tempVadvTend.mean().values
+        tempHmixTendMean = tempHmixTend.mean().values
+        tempVmixTendMean = tempVmixTend.mean().values
+        tempNonLocalTendMean = tempNonLocalTend.mean().values
+        tempSurfaceFluxTendMean = tempSurfaceFluxTend.mean().values
+        tempShortWaveTendMean = tempShortWaveTend.mean().values
+        tempResMean = tempRes.mean().values
 
+        # Plot single terms of volume budget
         figdpi = 300
-        #figsize = (16, 16)
-        #figfile = f'{figdir}/volBudget_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #fig, ax = plt.subplots(5, 2, figsize=figsize)
+        figsize = (16, 16)
+        figfile = f'{figdir}/volBudget_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        fig, ax = plt.subplots(6, 2, figsize=figsize)
+        ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
+        if 'volNetVerticalFlux' in locals():
+            ax[0, 1].plot(t, volNetVerticalFlux, 'k', alpha=0.5, linewidth=1.5)
+            ax[0, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+            ax[0, 1].autoscale(enable=True, axis='x', tight=True)
+            ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+            ax[0, 1].set_title(f'mean={volNetVerticalFluxMean:.2e}', fontsize=16, fontweight='bold')
+            ax[0, 1].set_ylabel('Vertical flux (Sv)', fontsize=12, fontweight='bold')
+        ax[1, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[1, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[2, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[2, 1].plot(t, snowFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[3, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[3, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[4, 0].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
+        ax[4, 1].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
+        ax[5, 0].plot(t, volRes, 'k', alpha=0.5, linewidth=1.5)
+        #
+        ax[0, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[1, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[1, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[2, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[2, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[3, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[3, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[4, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[4, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax[5, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        #
+        ax[0, 0].autoscale(enable=True, axis='x', tight=True)
+        ax[1, 0].autoscale(enable=True, axis='x', tight=True)
+        ax[1, 1].autoscale(enable=True, axis='x', tight=True)
+        ax[2, 0].autoscale(enable=True, axis='x', tight=True)
+        ax[2, 1].autoscale(enable=True, axis='x', tight=True)
+        ax[3, 0].autoscale(enable=True, axis='x', tight=True)
+        ax[3, 1].autoscale(enable=True, axis='x', tight=True)
+        ax[4, 0].autoscale(enable=True, axis='x', tight=True)
+        ax[4, 1].autoscale(enable=True, axis='x', tight=True)
+        ax[5, 0].autoscale(enable=True, axis='x', tight=True)
+        #
+        ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax[5, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        #
+        ax[0, 0].set_title(f'mean={volNetLateralFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[1, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[1, 1].set_title(f'mean={evapFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[2, 0].set_title(f'mean={rainFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[2, 1].set_title(f'mean={snowFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[3, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[3, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
+        ax[4, 0].set_title(f'mean={frazilTendMean:.2e}', fontsize=16, fontweight='bold')
+        ax[4, 1].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
+        ax[5, 1].set_title(f'mean={volResMean:.2e}', fontsize=16, fontweight='bold')
+        #
+        ax[4, 1].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
+        ax[5, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
+        ax[0, 0].set_ylabel('Lateral flux (Sv)', fontsize=12, fontweight='bold')
+        ax[1, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
+        ax[1, 1].set_ylabel('Evap flux (Sv)', fontsize=12, fontweight='bold')
+        ax[2, 0].set_ylabel('Rain flux (Sv)', fontsize=12, fontweight='bold')
+        ax[2, 1].set_ylabel('Snow flux (Sv)', fontsize=12, fontweight='bold')
+        ax[3, 0].set_ylabel('River runoff flux (Sv)', fontsize=12, fontweight='bold')
+        ax[3, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
+        ax[4, 0].set_ylabel('Frazil thickTend (Sv)', fontsize=12, fontweight='bold')
+        ax[4, 1].set_ylabel('Layer thickTend (Sv)', fontsize=12, fontweight='bold')
+        ax[5, 1].set_ylabel('Res = LHS - sumRHSTerms', fontsize=12, fontweight='bold')
+        #
+        fig.tight_layout(pad=0.5)
+        fig.suptitle(f'Region = {regionName}, runname = {casename}', \
+                     fontsize=14, fontweight='bold', y=1.025)
+        add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1.2)
+        fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
 
-        ##for tick in ax.xaxis.get_ticklabels():
-        ##    tick.set_fontsize(14)
-        ##    tick.set_weight('bold')
-        ##for tick in ax.yaxis.get_ticklabels():
-        ##    tick.set_fontsize(14)
-        ##    tick.set_weight('bold')
-        ##ax.yaxis.get_offset_text().set_fontsize(14)
-        ##ax.yaxis.get_offset_text().set_weight('bold')
-
-        #ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[0, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[1, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[1, 1].plot(t, snowFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[2, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[2, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[3, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[3, 1].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
-        #ax[4, 0].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
-        #ax[4, 1].plot(t, volRes, 'k', alpha=0.5, linewidth=1.5)
-        #if movingAverageMonths!=1:
-        #    ax[0, 0].plot(t, volNetLateralFlux_runavg, 'k', linewidth=3)
-        #    ax[0, 1].plot(t, evapFlux_runavg, 'k', linewidth=3)
-        #    ax[1, 0].plot(t, rainFlux_runavg, 'k', linewidth=3)
-        #    ax[1, 1].plot(t, snowFlux_runavg, 'k', linewidth=3)
-        #    ax[2, 0].plot(t, riverRunoffFlux_runavg, 'k', linewidth=3)
-        #    ax[2, 1].plot(t, iceRunoffFlux_runavg, 'k', linewidth=3)
-        #    ax[3, 0].plot(t, seaIceFreshWaterFlux_runavg, 'k', linewidth=3)
-        #    ax[3, 1].plot(t, frazilTend_runavg, 'k', linewidth=3)
-        #    ax[4, 0].plot(t, thickTend_runavg, 'k', linewidth=3)
-        #    ax[4, 1].plot(t, volRes_runavg, 'k', linewidth=3)
-     
-        #ax[0, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[0, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[1, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[1, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[2, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[2, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[3, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[3, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[4, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[4, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-
-        #ax[0, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[0, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[1, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[1, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[2, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[2, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[3, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[3, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[4, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[4, 1].autoscale(enable=True, axis='x', tight=True)
-
-        #ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-
-        #ax[0, 0].set_title(f'mean={volNetLateralFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[0, 1].set_title(f'mean={evapFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[1, 0].set_title(f'mean={rainFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[1, 1].set_title(f'mean={snowFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[2, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[2, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[3, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[3, 1].set_title(f'mean={frazilTendMean:.2e}', fontsize=14, fontweight='bold')
-        #ax[4, 0].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[4, 1].set_title(f'mean={volResMean:.2e}', fontsize=16, fontweight='bold')
-
-        #ax[4, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
-        #ax[4, 1].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
-
-        #ax[0, 0].set_ylabel('Lateral flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[0, 1].set_ylabel('Evap flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[1, 0].set_ylabel('Rain flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[1, 1].set_ylabel('Snow flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[2, 0].set_ylabel('River runoff flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[2, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[3, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
-        #ax[3, 1].set_ylabel('Frazil thickness tend (Sv)', fontsize=12, fontweight='bold')
-        #ax[4, 0].set_ylabel('Layer thickness tend (Sv)', fontsize=12, fontweight='bold')
-        #ax[4, 1].set_ylabel('Res=layerThickTend-sumAllTerms (Sv)', fontsize=12, fontweight='bold')
-
-        #fig.tight_layout(pad=0.5)
-        #fig.suptitle(f'Region = {regionName}, runname = {casename}', \
-        #             fontsize=14, fontweight='bold', y=1.025)
-        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
-        #fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
-
-        #figsize = (14, 8)
-        #figfile = f'{figdir}/volBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #fig = plt.figure(figsize=figsize)
-        #ax = fig.add_subplot()
-
-        #for tick in ax.xaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #for tick in ax.yaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #ax.yaxis.get_offset_text().set_fontsize(14)
-        #ax.yaxis.get_offset_text().set_weight('bold')
-
-        #if movingAverageMonths==1:
-        #    emp = evapFlux + rainFlux + snowFlux
-        #    runoff = riverRunoffFlux + iceRunoffFlux
-        #    ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
-        #    ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
-        #    ax.plot(t, runoff, 'g', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
-        #    ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
-        #    ax.plot(t, thickTend, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
-        #    ax.plot(t, volRes, 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
-        #else:
-        #    emp = evapFlux_runavg + rainFlux_runavg + snowFlux_runavg
-        #    runoff = riverRunoffFlux_runavg + iceRunoffFlux_runavg
-        #    ax.plot(t, volNetLateralFlux_runavg, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
-        #    ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
-        #    ax.plot(t, runoff, 'g', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
-        #    ax.plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
-        #    ax.plot(t, thickTend_runavg, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
-        #    ax.plot(t, volRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
-        #    ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
-        #ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax.autoscale(enable=True, axis='x', tight=True)
-        #ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax.legend(loc='lower left', prop=legend_properties)
-        ##plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
-        #ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-        #ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
-        #fig.tight_layout(pad=0.5)
-        #fig.suptitle(f'Region = {regionName}, runname = {casename}', \
-        #             fontsize=14, fontweight='bold', y=1.025)
-        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
-        #fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
-
+        # Plot summary of volume budget terms
         figsize = (14, 8)
-        figfile = f'{figdir}/saltBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        figfile = f'{figdir}/volBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
-
         for tick in ax.xaxis.get_ticklabels():
             tick.set_fontsize(14)
             tick.set_weight('bold')
@@ -864,50 +919,118 @@ for n in range(nRegions):
             tick.set_weight('bold')
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
-
-        axsalt = ax.twinx()
-        axsalt_color = 'orange'
-        axsalt.tick_params(axis='y', labelcolor=axsalt_color)
-        axsalt.spines['right'].set_color(axsalt_color)
-        for tick in axsalt.yaxis.get_ticklabels():
-            tick.set_fontsize(14)
-            tick.set_weight('bold')
-        axsalt.set_ylabel('salinity', fontsize=12, fontweight='bold', color=axsalt_color)
-
-        monthlyMask = 1/48 # 30 minutes in days
-        if movingAverageMonths==1:
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltNonLocalTend), 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltHmixTend), 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltFrazilTend), 'purple', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-            ax.plot(t, factor_psuPerDay * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-            axsalt.plot(t, salt, color=axsalt_color, linewidth=2)
-            ax.set_ylabel('psu', fontsize=12, fontweight='bold')
-        #else:
-        #    ax.plot(t, factor_psuPerDay*saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltVadvTend_runavg, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltVmixTend_runavg, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltNonLocalTend_runavg, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltHmixTend_runavg, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-        #    ax.plot(t, factor_psuPerDay*saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-        #    axsalt.plot(t, salt_runavg, color=axsalt_color, linewidth=2)
-        #    ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
-        #    ax.set_ylabel('psu day$^{-1}$', fontsize=12, fontweight='bold')
+        #
+        emp = evapFlux + rainFlux + snowFlux
+        runoff = riverRunoffFlux + iceRunoffFlux
+        ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
+        if 'volNetVerticalFlux' in locals():
+            volNetVerticalFluxMean = volNetVerticalFlux.mean().values
+            ax.plot(t, volNetVerticalFlux, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e})')
+        ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
+        ax.plot(t, runoff, 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
+        ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
+        ax.plot(t, thickTend, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
+        ax.plot(t, volRes, 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
+        #
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        ax.legend(loc='lower left', prop=legend_properties)
-        #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
+        ax.legend(prop=legend_properties)
+        ax.set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
+        fig.tight_layout(pad=0.5)
+        fig.suptitle(f'Region = {regionName}, runname = {casename}', \
+                     fontsize=14, fontweight='bold', y=1.025)
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
+        fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+
+        # Plot summary of salinity budget terms
+        figsize = (14, 8)
+        figfile = f'{figdir}/saltBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot()
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+        #
+        #axtracer_color = 'orange'
+        #axtracer = ax.twinx()
+        #axtracer.tick_params(axis='y', labelcolor=axtracer_color)
+        #axtracer.spines['right'].set_color(axtracer_color)
+        #for tick in axtracer.yaxis.get_ticklabels():
+        #    tick.set_fontsize(14)
+        #    tick.set_weight('bold')
+        #axtracer.set_ylabel('salinity', fontsize=12, fontweight='bold', color=axtracer_color)
+        #
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltNonLocalTend), 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltHmixTend), 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+        if 'saltFrazilTend' in locals():
+            saltFrazilTendMean = saltFrazilTend.mean().values
+            ax.plot(t, fac * np.cumsum(monthlyMask*saltFrazilTend), 'brown', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+        ax.plot(t, (salt-salt[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(salt)')
+        #axtracer.plot(t, (salt-salt[0]) / depthRegion, color=axtracer_color, linestyle=':', linewidth=1.5)
+        #
+        ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
+        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax.autoscale(enable=True, axis='x', tight=True)
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(prop=legend_properties)
+        #ax.legend(loc='lower left', prop=legend_properties)
         #ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
         ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
                      fontsize=14, fontweight='bold', y=1.025)
-        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1)
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
+        fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+
+        # Plot summary of temperature budget terms
+        figsize = (14, 8)
+        figfile = f'{figdir}/tempBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot()
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+        #
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempHadvTend), 'r', linewidth=2, label=f'hor-adv ({tempHadvTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempVadvTend), 'g', linewidth=2, label=f'ver-adv ({tempVadvTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({tempVmixTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempNonLocalTend), 'c', linewidth=2, label=f'non-local ({tempNonLocalTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempHmixTend), 'k', linewidth=2, label=f'hor-mix ({tempHmixTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempFrazilTend), 'brown', linewidth=2, label=f'tempFrazilTend ({tempFrazilTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempTend), 'm', linewidth=2, label=f'tempTend ({tempTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempRes), 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
+        ax.plot(t, (temp-temp[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(temp)')
+        #
+        ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
+        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax.autoscale(enable=True, axis='x', tight=True)
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(prop=legend_properties)
+        #ax.legend(loc='lower left', prop=legend_properties)
+        #ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+        ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
+        fig.tight_layout(pad=0.5)
+        fig.suptitle(f'Region = {regionName}, runname = {casename}', \
+                     fontsize=14, fontweight='bold', y=1.025)
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
         fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
