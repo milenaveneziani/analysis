@@ -149,9 +149,11 @@ movingAverageMonths = 1
 #movingAverageMonths = 5*12
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
-rho0 = 1027.0 # kg/m^3
+rho0 = 1026.0 # kg/m^3 (config_density0)
 perSec_to_perDay = 86400.0 # 1/s to 1/day
-# Consider depth redistribution of surface fluxes only if attCoef is greater 
+cp = 3.996*1e3 # J/(kg*degK) (as defined in mpas_constants)
+restoring_pistonvel = 1.585e-6 # m/s (config_salinity_restoring_constant_piston_velocity)
+# Apply depth redistribution of surface fluxes only if attCoef is greater 
 # than attCoefMax, set to 1 mm by default (as in MPAS-O)
 attCoefMax = 0.001
 
@@ -174,6 +176,7 @@ legend_properties = {'size':10, 'weight':'bold'}
 ###
 
 # Read in regions information
+dsRegionMask = xr.open_dataset(regionmaskfile)
 dsRegionMask = xr.open_dataset(regionmaskfile)
 regions = decode_strings(dsRegionMask.regionNames)
 if regionNames[0]=='all':
@@ -543,23 +546,44 @@ for n in range(nRegions):
                     dsOutMonthly['saltSurfaceFluxTendency'] = xr.DataArray(
                         data=salinityTend,
                         dims=('Time', ),
-                        attrs=dict(description='Salinity change (depth weigthed) due to surface fluxes (sea ice salinity flux and SSS restoring if present', units='m 1e-3 s^-1', )
+                        attrs=dict(description='Salinity change (depth weigthed) due to surface fluxes (sea ice salinity flux and SSS restoring if present)', units='m 1e-3 s^-1', )
+                        )
+
+                    print('  surface fluxes due to sea ice salinity flux only')
+                    if not f'{mpasVarType}seaIceSalinityFlux' in dsIn.keys():
+                        raise KeyError('no sea ice salinity flux variable found')
+                    # seaIceSalinityFlux is Kg of salt (associated to sea ice changes)
+                    # per (m^2 s), i.e. 10^3 grams of salt per unit area and per second.
+                    # Hence, If I divide by rho_fw (10^3 Kg of FW per m^3), I get units of
+                    # psu * m / s (where psu=grams of salt per Kg of FW). After that,
+                    # we can treat it as a thickness weigthed salinity tendency, similarly to 
+                    # the other salinity tendency terms.
+                    saltFlux_to_salinityFlux = 1.0
+                    salinityTend = dsIn[f'{mpasVarType}seaIceSalinityFlux'].isel(Time=[index])
+                    salinityTend = saltFlux_to_salinityFlux * salinityTend
+                    salinityTend = salinityTend.where(cellMask, drop=True)
+                    salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['saltSeaIceTendency'] = xr.DataArray(
+                        data=salinityTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Salinity change (depth weigthed) due to sea ice salinity flux', units='m 1e-3 s^-1', )
                         )
 
                     if f'{mpasVarType}salinitySurfaceRestoringTendency' in dsIn.keys():
-                        print('  SSS-restoring salinity tendency')
-                        # This is actually tendency weighted by layer thickness
+                        print('  surface fluxes due to SSS-restoring salinity tendency only')
+                        # This is piston_velocity * Delta(SSS_restoringValue), hence in units of m * 1e-3 (psu)/s.
+                        # We therefore treat it as a thickness weigthed salinity tendency, similarly to 
+                        # the other salinity tendency terms.
                         salinityTend = dsIn[f'{mpasVarType}salinitySurfaceRestoringTendency'].isel(Time=[index])
-                        salinityTend = salinityTend.where(depthMask, drop=False).where(cellMask, drop=True)
+                        salinityTend = salinityTend.where(cellMask, drop=True)
                         salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
-                        salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
-                        dsOutMonthly['saltFrazilTendency'] = xr.DataArray(
+                        dsOutMonthly['saltSurfaceRestoringTendency'] = xr.DataArray(
                             data=salinityTend,
                             dims=('Time', ),
-                            attrs=dict(description='Salinity change (depth weigthed) due to frazil ice', units='m 1e-3 s^-1', )
+                            attrs=dict(description='Salinity change (depth weigthed) due to SSS restoring', units='m 1e-3 s^-1', )
                             )
                     else:
-                        print('  WARNING: variable frazilSalinityTendency unavailable: skipping frazil salinity tendency')
+                        print('  WARNING: variable salinitySurfaceRestoringTendency unavailable: skipping SSS-restoring salinity tendency')
 
                     print('  salinity')
                     salinity = dsIn[f'{mpasVarType}salinity'].isel(Time=[index])
@@ -670,7 +694,7 @@ for n in range(nRegions):
                         attrs=dict(description='Temperature change (depth weigthed) due to vertical mixing', units='m C s^-1', )
                         )
 
-                    print('  surface fluxes')
+                    print('  surface fluxes (sensible + latent + longwaveUp + longwaveDown + seaIceHeatFlux + icebergHeatFlux if present + latentHeatFusion)')
                     if not f'{mpasVarType}temperatureSurfaceFluxTendency' in dsIn.keys():
                         raise KeyError('no temperature surface flux tendency variable found')
                     temperatureTend = dsIn[f'{mpasVarType}temperatureSurfaceFluxTendency'].isel(Time=[index])
@@ -680,7 +704,62 @@ for n in range(nRegions):
                     dsOutMonthly['tempSurfaceFluxTendency'] = xr.DataArray(
                         data=temperatureTend,
                         dims=('Time', ),
-                        attrs=dict(description='Temperature change (depth weigthed) due to surface fluxes', units='m C s^-1', )
+                        attrs=dict(description='Temperature change (depth weigthed) due to surface fluxes (sensible + latent + longwaveUp + longwaveDown + seaIceHeatFlux + icebergHeatFlux if present + latentHeatFusion)', units='m C s^-1', )
+                        )
+
+                    heatFlux_to_temperatureFlux = 1.0/(rho0 * cp)
+                    print('  surface fluxes due to sensible heat flux only')
+                    if not f'{mpasVarType}sensibleHeatFlux' in dsIn.keys():
+                        raise KeyError('no sensible heat flux variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}sensibleHeatFlux'].isel(Time=[index])
+                    temperatureTend = heatFlux_to_temperatureFlux * temperatureTend
+                    temperatureTend = temperatureTend.where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['tempSensibleHeatTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to sensible heat flux', units='m C s^-1', )
+                        )
+
+                    print('  surface fluxes due to latent heat flux only')
+                    if not f'{mpasVarType}latentHeatFlux' in dsIn.keys():
+                        raise KeyError('no latent heat flux variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}latentHeatFlux'].isel(Time=[index])
+                    temperatureTend = heatFlux_to_temperatureFlux * temperatureTend
+                    temperatureTend = temperatureTend.where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['tempLatentHeatTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to latent heat flux', units='m C s^-1', )
+                        )
+
+                    print('  surface fluxes due to net longwave heat flux only')
+                    if (not f'{mpasVarType}longWaveHeatFluxUp'   in dsIn.keys()) or \
+                       (not f'{mpasVarType}longWaveHeatFluxDown' in dsIn.keys()):
+                        raise KeyError('no longwave heat flux variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}longWaveHeatFluxUp'].isel(Time=[index]) + \
+                                      dsIn[f'{mpasVarType}longWaveHeatFluxDown'].isel(Time=[index])
+                    temperatureTend = heatFlux_to_temperatureFlux * temperatureTend
+                    temperatureTend = temperatureTend.where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['tempLongWaveTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to net longwave heat flux', units='m C s^-1', )
+                        )
+
+                    print('  surface fluxes due to sea ice heat flux only')
+                    if not f'{mpasVarType}seaIceHeatFlux' in dsIn.keys():
+                        raise KeyError('no sea ice heat flux variable found')
+                    temperatureTend = dsIn[f'{mpasVarType}seaIceHeatFlux'].isel(Time=[index])
+                    temperatureTend = heatFlux_to_temperatureFlux * temperatureTend
+                    temperatureTend = temperatureTend.where(cellMask, drop=True)
+                    temperatureTend = (temperatureTend * regionArea).sum(dim='nCells') / regionAreaTot
+                    dsOutMonthly['tempSeaIceHeatTendency'] = xr.DataArray(
+                        data=temperatureTend,
+                        dims=('Time', ),
+                        attrs=dict(description='Temperature change (depth weigthed) due to sea ice heat flux', units='m C s^-1', )
                         )
 
                     print('  shortwave tendency')
@@ -764,6 +843,11 @@ for n in range(nRegions):
         else:
             # vmix is not included in the MPAS salinityTendency term, so do not add it to tot:
             tot = saltHadvTend + saltVadvTend + saltHmixTend + saltNonLocalTend + saltSurfaceFluxTend
+        # Separate contributions of seaIceSalinityFlux and SSSrestoring to saltSurfaceFluxTend
+        # (note that these are not depth weigthed)
+        saltSeaIceTend = dsBudgets['saltSeaIceTendency']
+        if 'saltSurfaceRestoringTendency' in dsBudgets.keys():
+            saltSurfaceRestoringTend = dsBudgets['saltSurfaceRestoringTendency']
         saltRes = saltTend - tot
         salt = dsBudgets['salinity']
 
@@ -776,10 +860,15 @@ for n in range(nRegions):
         tempVmixTend = dsBudgets['tempVMixTendency']
         tempNonLocalTend = dsBudgets['tempNonLocalTendency']
         tempSurfaceFluxTend = dsBudgets['tempSurfaceFluxTendency']
+        tempSensibleHeatTend = dsBudgets['tempSensibleHeatTendency']
+        tempLatentHeatTend = dsBudgets['tempLatentHeatTendency']
+        tempLongWaveTend = dsBudgets['tempLongWaveTendency']
+        tempSeaIceTend = dsBudgets['tempSeaIceHeatTendency']
         tempShortWaveTend = dsBudgets['tempShortWaveTendency']
         # vmix is not included in the MPAS temperatureTendency term, so do not add it to tot:
         tot = tempHadvTend + tempVadvTend + tempHmixTend + tempNonLocalTend + tempSurfaceFluxTend + tempShortWaveTend + tempFrazilTend
         tempRes = tempTend - tot
+        tempSFluxRes = tempSurfaceFluxTend - (tempSensibleHeatTend + tempLatentHeatTend + tempLongWaveTend + tempSeaIceTend)
         temp = dsBudgets['temperature']
 
         # Compute long-term means
@@ -799,7 +888,7 @@ for n in range(nRegions):
         volResMean = volRes.mean().values
         #
         saltTendMean = saltTend.mean().values
-        if 'saltFrazilTend' in dsBudgets.keys():
+        if 'saltFrazilTend' in locals():
             saltFrazilTendMean = saltFrazilTend.mean().values
         saltHadvTendMean = saltHadvTend.mean().values
         saltVadvTendMean = saltVadvTend.mean().values
@@ -807,6 +896,9 @@ for n in range(nRegions):
         saltVmixTendMean = saltVmixTend.mean().values
         saltNonLocalTendMean = saltNonLocalTend.mean().values
         saltSurfaceFluxTendMean = saltSurfaceFluxTend.mean().values
+        saltSeaIceTendMean = saltSeaIceTend.mean().values
+        if 'saltSurfaceRestoringTend' in locals():
+            saltSurfaceRestoringTendMean = saltSurfaceRestoringTend.mean().values
         saltResMean = saltRes.mean().values
         #
         tempTendMean = tempTend.mean().values
@@ -817,7 +909,12 @@ for n in range(nRegions):
         tempVmixTendMean = tempVmixTend.mean().values
         tempNonLocalTendMean = tempNonLocalTend.mean().values
         tempSurfaceFluxTendMean = tempSurfaceFluxTend.mean().values
+        tempSensibleHeatTendMean = tempSensibleHeatTend.mean().values
+        tempLatentHeatTendMean = tempLatentHeatTend.mean().values
+        tempLongWaveTendMean = tempLongWaveTend.mean().values
+        tempSeaIceTendMean = tempSeaIceTend.mean().values
         tempShortWaveTendMean = tempShortWaveTend.mean().values
+        tempSFluxResMean = tempSFluxRes.mean().values
         tempResMean = tempRes.mean().values
 
         # Plot single terms of volume budget
@@ -885,7 +982,7 @@ for n in range(nRegions):
         ax[3, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
         ax[4, 0].set_title(f'mean={frazilTendMean:.2e}', fontsize=16, fontweight='bold')
         ax[4, 1].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
-        ax[5, 1].set_title(f'mean={volResMean:.2e}', fontsize=16, fontweight='bold')
+        ax[5, 0].set_title(f'mean={volResMean:.2e}', fontsize=16, fontweight='bold')
         #
         ax[4, 1].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
         ax[5, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
@@ -898,7 +995,7 @@ for n in range(nRegions):
         ax[3, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
         ax[4, 0].set_ylabel('Frazil thickTend (Sv)', fontsize=12, fontweight='bold')
         ax[4, 1].set_ylabel('Layer thickTend (Sv)', fontsize=12, fontweight='bold')
-        ax[5, 1].set_ylabel('Res = LHS - sumRHSTerms', fontsize=12, fontweight='bold')
+        ax[5, 0].set_ylabel('Res = LHS - sumRHSTerms', fontsize=12, fontweight='bold')
         #
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
@@ -924,7 +1021,6 @@ for n in range(nRegions):
         runoff = riverRunoffFlux + iceRunoffFlux
         ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
         if 'volNetVerticalFlux' in locals():
-            volNetVerticalFluxMean = volNetVerticalFlux.mean().values
             ax.plot(t, volNetVerticalFlux, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e})')
         ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
         ax.plot(t, runoff, 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
@@ -995,6 +1091,36 @@ for n in range(nRegions):
         add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
         fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
 
+        # Plot components of salinity surface flux budget terms
+        figsize = (14, 8)
+        figfile = f'{figdir}/saltBudgetSurfaceFluxes_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot()
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+        #
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*saltSeaIceTend), 'c', linewidth=2, label=f'sea-ice-saltFlux ({saltSeaIceTendMean:.2e})')
+        if 'saltSurfaceRestoringTend' in locals():
+            ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceRestoringTend), 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
+        ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
+        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax.autoscale(enable=True, axis='x', tight=True)
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(prop=legend_properties)
+        ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
+        fig.tight_layout(pad=0.5)
+        fig.suptitle(f'Region = {regionName}, runname = {casename}', \
+                     fontsize=14, fontweight='bold', y=1.025)
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
+        fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+
         # Plot summary of temperature budget terms
         figsize = (14, 8)
         figfile = f'{figdir}/tempBudgetSummary_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
@@ -1028,6 +1154,39 @@ for n in range(nRegions):
         ax.legend(prop=legend_properties)
         #ax.legend(loc='lower left', prop=legend_properties)
         #ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+        ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
+        fig.tight_layout(pad=0.5)
+        fig.suptitle(f'Region = {regionName}, runname = {casename}', \
+                     fontsize=14, fontweight='bold', y=1.025)
+        add_inset(fig, fc, width=1.2, height=1.2, xbuffer=0.5, ybuffer=-1.2)
+        fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
+
+        # Plot components of temperature surface flux budget terms
+        figsize = (14, 8)
+        figfile = f'{figdir}/tempBudgetSurfaceFluxes_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot()
+        for tick in ax.xaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        for tick in ax.yaxis.get_ticklabels():
+            tick.set_fontsize(14)
+            tick.set_weight('bold')
+        ax.yaxis.get_offset_text().set_fontsize(14)
+        ax.yaxis.get_offset_text().set_weight('bold')
+        #
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempSeaIceTend), 'c', linewidth=2, label=f'sea-ice-tempFlux ({tempSeaIceTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempSensibleHeatTend), 'teal', linewidth=2, label=f'sensible ({tempSensibleHeatTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempLatentHeatTend), 'dodgerblue', linewidth=2, label=f'latent ({tempLatentHeatTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempLongWaveTend), 'navy', linewidth=2, label=f'longwave ({tempLongWaveTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempSFluxRes), 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
+        ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
+        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
+        ax.autoscale(enable=True, axis='x', tight=True)
+        ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
+        ax.legend(prop=legend_properties)
         ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
