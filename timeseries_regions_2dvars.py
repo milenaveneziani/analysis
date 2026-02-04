@@ -28,10 +28,11 @@ calendar = 'gregorian'
 regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
+runName = 'E3SM-Arcticv2.1_historical0301'
+runNameShort = 'E3SMv2.1-Arctic-historical0301'
 rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
 isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+isPostproc = True # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -74,18 +75,18 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 sref = 34.8 # needed for Arctic fwc calculation
 
 # Quantities needed for plotting only
-#movingAverageMonths = 12
-#monthsToPlot = range(1, 13)
-#titleMonthsToPlot = None
-movingAverageMonths = 1
-monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
-titleMonthsToPlot = 'JFMA'
+movingAverageMonths = 12
+monthsToPlot = range(1, 13)
+titleMonthsToPlot = None
+#movingAverageMonths = 1
+#monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
+#titleMonthsToPlot = 'JFMA'
 
 # region mask file will be $meshname_$regionGroups.nc
 #regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-#regionGroups = ['Arctic Regions']
-regionGroups = ['ginSeas_new']
+regionGroups = ['Arctic Regions']
+#regionGroups = ['ginSeas_new']
 ##regionGroups = ['OceanOHC Regions']
 ##regionGroups = ['Antarctic Regions']
 
@@ -96,17 +97,22 @@ regionGroups = ['ginSeas_new']
 #   Ocean variables
 mpasComp = 'mpaso'
 modelComp = 'ocn'
-mpasFile = 'timeSeriesStatsMonthlyMax'
-variables = [
-             {'name': 'maxMLD',
-              'title': 'Maximum MLD',
-              'units': 'm',
-              'factor': 1,
-              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
-            ]
-
-#mpasFile = 'timeSeriesStatsMonthly'
+#mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
+#             {'name': 'maxMLD',
+#              'title': 'Maximum MLD',
+#              'units': 'm',
+#              'factor': 1,
+#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#            ]
+
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
+             {'name': 'barotropicStreamfunction',
+              'title': 'Barotropic streamfuncion',
+              'units': 'Sv',
+              'factor': 1,
+              'mpas': 'barotropicStreamfunction'},
 #             {'name': 'dThreshMLD',
 #              'title': 'Mean MLD',
 #              'units': 'm',
@@ -187,7 +193,7 @@ variables = [
 #              'units': '10$^3$ km$^3$',
 #              'factor': 1e-12,
 #              'mpas': None}
-#            ]
+            ]
 #   Sea ice variables
 #mpasComp = 'mpassi'
 #modelComp = 'ice'
@@ -207,9 +213,15 @@ variables = [
 
 if isShortTermArchive:
     if runName=='E3SMv2.1B60to10rA07':
-        rundir = f'{rundir}/{modelComp}/hist'
+        if isPostproc:
+            rundir = f'{rundir}/{modelComp}/postproc'
+        else:
+            rundir = f'{rundir}/{modelComp}/hist'
     else:
-        rundir = f'{rundir}/archive/{modelComp}/hist'
+        if isPostproc:
+            rundir = f'{rundir}/archive/{modelComp}/postproc'
+        else:
+            rundir = f'{rundir}/archive/{modelComp}/hist'
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
@@ -230,6 +242,8 @@ else:
     openOceanMask = None
 areaCell = dsMesh.areaCell
 globalArea = areaCell.sum()
+areaTriangle = dsMesh.areaTriangle
+globalAreaTriangle = areaTriangle.sum()
 
 startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
@@ -299,16 +313,30 @@ for regionGroup in regionGroups:
                 # Load in yearly data set for chosen variable
                 datasets = []
                 for month in range(1, 13):
-                    inputFile = f'{rundir}/{runName}.{mpasComp}.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
-                    if not os.path.exists(inputFile):
-                        raise IOError(f'Input file: {inputFile} not found')
+                    if isPostproc:
+                        inputFile = f'{rundir}/{varname}.{runName}.{mpasComp}.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
+                        if not os.path.exists(inputFile):
+                            raise IOError(f'Input file: {inputFile} not found')
+                        dsTimeSlice = xr.open_dataset(inputFile, decode_times=False)
+                    else:
+                        inputFile = f'{rundir}/{runName}.{mpasComp}.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
+                        if not os.path.exists(inputFile):
+                            raise IOError(f'Input file: {inputFile} not found')
+                        dsTimeSlice = open_mpas_dataset(fileName=inputFile,
+                                                        calendar=calendar,
+                                                        timeVariableNames=timeVariableNames,
+                                                        variableList=variableList,
+                                                        startDate=startDate,
+                                                        endDate=endDate)
+                    #if not os.path.exists(inputFile):
+                    #    raise IOError(f'Input file: {inputFile} not found')
 
-                    dsTimeSlice = open_mpas_dataset(fileName=inputFile,
-                                                    calendar=calendar,
-                                                    timeVariableNames=timeVariableNames,
-                                                    variableList=variableList,
-                                                    startDate=startDate,
-                                                    endDate=endDate)
+                    #dsTimeSlice = open_mpas_dataset(fileName=inputFile,
+                    #                                calendar=calendar,
+                    #                                timeVariableNames=timeVariableNames,
+                    #                                variableList=variableList,
+                    #                                startDate=startDate,
+                    #                                endDate=endDate)
                     datasets.append(dsTimeSlice)
                 # combine data sets into a single data set
                 dsIn = xr.concat(datasets, 'Time')
@@ -329,9 +357,12 @@ for regionGroup in regionGroups:
                         cellMask = dsMask.regionCellMasks == 1
                         if openOceanMask is not None:
                             cellMask = np.logical_and(cellMask, openOceanMask)
+                        vertexMask = dsMask.regionVertexMasks == 1
 
                         localArea = areaCell.where(cellMask, drop=True)
                         regionalArea = localArea.sum()
+                        localAreaTriangle = areaTriangle.where(vertexMask, drop=True)
+                        regionalAreaTriangle = localAreaTriangle.sum()
 
                     if varname=='fwc':
                         nTimes = dsIn.dims['Time']
@@ -353,6 +384,7 @@ for regionGroup in regionGroups:
                             dsOut = xr.Dataset(data_vars={varname: fwc},
                                                coords={'Time': dsIn.Time},
                                                attrs={'units': varunits, 'description': vartitle})
+                            totalArea = regionalArea
                         else:
                             print('    Warning: Freshwater content is not computed for this region')
                             continue
@@ -364,8 +396,10 @@ for regionGroup in regionGroups:
                                         dsIn['timeMonthly_avg_longWaveHeatFluxUp']
                         if regionName=='Global':
                             totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalArea
+                            totalArea = globalArea
                         else:
                             totalHeatFlux = (localArea*totalHeatFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalArea = regionalArea
                         dsOut = xr.Dataset(data_vars={varname: totalHeatFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
@@ -378,36 +412,46 @@ for regionGroup in regionGroups:
                                       dsIn['timeMonthly_avg_seaIceFreshWaterFlux']
                         if regionName=='Global':
                             totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalArea
+                            totalArea = globalArea
                         else:
                             totalFWFlux = (localArea*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalArea = regionalArea
                         dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
                     elif varname=='iceArea' or varname=='iceVolume':
                         if regionName=='Global':
-                            dsOut = (areaCell*dsIn).sum(dim='nCells')
+                            fld = (areaCell*dsIn[varmpasname]).sum(dim='nCells')
+                            totalArea = globalArea
                         else:
-                            dsOut = (localArea*dsIn.where(cellMask, drop=True)).sum(dim='nCells')
-                        dsOut = dsOut.rename({varmpasname: varname})
-                        dsOut[varname].attrs['units'] = varunits
-                        dsOut[varname].attrs['description'] = vartitle
+                            fld = (localArea*dsIn[varmpasname].where(cellMask, drop=True)).sum(dim='nCells')
+                            totalArea = regionalArea
+                        dsOut = xr.Dataset(data_vars={varname: fld},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
+                    elif varname=='barotropicStreamfunction':
+                        if regionName=='Global':
+                            bsf = (areaTriangle*dsIn[varmpasname]).sum(dim='nVertices') / globalAreaTriangle
+                            totalArea = globalAreaTriangle
+                        else:
+                            bsf = (localAreaTriangle*dsIn[varmpasname].where(vertexMask, drop=True)).sum(dim='nVertices') / regionalAreaTriangle
+                            totalArea = regionalAreaTriangle
+                        dsOut = xr.Dataset(data_vars={varname: bsf},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
                     else:
                         if regionName=='Global':
-                            dsOut = (areaCell*dsIn).sum(dim='nCells') / globalArea
+                            fld = (areaCell*dsIn[varmpasname]).sum(dim='nCells') / globalArea
+                            totalArea = globalArea
                         else:
-                            dsOut = (localArea*dsIn.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
-                        dsOut = dsOut.rename({varmpasname: varname})
-                        dsOut[varname].attrs['units'] = varunits
-                        dsOut[varname].attrs['description'] = vartitle
-
-                    dsOut = varfactor * dsOut
-
-                    if regionName=='Global':
-                        dsOut['totalArea'] = globalArea
-                    else:
-                        dsOut['totalArea'] = regionalArea
+                            fld = (localArea*dsIn[varmpasname].where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalArea = regionalArea
+                        dsOut = xr.Dataset(data_vars={varname: fld},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
+                    dsOut[varname] = varfactor * dsOut[varname]
+                    dsOut['totalArea'] = totalArea
                     dsOut['totalArea'].attrs['units'] = 'm^2'
-
                     dsOut['regionNames'] = regionName
 
                     datasets.append(dsOut)

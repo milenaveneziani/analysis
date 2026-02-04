@@ -47,25 +47,30 @@ startSimYear = 1950
 startYear = 1950
 endYear = 2014
 years = np.arange(startYear, endYear + 1)
-calendar = 'gregorian'
+calendar = '365_day'
+#calendar = 'gregorian'
 referenceDate = '0001-01-01'
 
 # Main variable with respect to which composites are calculated
 #timeseriesVar = 'iceArea'
 #timeseriesUnits = 'km$^2$'
-timeseriesVar = 'maxMLD'
-timeseriesUnits = 'm'
+#timeseriesVar = 'maxMLD'
+#timeseriesUnits = 'm'
+timeseriesVar = 'barotropicStreamfunction'
+timeseriesUnits = 'Sv'
 
 # Timeseries detrending is on by default. View raw timeseries
 # first and then decide whether to detrend or not
-#use_detrend = True
-use_detrend = False # for maxMLD
+use_detrend = True
+#use_detrend = False # for maxMLD
 view_timeseries = False
 
 # Months over which timeseriesVar is averaged before 
 # computing the composites
-climoMonths = [1, 2, 3, 4]
-titleClimoMonths = 'JFMA'
+#climoMonths = [1, 2, 3, 4]
+#titleClimoMonths = 'JFMA'
+climoMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+titleClimoMonths = 'annual'
 
 # Information for region over which timeseriesVar is averaged
 # before computing the composites
@@ -214,18 +219,20 @@ for nEns in range(nEnsembles):
     regionIndex = np.where(regionNames==region)[0]
 
     timeseries = np.squeeze(ds[timeseriesVar].isel(nRegions=regionIndex).values)
-    if use_detrend is True:
-        timeseries = detrend(timeseries, type='linear')
     if view_timeseries is True:
+        timeseries_detrend = detrend(timeseries, type='linear')
         delta = timeseries - timeseries_detrend
         plt.plot(ds.Time.values, timeseries, 'k')
         plt.plot(ds.Time.values, delta, 'b')
         plt.plot(ds.Time.values, timeseries_detrend, 'r')
         plt.grid(alpha=0.75)
         plt.show()
+    if use_detrend is True:
+        timeseries = detrend(timeseries, type='linear')
 
     # Compute seasonal averages
     datetimes = netCDF4.num2date(ds.Time, f'days since {referenceDate}', calendar=calendar)
+    #print(datetimes)
     timeyears = []
     timemonths = []
     for date in datetimes.flat:
@@ -344,6 +351,7 @@ with open(f'{outdir}/years_{timeseriesVar}high_{regionNameShort}.dat', 'w') as o
     for nEns in range(nEnsembles):
         outfile.write(f'\nEnsemble member: {ensembleName}{ensembleMemberNames[nEns]}\n')
         np.savetxt(outfile, years_high[nEns, np.nonzero(years_high[nEns, :])][0], fmt='%5d', delimiter=' ')
+boh
 #####
 ##### STEP 2
 #####
