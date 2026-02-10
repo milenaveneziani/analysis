@@ -177,7 +177,6 @@ legend_properties = {'size':10, 'weight':'bold'}
 
 # Read in regions information
 dsRegionMask = xr.open_dataset(regionmaskfile)
-dsRegionMask = xr.open_dataset(regionmaskfile)
 regions = decode_strings(dsRegionMask.regionNames)
 if regionNames[0]=='all':
     regionNames = regions
@@ -611,7 +610,7 @@ for n in range(nRegions):
                     dsOutMonthly['tempTendency'] = xr.DataArray(
                         data=temperatureTend,
                         dims=('Time', ),
-                        attrs=dict(description='Temperature change (depth weigthed, i.e. d(hS)/dt) due to temperature time tendency', units='m C s^-1', )
+                        attrs=dict(description='Temperature change (depth weigthed, i.e. d(hT)/dt) due to temperature time tendency', units='m C s^-1', )
                         )
 
                     print('  frazil temperature tendency')
@@ -707,8 +706,8 @@ for n in range(nRegions):
                         attrs=dict(description='Temperature change (depth weigthed) due to surface fluxes (sensible + latent + longwaveUp + longwaveDown + seaIceHeatFlux + icebergHeatFlux if present + latentHeatFusion)', units='m C s^-1', )
                         )
 
-                    heatFlux_to_temperatureFlux = 1.0/(rho0 * cp)
                     print('  surface fluxes due to sensible heat flux only')
+                    heatFlux_to_temperatureFlux = 1.0/(rho0 * cp)
                     if not f'{mpasVarType}sensibleHeatFlux' in dsIn.keys():
                         raise KeyError('no sensible heat flux variable found')
                     temperatureTend = dsIn[f'{mpasVarType}sensibleHeatFlux'].isel(Time=[index])
@@ -909,10 +908,10 @@ for n in range(nRegions):
         tempVmixTendMean = tempVmixTend.mean().values
         tempNonLocalTendMean = tempNonLocalTend.mean().values
         tempSurfaceFluxTendMean = tempSurfaceFluxTend.mean().values
+        tempSeaIceTendMean = tempSeaIceTend.mean().values
         tempSensibleHeatTendMean = tempSensibleHeatTend.mean().values
         tempLatentHeatTendMean = tempLatentHeatTend.mean().values
         tempLongWaveTendMean = tempLongWaveTend.mean().values
-        tempSeaIceTendMean = tempSeaIceTend.mean().values
         tempShortWaveTendMean = tempShortWaveTend.mean().values
         tempSFluxResMean = tempSFluxRes.mean().values
         tempResMean = tempRes.mean().values
@@ -1021,7 +1020,7 @@ for n in range(nRegions):
         runoff = riverRunoffFlux + iceRunoffFlux
         ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
         if 'volNetVerticalFlux' in locals():
-            ax.plot(t, volNetVerticalFlux, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e})')
+            ax.plot(t, volNetVerticalFlux, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e}) Sv')
         ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
         ax.plot(t, runoff, 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
         ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
@@ -1070,7 +1069,6 @@ for n in range(nRegions):
         ax.plot(t, fac * np.cumsum(monthlyMask*saltHmixTend), 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
         if 'saltFrazilTend' in locals():
-            saltFrazilTendMean = saltFrazilTend.mean().values
             ax.plot(t, fac * np.cumsum(monthlyMask*saltFrazilTend), 'brown', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*saltTend), 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
