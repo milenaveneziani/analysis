@@ -109,10 +109,10 @@ meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpa
 ##featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
 #regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
-#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/arcticRegions.geojson'
-regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_regions.nc'
-featurefile = '/p/home/milena/mpas-region_masks/amocPaper_regions.geojson'
+regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arcticRegions.geojson'
+#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_regions.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/amocPaper_regions.geojson'
 #casenameFull = 'E3SMv2.1G60to10_01'
 #casename = 'E3SMv2.1G60to10_01'
 casenameFull = 'E3SMv2.1B60to10rA02'
@@ -123,20 +123,20 @@ modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #modeldir = f'/p/global/apcraig/archive/{casenameFull}/ocn/hist'
 
 #regionNames = ['all']
-#regionNames = ['Irminger Sea']
+regionNames = ['Irminger Sea']
 #regionNames = ['Irminger Sea', 'Labrador Sea']
 #regionNames = ['Arctic Ocean (no Barents/Kara Seas)', 'North Atlantic subpolar gyre', 'Irminger Sea', 'Labrador Sea', 'Greenland Sea', 'Norwegian Sea']
-#regionNames = ['North Atlantic subtropical gyre']
+#regionNames = ['Arctic Ocean (no Barents/Kara Seas)']
 #
-regionNames = ['North Atlantic Wilbert', 'South Atlantic Wilbert']
+#regionNames = ['North Atlantic Wilbert', 'South Atlantic Wilbert']
 
 # Choose years
 #year1 = 1950
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-#year2 = 10
-year2 = 386
+year2 = 40
+#year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
 calendar = 'noleap'
@@ -905,7 +905,7 @@ for n in range(nRegions):
         #hours = 24*(t-np.int64(t))
         #minutes = 60*(hours-np.int64(hours))
         #seconds = 60*(minutes-np.int64(minutes))
-        print(t)
+        #print(t)
         #dt = timedelta(days=int(t[0]), hours=int(hours[0]), minutes=int(minutes[0]), seconds=int(seconds[0]))
         #print(datetime(year=1, month=1, day=1) + dt - timedelta(days=1))
 
@@ -921,7 +921,7 @@ for n in range(nRegions):
         monthlyMask = np.empty(np.shape(t), dtype=np.float64)
         for im in range(1, 13):
             monthlyMask[months==im] = weights[im-1]
-        print(monthlyMask)
+        #print(monthlyMask)
 
         t = t/365 # from days to years
 
@@ -1071,11 +1071,11 @@ for n in range(nRegions):
         tempVmixTendMean = tempVmixTend.mean().values
         tempNonLocalTendMean = tempNonLocalTend.mean().values
         tempSurfaceFluxTendMean = tempSurfaceFluxTend.mean().values
+        tempShortWaveTendMean = tempShortWaveTend.mean().values
         tempSeaIceTendMean = tempSeaIceTend.mean().values
         tempSensibleHeatTendMean = tempSensibleHeatTend.mean().values
         tempLatentHeatTendMean = tempLatentHeatTend.mean().values
         tempLongWaveTendMean = tempLongWaveTend.mean().values
-        tempShortWaveTendMean = tempShortWaveTend.mean().values
         tempSFluxResMean = tempSFluxRes.mean().values
         tempResMean = tempRes.mean().values
 
@@ -1336,8 +1336,10 @@ for n in range(nRegions):
         ax.plot(t, fac * np.cumsum(monthlyMask*tempVmixTend), 'salmon', linewidth=2, label=f'ver-mix ({tempVmixTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempNonLocalTend), 'c', linewidth=2, label=f'non-local ({tempNonLocalTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempHmixTend), 'k', linewidth=2, label=f'hor-mix ({tempHmixTendMean:.2e})')
-        ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
-        ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*(tempSurfaceFluxTend+tempShortWaveTend)), 'b', linewidth=2, \
+                label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
+        #ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
+        #ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempFrazilTend), 'brown', linewidth=2, label=f'tempFrazilTend ({tempFrazilTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempTend), 'm', linewidth=2, label=f'tempTend ({tempTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempRes), 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
