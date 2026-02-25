@@ -1201,14 +1201,14 @@ for n in range(nRegions):
         if movingAverageMonths==1:
             emp = evapFlux + rainFlux + snowFlux
             runoff = riverRunoffFlux + iceRunoffFlux
-            ax.plot(t, volNetLateralFlux, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetLateralFlux), 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
             if 'volNetVerticalFlux' in locals():
-                ax.plot(t, volNetVerticalFlux, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e}) Sv')
-            ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
-            ax.plot(t, runoff, 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
-            ax.plot(t, seaIceFreshWaterFlux, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
-            ax.plot(t, thickTend, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
-            ax.plot(t, volRes, 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
+                ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetVerticalFlux), 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e}) Sv')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*emp), 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*runoff), 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*seaIceFreshWaterFlux), 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*thickTend), 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
+            ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volRes), 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
         else:
             emp = evapFlux_runavg + rainFlux_runavg + snowFlux_runavg
             runoff = riverRunoffFlux_runavg + iceRunoffFlux_runavg
@@ -1227,7 +1227,8 @@ for n in range(nRegions):
         ax.legend(prop=legend_properties)
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
+        ax.set_ylabel(r'10$^6$ m$^3$', fontsize=12, fontweight='bold')
+        #ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
                      fontsize=14, fontweight='bold', y=1.025)
@@ -1273,13 +1274,13 @@ for n in range(nRegions):
             ax.plot(t, fac*saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.plot(t, (salt_runavg-salt_runavg[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(salt)')
             ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
-            ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
         #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         fig.suptitle(f'Region = {regionName}, runname = {casename}', \
                      fontsize=14, fontweight='bold', y=1.025)
