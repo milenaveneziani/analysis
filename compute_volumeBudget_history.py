@@ -121,9 +121,9 @@ dsMesh = xr.open_dataset(meshfile)
 edgesOnCell = dsMesh.edgesOnCell # edgeID of all edges bordering each cell. If 0, edge is on land.
 cellsOnEdge = dsMesh.cellsOnEdge # cellID of the 2 cells straddling each edge. If 0, cell is on land.
 areaCell = dsMesh.areaCell
-nLevels = dsMesh.dims['nVertLevels']
-nCells = dsMesh.dims['nCells']
-maxEdges = dsMesh.dims['maxEdges']
+nLevels = dsMesh.sizes['nVertLevels']
+nCells = dsMesh.sizes['nCells']
+maxEdges = dsMesh.sizes['maxEdges']
 maxLevelCell = dsMesh.maxLevelCell.values
 
 # Create land/bathymetry mask separately for the two neighboring cells of each edge

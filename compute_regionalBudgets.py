@@ -205,7 +205,7 @@ depthMask = (vertIndex < maxLevelCell).transpose('nCells', 'nVertLevels')
 ##landmask0 = coe0==0
 ##landmask1 = coe1==0
 ##  Topomask
-##nLevels = dsMesh.dims['nVertLevels']
+##nLevels = dsMesh.sizes['nVertLevels']
 ##maxLevelCell = dsMesh.maxLevelCell.values
 ##kmaxOnCells0 = maxLevelCell[coe0]
 ##kmaxOnCells1 = maxLevelCell[coe1]

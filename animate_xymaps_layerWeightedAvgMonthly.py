@@ -240,7 +240,7 @@ ds = xr.open_mfdataset(infiles, combine='nested', concat_dim='Time')
 ds['depthMask'] = depthMask
 layerThickness = ds.timeMonthly_avg_layerThickness.where(depthMask)
 layerThicknessSum = layerThickness.sum(dim='nVertLevels')
-ntime = ds.dims['Time']
+ntime = ds.sizes['Time']
 
 toc = time.perf_counter()
 print('\nReading data done in {:0.4f} seconds'.format(toc-tic))

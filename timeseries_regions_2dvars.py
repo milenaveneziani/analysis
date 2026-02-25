@@ -365,8 +365,8 @@ for regionGroup in regionGroups:
                         regionalAreaTriangle = localAreaTriangle.sum()
 
                     if varname=='fwc':
-                        nTimes = dsIn.dims['Time']
-                        nCells = dsIn.dims['nCells']
+                        nTimes = dsIn.sizes['Time']
+                        nCells = dsIn.sizes['nCells']
                         if regionNameShort=='arcticOcean_noBarents_KaraSeas' or \
                            regionNameShort=='beaufortGyre' or regionNameShort=='canadaBasin':
                             salinity = dsIn['timeMonthly_avg_activeTracers_salinity'].values

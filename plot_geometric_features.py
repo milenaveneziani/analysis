@@ -81,8 +81,8 @@ cnorm = mpl.colors.BoundaryNorm(clevels, colormap.N)
 # Read in bathymetry and reduce its resolution by 'subsample' times
 ds = xr.open_dataset(bathyfile)
 subsample = 4
-new_lon = np.linspace(ds.lon[0], ds.lon[-1], np.int_(ds.dims["lon"] / subsample), endpoint=True)
-new_lat = np.linspace(ds.lat[0], ds.lat[-1], np.int_(ds.dims["lat"] / subsample), endpoint=True)
+new_lon = np.linspace(ds.lon[0], ds.lon[-1], np.int_(ds.sizes["lon"] / subsample), endpoint=True)
+new_lat = np.linspace(ds.lat[0], ds.lat[-1], np.int_(ds.sizes["lat"] / subsample), endpoint=True)
 bathymetry = -ds.bathymetry.interp(lon=new_lon, lat=new_lat)
 
 # Read in features

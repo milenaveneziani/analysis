@@ -107,7 +107,7 @@ else:
 depth = dsMesh.refBottomDepth
 # Identify index of selected ocean cell, by computing the minimum
 # of the spherical distance between all points and lonPoint,latPoint
-nCells = dsMesh.dims['nCells']
+nCells = dsMesh.sizes['nCells']
 lonCell = dsMesh.lonCell
 latCell = dsMesh.latCell
 spherDist = haversine(lonCell, latCell, lonPoint*np.pi/180, latPoint*np.pi/180)
@@ -119,7 +119,7 @@ lat_icell = latCell.values[iCell]*180/np.pi
 print(lonPoint, latPoint)
 print(lon_icell, lat_icell)
 pres = gsw.conversions.p_from_z(-depth, lat_icell)
-nLevels = dsMesh.dims['nVertLevels']
+nLevels = dsMesh.sizes['nVertLevels']
 maxLevelCell = dsMesh.maxLevelCell.isel(nCells=iCell)
 vertIndex = xr.DataArray.from_dict({'dims': ('nVertLevels',),
                                     'data': np.arange(nLevels)})

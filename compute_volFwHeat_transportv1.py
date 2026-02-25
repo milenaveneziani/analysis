@@ -104,7 +104,7 @@ else:
         for i in range(len(transectList)):
             transectList[i] = "b'" + transectList[i]
 nTransects = len(transectList)
-maxEdges = dsMask.dims['maxEdgesInTransect']
+maxEdges = dsMask.sizes['maxEdgesInTransect']
 print(f'\nComputing/plotting time series for these transects: {transectList}\n')
 
 # Create a list of edges and total edges in each transect
@@ -156,7 +156,7 @@ refBottom = dsMesh.refBottomDepth.values
 latmean = 180.0/np.pi*np.nanmean(dsMesh.latEdge.sel(nEdges=edgesToRead).values)
 lonmean = 180.0/np.pi*np.nanmean(dsMesh.lonEdge.sel(nEdges=edgesToRead).values)
 pressure = gsw.p_from_z(-refBottom, latmean)
-nLevels = dsMesh.dims['nVertLevels']
+nLevels = dsMesh.sizes['nVertLevels']
 if use_fixeddz:
     dz = np.zeros(nLevels)
     dz[0] = refBottom[0]

@@ -83,7 +83,7 @@ dsMask = get_mask_short_names(xr.open_dataset(maskfile))
 transectNames = decode_strings(dsMask.transectNames)
 transectList = dsMask.shortNames.values
 nTransects = len(transectList)
-maxEdges = dsMask.dims['maxEdgesInTransect']
+maxEdges = dsMask.sizes['maxEdgesInTransect']
 print(f'\nComputing/plotting time series for these transects: {transectNames}\n')
 
 # Create a list of edges and total edges in each transect

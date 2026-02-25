@@ -103,7 +103,7 @@ else:
         for i in range(len(transectList)):
             transectList[i] = "b'" + transectList[i]
 nTransects = len(transectList)
-maxEdges = dsMask.dims['maxEdgesInTransect']
+maxEdges = dsMask.sizes['maxEdgesInTransect']
 print(f'\nComputing/plotting time series for these transects: {transectList}\n')
 
 # Create a list of edges and total edges in each transect

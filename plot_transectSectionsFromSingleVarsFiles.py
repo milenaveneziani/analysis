@@ -186,7 +186,7 @@ z = mesh.refBottomDepth.values
 nlevels = len(z)
 
 nTransects = len(transectNames)
-maxEdges = mask.dims['maxEdgesInTransect']
+maxEdges = mask.sizes['maxEdgesInTransect']
 for n in range(nTransects):
     # Identify transect
     transectName = transectNames[n]

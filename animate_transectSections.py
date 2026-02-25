@@ -215,7 +215,7 @@ allTransects = decode_strings(ds_mask.transectNames)
 if transectNames[0]=='all':
     transectNames = allTransects
 
-nlevels = ds_mesh.dims['nVertLevels']
+nlevels = ds_mesh.sizes['nVertLevels']
 nTransects = len(transectNames)
 for n in range(nTransects):
     # Identify transect

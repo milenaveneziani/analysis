@@ -316,7 +316,7 @@ for id in range(len(dlevels)):
 print('Model levels = ', z[zlevels])
 
 ds = xr.open_mfdataset(infiles, combine='nested', concat_dim='Time')
-ntime = ds.dims['Time']
+ntime = ds.sizes['Time']
 
 if plot_anomalies:
     figtitle0 = 'Anomaly'

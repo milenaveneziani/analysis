@@ -69,8 +69,8 @@ nTime = 12*len(years)
 
 # Read in relevant global mesh information
 dsMesh = xr.open_dataset(meshfile)
-nLevels = dsMesh.dims['nVertLevels']
-nCells = dsMesh.dims['nCells']
+nLevels = dsMesh.sizes['nVertLevels']
+nCells = dsMesh.sizes['nCells']
 # Identify index of selected ocean cell, by computing the minimum
 # of the spherical distance between all points and lonPoint,latPoint
 lonCell = dsMesh.lonCell
