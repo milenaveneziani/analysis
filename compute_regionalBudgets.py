@@ -123,10 +123,10 @@ modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #modeldir = f'/p/global/apcraig/archive/{casenameFull}/ocn/hist'
 
 #regionNames = ['all']
-regionNames = ['Irminger Sea']
+#regionNames = ['Irminger Sea']
 #regionNames = ['Irminger Sea', 'Labrador Sea']
 #regionNames = ['Arctic Ocean (no Barents/Kara Seas)', 'North Atlantic subpolar gyre', 'Irminger Sea', 'Labrador Sea', 'Greenland Sea', 'Norwegian Sea']
-#regionNames = ['Arctic Ocean (no Barents/Kara Seas)']
+regionNames = ['Arctic Ocean (no Barents/Kara Seas)']
 #
 #regionNames = ['North Atlantic Wilbert', 'South Atlantic Wilbert']
 
@@ -135,8 +135,8 @@ regionNames = ['Irminger Sea']
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-year2 = 40
-#year2 = 386
+#year2 = 40
+year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
 calendar = 'noleap'
@@ -1084,23 +1084,23 @@ for n in range(nRegions):
         figsize = (16, 16)
         figfile = f'{figdir}/volBudget_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig, ax = plt.subplots(6, 2, figsize=figsize)
-        ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
+        ax[0, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetLateralFlux), 'k', alpha=0.5, linewidth=1.5)
         if 'volNetVerticalFlux' in locals():
-            ax[0, 1].plot(t, volNetVerticalFlux, 'k', alpha=0.5, linewidth=1.5)
+            ax[0, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetVerticalFlux), 'k', alpha=0.5, linewidth=1.5)
             ax[0, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
             ax[0, 1].autoscale(enable=True, axis='x', tight=True)
             ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
             ax[0, 1].set_title(f'mean={volNetVerticalFluxMean:.2e}', fontsize=16, fontweight='bold')
             ax[0, 1].set_ylabel('Vertical flux (Sv)', fontsize=12, fontweight='bold')
-        ax[1, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[1, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[2, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[2, 1].plot(t, snowFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[3, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[3, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        ax[4, 0].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
-        ax[4, 1].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
-        ax[5, 0].plot(t, volRes, 'k', alpha=0.5, linewidth=1.5)
+        ax[1, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*seaIceFreshWaterFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[1, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*evapFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[2, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*rainFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[2, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*snowFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[3, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*riverRunoffFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[3, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*iceRunoffFlux), 'k', alpha=0.5, linewidth=1.5)
+        ax[4, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*frazilTend), 'k', alpha=0.5, linewidth=1.5)
+        ax[4, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*thickTend), 'k', alpha=0.5, linewidth=1.5)
+        ax[5, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volRes), 'k', alpha=0.5, linewidth=1.5)
         if movingAverageMonths!=1:
             ax[0, 0].plot(t, volNetLateralFlux_runavg, 'k', linewidth=3)
             if 'volNetVerticalFlux' in locals():
@@ -1167,15 +1167,17 @@ for n in range(nRegions):
         ax[4, 1].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
         ax[5, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
 
-        ax[0, 0].set_ylabel('Lateral flux (Sv)', fontsize=12, fontweight='bold')
-        ax[1, 0].set_ylabel('Sea ice FW flux (Sv)', fontsize=12, fontweight='bold')
-        ax[1, 1].set_ylabel('Evap flux (Sv)', fontsize=12, fontweight='bold')
-        ax[2, 0].set_ylabel('Rain flux (Sv)', fontsize=12, fontweight='bold')
-        ax[2, 1].set_ylabel('Snow flux (Sv)', fontsize=12, fontweight='bold')
-        ax[3, 0].set_ylabel('River runoff flux (Sv)', fontsize=12, fontweight='bold')
-        ax[3, 1].set_ylabel('Ice runoff flux (Sv)', fontsize=12, fontweight='bold')
-        ax[4, 0].set_ylabel('Frazil thicTend (Sv)', fontsize=12, fontweight='bold')
-        ax[4, 1].set_ylabel('Layer thickTend (Sv)', fontsize=12, fontweight='bold')
+        #units = 'Sv'
+        units = '10$^6$ m$^3$'
+        ax[0, 0].set_ylabel(r'Lateral flux ({units})', fontsize=12, fontweight='bold')
+        ax[1, 0].set_ylabel(r'Sea ice FW flux ({units})', fontsize=12, fontweight='bold')
+        ax[1, 1].set_ylabel(r'Evap flux ({units})', fontsize=12, fontweight='bold')
+        ax[2, 0].set_ylabel(r'Rain flux ({units})', fontsize=12, fontweight='bold')
+        ax[2, 1].set_ylabel(r'Snow flux ({units})', fontsize=12, fontweight='bold')
+        ax[3, 0].set_ylabel(r'River runoff flux ({units})', fontsize=12, fontweight='bold')
+        ax[3, 1].set_ylabel(r'Ice runoff flux ({units})', fontsize=12, fontweight='bold')
+        ax[4, 0].set_ylabel(r'Frazil thicTend ({units})', fontsize=12, fontweight='bold')
+        ax[4, 1].set_ylabel(r'Layer thickTend ({units})', fontsize=12, fontweight='bold')
         ax[5, 0].set_ylabel('Res = LHS - sumRHSTerms', fontsize=12, fontweight='bold')
 
         fig.tight_layout(pad=0.5)
