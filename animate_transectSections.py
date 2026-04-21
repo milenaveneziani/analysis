@@ -112,43 +112,47 @@ def _plot_transect(x, depth, fld, colormap, cnorm, clevels, units,
 
 earthRadius = 6367.44
 
-####### Settings for onyx
-#   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/p/work/milena/mpas-region_masks/ARRM10to60E2r1_arcticBeringToNorwaySection20230523.nc'
-#casename = 'E3SMv2.1B60to10rA02'
-
-####### Settings for nersc
-featurefile = '/global/homes/m/milena/mpas_geojson_files/amocPaper_transects.geojson'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
-#featurefile = '/global/homes/m/milena/proj_e3sm/milena/mpas-region_masks/standardTransportSections.geojson'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
-meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_transects.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_standardTransportSections20210323.nc'
-#casename = 'E3SMv2.1B60to10rA02'
-#cname = 'Control'
-#icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
+# Settings for erdc.hpc.mil
+featurefile = '/p/home/milena/mpas-region_masks/amocPaper_transects.geojson'
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_transects.nc'
 casename = 'E3SMv2.1G60to10_01'
 cname = 'Collapse'
-icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
-singleVarFiles = True
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regionsTransects20230313.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_standardTransportSections20210323.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
-#casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-#cname = 'GM600_Redi600'
-#modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casename}/ocn/hist'
-#singleVarFiles = False
+icfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+modeldir = f'/p/global/milena/{casename}/archive/ocn/hist'
+singleVarFiles = False
 
-####### Settings for lcrc
+# Settings for nersc
+#featurefile = '/global/homes/m/milena/mpas_geojson_files/amocPaper_transects.geojson'
+##featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
+##featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
+##featurefile = '/global/homes/m/milena/proj_e3sm/milena/mpas-region_masks/standardTransportSections.geojson'
+##featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
+#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_transects.nc'
+##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'
+##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_standardTransportSections20210323.nc'
+##casename = 'E3SMv2.1B60to10rA02'
+##cname = 'Control'
+##icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+##modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
+#casename = 'E3SMv2.1G60to10_01'
+#cname = 'Collapse'
+#icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
+#singleVarFiles = True
+##meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
+##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regionsTransects20230313.nc'
+##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
+##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_standardTransportSections20210323.nc'
+##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
+##casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
+##cname = 'GM600_Redi600'
+##modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casename}/ocn/hist'
+##singleVarFiles = False
+
+# Settings for lcrc
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticSections20210323.geojson'
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/standardTransportSections.geojson'
