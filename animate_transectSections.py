@@ -119,17 +119,24 @@ earthRadius = 6367.44
 #casename = 'E3SMv2.1B60to10rA02'
 
 ####### Settings for nersc
-featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
+featurefile = '/global/homes/m/milena/mpas_geojson_files/amocPaper_transects.geojson'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arcticSections20210323.geojson'
 #featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/arctic_atlantic_budget_regionsTransects.geojson'
 #featurefile = '/global/homes/m/milena/proj_e3sm/milena/mpas-region_masks/standardTransportSections.geojson'
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_transects.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_standardTransportSections20210323.nc'
-casename = 'E3SMv2.1B60to10rA02'
-cname = 'E3SM-Arctic'
-modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/ocn/singleVarFiles'
+#casename = 'E3SMv2.1B60to10rA02'
+#cname = 'Control'
+#icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
+casename = 'E3SMv2.1G60to10_01'
+cname = 'Collapse'
+icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
+modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
 singleVarFiles = True
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regionsTransects20230313.nc'
@@ -158,9 +165,12 @@ yearStart = 1
 yearEnd = 30
 
 #transectNames = ['all']
-transectNames = ['Fram Strait', 'Denmark Strait', 'Iceland-Faroe-Scotland', 'OSNAP section East', 'OSNAP section West']
+#transectNames = ['Fram Strait', 'Denmark Strait', 'Iceland-Faroe-Scotland', 'OSNAP section East', 'OSNAP section West']
 #transectNames = ['Atlantic zonal 50N', 'Atlantic zonal 27.2N', 'South Atlantic Ocean 34S']
 #transectNames = ['Drake Passage']
+#transectNames = ['South Atlantic Ocean 34S', 'Atlantic zonal 27.2N']
+transectNames = ['South Atlantic 35S', 'South Atlantic 30S']
+#transectNames = ['South Atlantic 30S']
 
 zmaxUpperPanel = 100.0
 
@@ -188,12 +198,21 @@ figdpi = 300
 clevelsT = [-1.8, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10., 12.]
 clevelsS = [30.0, 31.0, 32.0, 33.0, 33.5, 33.8, 34.0, 34.2, 34.4, 34.6, 34.8, 34.82, 34.84, 34.86, 34.88, 34.9, 34.95, 35.0, 35.5]
 clevelsV = [-0.2, -0.15, -0.1, -0.08, -0.06, -0.04, -0.02, 0.0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2]
+clevelsTanom = [-5.0, -4.0, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
+clevelsSanom = [-2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.1, 0.0, 0.1, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+clevelsVanom = [-0.5, -0.4, -0.3, -0.2, -0.1, -0.08, -0.06, -0.04, -0.02, 0.0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5]
 colormapT = plt.get_cmap(cmocean.cm.thermal)
 colormapS = plt.get_cmap(cmocean.cm.haline)
 colormapV = plt.get_cmap('RdBu_r')
+colormapTanom = plt.get_cmap(cmocean.cm.balance)
+colormapSanom = plt.get_cmap(cmocean.cm.balance)
+colormapVanom = plt.get_cmap(cmocean.cm.balance)
 [colormapT, cnormT] = _make_colormap(colormapT, clevelsT)
 [colormapS, cnormS] = _make_colormap(colormapS, clevelsS)
 [colormapV, cnormV] = _make_colormap(colormapV, clevelsV)
+[colormapTanom, cnormTanom] = _make_colormap(colormapTanom, clevelsTanom)
+[colormapSanom, cnormSanom] = _make_colormap(colormapSanom, clevelsSanom)
+[colormapVanom, cnormVanom] = _make_colormap(colormapVanom, clevelsVanom)
 
 sigma2contours = None
 #sigma2contours = [35, 36, 36.5, 36.8, 37, 37.1, 37.2, 37.25, 37.44, 37.52, 37.6]
@@ -319,6 +338,22 @@ for n in range(nTransects):
     lonmean = 180.0/np.pi*np.nanmean(lonEdges)
     pressure = gsw.p_from_z(-ds_mesh.refBottomDepth.values, latmean)
 
+    # Read in initial condition (for anomaly plots)
+    ds = xr.open_dataset(icfile)
+    tempOnCell1 = ds.temperature.isel(nCells=cellsOnEdge1-1, Time=0)
+    tempOnCell2 = ds.temperature.isel(nCells=cellsOnEdge2-1, Time=0)
+    tempOnCell1 = np.ma.masked_array(tempOnCell1.values, ~cellMask1)
+    tempOnCell2 = np.ma.masked_array(tempOnCell2.values, ~cellMask2)
+    saltOnCell1 = ds.salinity.isel(nCells=cellsOnEdge1-1, Time=0)
+    saltOnCell2 = ds.salinity.isel(nCells=cellsOnEdge2-1, Time=0)
+    saltOnCell1 = np.ma.masked_array(saltOnCell1.values, ~cellMask1)
+    saltOnCell2 = np.ma.masked_array(saltOnCell2.values, ~cellMask2)
+    temp_ic = 0.5 * (tempOnCell1 + tempOnCell2)
+    salt_ic = 0.5 * (saltOnCell1 + saltOnCell2)
+    vel = ds.normalVelocity.isel(nEdges=transectEdges-1, Time=0)
+    vel = np.ma.masked_array(vel.values, ~edgeMask)
+    normalVel_ic = vel*edgeSigns[:, np.newaxis]
+
     kframe = 1
     for yr in years:
         for mo in months:
@@ -348,23 +383,23 @@ for n in range(nTransects):
                     if 'timeMonthly_avg_normalGMBolusVelocity' in list(ds.keys()):
                         vel += ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=transectEdges-1, Time=0)
                 else:
-                    modelfile = f'{modeldir}/activeTracers_temperature.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                    modelfile = f'{modeldir}/activeTracers_temperature/activeTracers_temperature.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
                         raise IOError('No model file with temperature found')
                     ds = xr.open_dataset(modelfile)
                     tempOnCell1 = ds.timeMonthly_avg_activeTracers_temperature.isel(nCells=cellsOnEdge1-1, Time=0)
                     tempOnCell2 = ds.timeMonthly_avg_activeTracers_temperature.isel(nCells=cellsOnEdge2-1, Time=0)
-                    modelfile = f'{modeldir}/activeTracers_salinity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                    modelfile = f'{modeldir}/activeTracers_salinity/activeTracers_salinity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
                         raise IOError('No model file with salinity found')
                     ds = xr.open_dataset(modelfile)
                     saltOnCell1 = ds.timeMonthly_avg_activeTracers_salinity.isel(nCells=cellsOnEdge1-1, Time=0)
                     saltOnCell2 = ds.timeMonthly_avg_activeTracers_salinity.isel(nCells=cellsOnEdge2-1, Time=0)
-                    modelfile = f'{modeldir}/zMid.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                    modelfile = f'{modeldir}/zMid/zMid.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
                         # Try layerThickness if zMid is not available
                         print('Zmid file unavailable, trying with layerthickness')
-                        modelfile = f'{modeldir}/layerThickness.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                        modelfile = f'{modeldir}/layerThickness/layerThickness.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                         if not os.path.exists(modelfile):
                             raise IOError('No model file with layerThickness found')
                         ds = xr.open_dataset(modelfile)
@@ -376,15 +411,15 @@ for n in range(nTransects):
                         zMidOnCell2 = ds.timeMonthly_avg_zMid.isel(nCells=cellsOnEdge2-1, Time=0)
                         layerThicknessOnCell1 = None
                         layerThicknessOnCell2 = None
-                    modelfile = f'{modeldir}/normalVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                    modelfile = f'{modeldir}/normalVelocity/normalVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
                     if not os.path.exists(modelfile):
                         raise IOError('No model file with velocity found')
                     ds = xr.open_dataset(modelfile)
                     vel = ds.timeMonthly_avg_normalVelocity.isel(nEdges=transectEdges-1, Time=0)
-                    modelfile = f'{modeldir}/normalGMBolusVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
-                    if os.path.exists(modelfile):
-                        ds = xr.open_dataset(modelfile)
-                        vel += ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=transectEdges-1, Time=0)
+                    #modelfile = f'{modeldir}/normalGMBolusVelocity/normalGMBolusVelocity.{casename}.mpaso.hist.am.timeSeriesStatsMonthly.{yr:04d}-{mo:02d}-01.nc'
+                    #if os.path.exists(modelfile):
+                    #    ds = xr.open_dataset(modelfile)
+                    #    vel += ds.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=transectEdges-1, Time=0)
 
                 tempOnCell1 = tempOnCell1.values
                 tempOnCell2 = tempOnCell2.values
@@ -422,10 +457,18 @@ for n in range(nTransects):
                 # Get normalVelocity direction
                 normalVel = vel*edgeSigns[:, np.newaxis]
 
+                # Compute anomalies wrt the initial condition
+                temp_anom = temp - temp_ic
+                salt_anom = salt - salt_ic
+                normalVel_anom = normalVel - normalVel_ic
+
                 if flipTransect is True:
                     temp = np.flip(temp, axis=0)
                     salt = np.flip(salt, axis=0)
                     normalVel = np.flip(normalVel, axis=0)
+                    temp_anom = np.flip(temp_anom, axis=0)
+                    salt_anom = np.flip(salt_anom, axis=0)
+                    normalVel_anom = np.flip(normalVel_anom, axis=0)
                     if layerThicknessOnCell1 is None or layerThicknessOnCell2 is None:
                         zMid = np.flip(zMid, axis=0)
                     else:
@@ -482,10 +525,15 @@ for n in range(nTransects):
             # Plot temperature section
             figtitle = f'Temperature ({transectName}), {cname} (year={yr}, month={mo})'
             figfile = f'{framesdir}/Temp_{tname}_{cname}_{kframe:04d}.png'
-            units = 'C$^\circ$'
+            units = r'C$^\circ$'
             _plot_transect(x, depth, temp, colormapT, cnormT, clevelsT, units, 
                     figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc,
                     figdpi, sigma0contours, sigma0, sigma2contours, sigma2)
+            # Plot temperature anomaly section
+            figtitle = f'DeltaT wrt ic ({transectName}), {cname} (year={yr}, month={mo})'
+            figfile = f'{framesdir}/DTemp_{tname}_{cname}_{kframe:04d}.png'
+            _plot_transect(x, depth, temp_anom, colormapTanom, cnormTanom, clevelsTanom,
+                    units, figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc, figdpi)
 
             # Plot salinity section
             figtitle = f'Salinity ({transectName}), {cname} (year={yr}, month={mo})'
@@ -494,18 +542,30 @@ for n in range(nTransects):
             _plot_transect(x, depth, salt, colormapS, cnormS, clevelsS, units, 
                     figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc,
                     figdpi, sigma0contours, sigma0, sigma2contours, sigma2)
+            # Plot salinity anomaly section
+            figtitle = f'DeltaS wrt ic ({transectName}), {cname} (year={yr}, month={mo})'
+            figfile = f'{framesdir}/DSalt_{tname}_{cname}_{kframe:04d}.png'
+            _plot_transect(x, depth, salt_anom, colormapSanom, cnormSanom, clevelsSanom,
+                    units, figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc, figdpi)
 
             if normalVel is not None:
                 # Plot normal velocity section
-
                 figtitle = f'Cross-transect velocity ({transectName}), {cname} (year={yr}, month={mo})'
                 figfile = f'{framesdir}/Vel_{tname}_{cname}_{kframe:04d}.png'
                 units = 'm/s'
                 _plot_transect(x, depth, normalVel, colormapV, cnormV, clevelsV, units, 
                         figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc,
                         figdpi, sigma0contours, sigma0, sigma2contours, sigma2)
+                # Plot normal velocity anomaly section
+                figtitle = f'DeltaVel wrt ic ({transectName}), {cname} (year={yr}, month={mo})'
+                figfile = f'{framesdir}/DVel_{tname}_{cname}_{kframe:04d}.png'
+                _plot_transect(x, depth, normalVel_anom, colormapVanom, cnormVanom, clevelsVanom,
+                        units, figtitle, figfile, zmaxUpperPanel, latEdges, lonEdges, fc, figdpi)
 
             kframe = kframe + 1
     os.system(f'ffmpeg -r 5 -i {framesdir}/Temp_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieTemp_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
     os.system(f'ffmpeg -r 5 -i {framesdir}/Salt_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieSalt_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
     os.system(f'ffmpeg -r 5 -i {framesdir}/Vel_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieVel_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
+    os.system(f'ffmpeg -r 5 -i {framesdir}/DTemp_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieDTemp_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
+    os.system(f'ffmpeg -r 5 -i {framesdir}/DSalt_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieDSalt_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
+    os.system(f'ffmpeg -r 5 -i {framesdir}/DVel_{tname}_{cname}_%04d.png -vcodec mpeg4 -vb 40M -y {figdir}/movieDVel_{tname}_{cname}_{yearStart:04d}-{yearEnd:04d}.mp4')
