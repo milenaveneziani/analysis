@@ -15,24 +15,24 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 from common_functions import timeseries_analysis_plot, add_inset
 
-startYear = 1950
-endYear = 2014
-#startYear = 1
-##endYear = 1
-#endYear = 50
+#startYear = 1950
+#endYear = 2014
+startYear = 1
+endYear = 50
+endYear = 9
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0301'
-runNameShort = 'E3SMv2.1-Arctic-historical0301'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
-isPostproc = True # if True use postprocessed input files (e.g. for barotropic streamfunction)
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0301'
+#runNameShort = 'E3SMv2.1-Arctic-historical0301'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#isPostproc = True # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -48,20 +48,22 @@ isPostproc = True # if True use postprocessed input files (e.g. for barotropic s
 #runNameShort = '20240729.HRr5-test12'
 #rundir = '/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/20240729.HRr5-test12.chrysalis/archive'
 #isShortTermArchive = True
+#isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1G60to10_01'
 #runNameShort = 'E3SMv2.1G60to10_01'
-#runName = 'E3SMv2.1B60to10rA02'
-#runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/cwfs/milena/{runName}'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
+rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
-#rundir = f'/p/cwfs/apcraig/archive/{runName}'
-#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+#rundir = f'/p/global/apcraig/archive/{runName}'
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -71,6 +73,7 @@ isPostproc = True # if True use postprocessed input files (e.g. for barotropic s
 #runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
 #rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
 #isShortTermArchive = False
+#isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
 
 sref = 34.8 # needed for Arctic fwc calculation
 
@@ -78,7 +81,7 @@ sref = 34.8 # needed for Arctic fwc calculation
 movingAverageMonths = 12
 monthsToPlot = range(1, 13)
 titleMonthsToPlot = None
-#movingAverageMonths = 1
+movingAverageMonths = 1
 #monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
 #titleMonthsToPlot = 'JFMA'
 
@@ -95,8 +98,8 @@ regionGroups = ['Arctic Regions']
 # ice variables (2d only)
 #
 #   Ocean variables
-mpasComp = 'mpaso'
-modelComp = 'ocn'
+#mpasComp = 'mpaso'
+#modelComp = 'ocn'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
 #variables = [
 #             {'name': 'maxMLD',
@@ -106,13 +109,13 @@ modelComp = 'ocn'
 #              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
 #            ]
 
-mpasFile = 'timeSeriesStatsMonthly'
-variables = [
-             {'name': 'barotropicStreamfunction',
-              'title': 'Barotropic streamfuncion',
-              'units': 'Sv',
-              'factor': 1,
-              'mpas': 'barotropicStreamfunction'},
+#mpasFile = 'timeSeriesStatsMonthly'
+#variables = [
+#             {'name': 'barotropicStreamfunction',
+#              'title': 'Barotropic streamfuncion',
+#              'units': 'Sv',
+#              'factor': 1,
+#              'mpas': 'barotropicStreamfunction'},
 #             {'name': 'dThreshMLD',
 #              'title': 'Mean MLD',
 #              'units': 'm',
@@ -193,12 +196,13 @@ variables = [
 #              'units': '10$^3$ km$^3$',
 #              'factor': 1e-12,
 #              'mpas': None}
-            ]
+#            ]
+
 #   Sea ice variables
-#mpasComp = 'mpassi'
-#modelComp = 'ice'
-#mpasFile = 'timeSeriesStatsMonthly'
-#variables = [
+mpasComp = 'mpassi'
+modelComp = 'ice'
+mpasFile = 'timeSeriesStatsMonthly'
+variables = [
 #             {'name': 'iceArea',
 #              'title': 'Integrated Ice Area',
 #              'units': 'km$^2$',
@@ -208,8 +212,28 @@ variables = [
 #              'title': 'Integrated Ice Volume',
 #              'units': 'km$^3$',
 #              'factor': 1e-9,
-#              'mpas': 'timeMonthly_avg_iceVolumeCell'}
-#            ]
+#              'mpas': 'timeMonthly_avg_iceVolumeCell'},
+             {'name': 'iceAreaTendThermodynamics',
+              'title': 'Integrated iceAreaTendThermodynamics',
+              'units': 'km$^2$/day',
+              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
+              'mpas': 'timeMonthly_avg_iceAreaTendencyThermodynamics'},
+             {'name': 'iceAreaTendTransport',
+              'title': 'Integrated iceAreaTendTransport',
+              'units': 'km$^2$/day',
+              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
+              'mpas': 'timeMonthly_avg_iceAreaTendencyTransport'},
+             {'name': 'iceVolumeTendThermodynamics',
+              'title': 'Integrated IceVolumeTendThermodynamics',
+              'units': 'km$^3$/day',
+              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrat m s-1)
+              'mpas': 'timeMonthly_avg_iceVolumeTendencyThermodynamics'},
+             {'name': 'iceVolumeTendTransport',
+              'title': 'Integrated IceVolumeTendTransport',
+              'units': 'km$^3$/day',
+              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrated field are m s-1)
+              'mpas': 'timeMonthly_avg_iceVolumeTendencyTransport'}
+            ]
 
 if isShortTermArchive:
     if runName=='E3SMv2.1B60to10rA07':
@@ -419,7 +443,9 @@ for regionGroup in regionGroups:
                         dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
-                    elif varname=='iceArea' or varname=='iceVolume':
+                    elif varname=='iceArea' or varname=='iceVolume' or varname=='iceAreaTendThermodynamics' or \
+                         varname=='iceAreaTendTransport' or varname=='iceVolumeTendThermodynamics' or \
+                         varname=='iceVolumeTendTransport':
                         if regionName=='Global':
                             fld = (areaCell*dsIn[varmpasname]).sum(dim='nCells')
                             totalArea = globalArea

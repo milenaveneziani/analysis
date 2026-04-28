@@ -111,10 +111,10 @@ modeldir = '/pscratch/sd/m/milena/E3SMv3/v3.LR.GMPAS-JRA1p5.pm-cpu/run'
 #casename = 'E3SMv2.1G60to10_01'
 #casenameFull = 'E3SMv2.1B60to10rA02'
 #casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/cwfs/milena/{casenameFull}/archive/ocn/hist'
+#modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
-#modeldir = f'/p/cwfs/apcraig/archive/{casenameFull}/ocn/hist'
+#modeldir = f'/p/global/apcraig/archive/{casenameFull}/ocn/hist'
 
 #regionNames = ['all']
 regionNames = ['Irminger Sea']

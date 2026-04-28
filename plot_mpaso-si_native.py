@@ -58,7 +58,7 @@ from make_plots import make_scatter_plot, make_mosaic_descriptor, make_mosaic_pl
 meshName = 'ARRM10to60E2r1'
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 runname = 'E3SMv2.1B60to10rA02'
-modeldir = f'/p/cwfs/milena/{runname}/archive'
+modeldir = f'/p/global/milena/{runname}/archive'
 #meshName = 'ARRMwISC3to18E3r1'
 #meshfile = f'/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/{meshName}/mpaso.ARRMwISC3to18E3r1.rstFromG-pm.241022.nc'
 #runname = 'E3SMv3G18to3'

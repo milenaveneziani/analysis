@@ -18,7 +18,7 @@ maindir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations'
 # Settings for erdc.hpc.mil
 #meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
-#maindir = f'/p/cwfs/milena'
+#maindir = f'/p/global/milena'
 
 postprocmaindir = maindir
 isShortTermArchive = True

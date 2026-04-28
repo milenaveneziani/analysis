@@ -15,9 +15,9 @@ from make_plots import make_scatter_plot, make_mosaic_descriptor, make_mosaic_pl
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 runname = 'E3SMv2.1B60to10rA02'
 #runname = 'E3SMv2.1G60to10_01'
-indir = f'/p/cwfs/milena/{runname}/archive/ocn/hist'
+indir = f'/p/global/milena/{runname}/archive/ocn/hist'
 #runname = 'E3SMv2.1B60to10rA07'
-#indir = f'/p/cwfs/apcraig/archive/{runname}/ocn/hist'
+#indir = f'/p/global/apcraig/archive/{runname}/ocn/hist'
 
 figdir = f'./ocean_native/{runname}'
 if not os.path.isdir(figdir):

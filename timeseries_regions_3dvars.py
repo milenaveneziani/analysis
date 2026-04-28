@@ -47,10 +47,10 @@ runName = 'E3SMv2.1G60to10_01'
 runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/cwfs/milena/{runName}'
+rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
-#rundir = f'/p/cwfs/apcraig/archive/{runName}'
+#rundir = f'/p/global/apcraig/archive/{runName}'
 isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma

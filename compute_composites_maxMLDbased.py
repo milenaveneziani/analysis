@@ -72,7 +72,7 @@ runName = 'E3SMv2.1B60to10rA02'
 # Directories where fields for step 2) are stored:
 #rundir = f'/p/archive/osinski/E3SM/{runName}'
 rundir = f'/p/work/milena/{runName}'
-#rundir = f'/p/cwfs/milena/{runName}'
+#rundir = f'/p/global/milena/{runName}'
 postprocmaindir = rundir
 # Note: the following two variables cannot be both True
 isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
