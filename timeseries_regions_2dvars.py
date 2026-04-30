@@ -19,7 +19,6 @@ from common_functions import timeseries_analysis_plot, add_inset
 #endYear = 2014
 startYear = 1
 endYear = 50
-endYear = 9
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
