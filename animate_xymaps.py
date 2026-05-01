@@ -32,15 +32,15 @@ def save_with_progress(fig, update, nframes, out_path,
 			writer.grab_frame()
 
 
-# Settings for compy
-#meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
-#runname = '20201030.alpha5_v1p-1_target.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
-#modeldir = f'/compyfs/malt823/E3SM_simulations/{runname}/archive/ocn/hist'
-
 #modelComp = 'mpaso'
 #model = 'ocn'
 modelComp = 'mpassi'
 model = 'ice'
+
+# Settings for compy
+#meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
+#runname = '20201030.alpha5_v1p-1_target.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
+#modeldir = f'/compyfs/malt823/E3SM_simulations/{runname}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
@@ -50,6 +50,7 @@ modeldir = f'/p/global/milena/{runname}/archive/{model}/hist'
 
 # Number of time records to animate
 ntimes = 120
+#ntimes = 2
 
 infiles = sorted(glob.glob(f'{modeldir}/{runname}.{modelComp}.hist.am.timeSeriesStatsMonthly.00*'))[0:ntimes]
 #infiles = sorted(glob.glob(f'{modeldir}/{runname}.{modelComp}.hist.am.timeSeriesStatsMonthlyMax.00*'))[0:ntimes]
@@ -80,7 +81,7 @@ if not os.path.isdir(figdir):
     os.makedirs(figdir)
 
 figsize = [20, 20]
-figdpi = 150
+figdpi = 100
 data_crs = ccrs.PlateCarree()
 
 # z levels [m] (relevant for 3d variables)
@@ -469,8 +470,8 @@ else:
 
     fld = ds[mpasvarname]
     fld = factor*fld
-    if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure':
-        fld[np.where(fld<1e-15)] = np.nan
+    #if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure':
+    #    fld[np.where(fld<1e-15)] = np.nan
     if plot_anomalies:
         fld = fld - fld.isel(Time=0)
     #print(varname, np.min(fld.isel(Time=0).values), np.max(fld.isel(Time=0).values))
@@ -497,8 +498,7 @@ else:
     figtitle = f'{figtitle0} month={1:d}'
     add_land_lakes_coastline(ax)
     ax.set_title(figtitle, y=1.08, fontsize=22)
-    plt.savefig('tmp.png', bbox_inches='tight')
-    boh
+    #plt.savefig('tmp.png', bbox_inches='tight')
 
     def animate(i):
         sc = ax.scatter(lon, lat, s=1.0, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
@@ -507,5 +507,5 @@ else:
 
     interval = 100 #in seconds     
     ani = animation.FuncAnimation(fig, animate, frames=range(ntimes), interval=interval)
-    save_with_progress(fig, animate, nframes=range(ntimes), fps=4, out_path=figfile)
-    #ani.save(figfile)
+    ani.save(figfile)
+    #save_with_progress(fig, animate, nframes=range(ntimes), fps=4, out_path=figfile)
