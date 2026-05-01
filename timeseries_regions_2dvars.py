@@ -17,11 +17,13 @@ from common_functions import timeseries_analysis_plot, add_inset
 
 #startYear = 1950
 #endYear = 2014
-startYear = 1
-endYear = 50
+startYear = 120
+endYear = 120
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
+
+plotTimeseries = False
 
 # Settings for nersc
 #regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
@@ -50,37 +52,37 @@ calendar = 'gregorian'
 #isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1G60to10_01'
 #runNameShort = 'E3SMv2.1G60to10_01'
-runName = 'E3SMv2.1B60to10rA02'
-runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/global/milena/{runName}'
+#runName = 'E3SMv2.1B60to10rA02'
+#runNameShort = 'E3SMv2.1B60to10rA02'
+#rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
-isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
-
-# Settings for chicoma
-#regionMaskDir = '/users/milena/mpas-region_masks'
-#meshName = 'RRSwISC6to18E3r5'
-#meshFile = f'/usr/projects/e3sm/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
-#runName = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
-#runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
-#rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
-#isShortTermArchive = False
+#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 #isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
+
+# Settings for lanl
+regionMaskDir = '/users/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv3.1_1950control'
+runNameShort = 'E3SM-Arcticv3.1_1950control'
+rundir = f'/lustre/scratch5/milena/E3SM/{runName}/run'
+isShortTermArchive = False
+isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
 
 sref = 34.8 # needed for Arctic fwc calculation
 
 # Quantities needed for plotting only
 movingAverageMonths = 12
+movingAverageMonths = 1
 monthsToPlot = range(1, 13)
 titleMonthsToPlot = None
-movingAverageMonths = 1
 #monthsToPlot = [1, 2, 3, 4] # JFMA only (movingAverageMonths is changed to 1 later on)
 #titleMonthsToPlot = 'JFMA'
 
@@ -100,15 +102,17 @@ regionGroups = ['Arctic Regions']
 #mpasComp = 'mpaso'
 #modelComp = 'ocn'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
+#mpasvarHeader = 'timeMonthlyMax_max_'
 #variables = [
 #             {'name': 'maxMLD',
 #              'title': 'Maximum MLD',
 #              'units': 'm',
 #              'factor': 1,
-#              'mpas': 'timeMonthlyMax_max_dThreshMLD'}
+#              'mpas': 'dThreshMLD'}
 #            ]
 
 #mpasFile = 'timeSeriesStatsMonthly'
+#mpasvarHeader = 'timeMonthly_avg_'
 #variables = [
 #             {'name': 'barotropicStreamfunction',
 #              'title': 'Barotropic streamfuncion',
@@ -119,67 +123,67 @@ regionGroups = ['Arctic Regions']
 #              'title': 'Mean MLD',
 #              'units': 'm',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_dThreshMLD'},
+#              'mpas': 'dThreshMLD'},
 #             {'name': 'sensibleHeatFlux',
 #              'title': 'Sensible Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_sensibleHeatFlux'},
+#              'mpas': 'sensibleHeatFlux'},
 #             {'name': 'latentHeatFlux',
 #              'title': 'Latent Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_latentHeatFlux'},
+#              'mpas': 'latentHeatFlux'},
 #             {'name': 'longWaveHeatFluxUp',
 #              'title': 'Longwave Up Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_longWaveHeatFluxUp'},
+#              'mpas': 'longWaveHeatFluxUp'},
 #             {'name': 'longWaveHeatFluxDown',
 #              'title': 'Longwave Down Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_longWaveHeatFluxDown'},
+#              'mpas': 'longWaveHeatFluxDown'},
 #             {'name': 'shortWaveHeatFlux',
 #              'title': 'Shortwave Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_shortWaveHeatFlux'},
+#              'mpas': 'shortWaveHeatFlux'},
 #             {'name': 'evaporationFlux',
 #              'title': 'Evaporation Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_evaporationFlux'},
+#              'mpas': 'evaporationFlux'},
 #             {'name': 'rainFlux',
 #              'title': 'Rain Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_rainFlux'},
+#              'mpas': 'rainFlux'},
 #             {'name': 'snowFlux',
 #              'title': 'Snow Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_snowFlux'},
+#              'mpas': 'snowFlux'},
 #             {'name': 'riverRunoffFlux',
 #              'title': 'River Runoff Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_riverRunoffFlux'},
+#              'mpas': 'riverRunoffFlux'},
 #             {'name': 'iceRunoffFlux',
 #              'title': 'Ice Runoff Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_iceRunoffFlux'},
+#              'mpas': 'iceRunoffFlux'},
 #             {'name': 'seaIceFreshWaterFlux',
 #              'title': 'Sea Ice Freshwater Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_seaIceFreshWaterFlux'},
+#              'mpas': 'seaIceFreshWaterFlux'},
 #             {'name': 'surfaceBuoyancyForcing',
 #              'title': 'Surface buoyancy flux',
 #              'units': 'm$^2$ s$^{-3}$',
 #              'factor': 1,
-#              'mpas': 'timeMonthly_avg_surfaceBuoyancyForcing'},
+#              'mpas': 'surfaceBuoyancyForcing'},
 #             {'name': 'totalHeatFlux',
 #              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
 #              'units': 'W/m$^2$',
@@ -200,38 +204,86 @@ regionGroups = ['Arctic Regions']
 #   Sea ice variables
 mpasComp = 'mpassi'
 modelComp = 'ice'
-mpasFile = 'timeSeriesStatsMonthly'
+#mpasFile = 'timeSeriesStatsMonthly'
+#mpasvarHeader = 'timeMonthly_avg_'
+mpasFile = 'timeSeriesStatsDaily'
+mpasvarHeader = 'timeDaily_avg_'
 variables = [
-#             {'name': 'iceArea',
-#              'title': 'Integrated Ice Area',
-#              'units': 'km$^2$',
-#              'factor': 1e-6,
-#              'mpas': 'timeMonthly_avg_iceAreaCell'},
-#             {'name': 'iceVolume',
-#              'title': 'Integrated Ice Volume',
-#              'units': 'km$^3$',
-#              'factor': 1e-9,
-#              'mpas': 'timeMonthly_avg_iceVolumeCell'},
-             {'name': 'iceAreaTendThermodynamics',
-              'title': 'Integrated iceAreaTendThermodynamics',
-              'units': 'km$^2$/day',
-              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
-              'mpas': 'timeMonthly_avg_iceAreaTendencyThermodynamics'},
-             {'name': 'iceAreaTendTransport',
-              'title': 'Integrated iceAreaTendTransport',
-              'units': 'km$^2$/day',
-              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
-              'mpas': 'timeMonthly_avg_iceAreaTendencyTransport'},
-             {'name': 'iceVolumeTendThermodynamics',
-              'title': 'Integrated IceVolumeTendThermodynamics',
-              'units': 'km$^3$/day',
-              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrat m s-1)
-              'mpas': 'timeMonthly_avg_iceVolumeTendencyThermodynamics'},
-             {'name': 'iceVolumeTendTransport',
-              'title': 'Integrated IceVolumeTendTransport',
-              'units': 'km$^3$/day',
-              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrated field are m s-1)
-              'mpas': 'timeMonthly_avg_iceVolumeTendencyTransport'}
+             {'name': 'iceArea',
+              'title': 'Integrated Ice Area',
+              'units': 'km$^2$',
+              'factor': 1e-6,
+              'mpas': 'iceAreaCell'},
+             {'name': 'iceVolume',
+              'title': 'Integrated Ice Volume',
+              'units': 'km$^3$',
+              'factor': 1e-9,
+              'mpas': 'iceVolumeCell'},
+             {'name': 'iceAreaCategory',
+              'title': 'Integrated Ice Area Cats',
+              'units': 'km$^2$',
+              'factor': 1e-6,
+              'mpas': 'iceAreaCategory'},
+             {'name': 'iceVolumeCategory',
+              'title': 'Integrated Ice Volume Cats',
+              'units': 'km$^3$',
+              'factor': 1e-9,
+              'mpas': 'iceVolumeCategory'},
+             {'name': 'icePressure',
+              'title': 'Ice Pressure',
+              'units': 'N m$^{-1}$',
+              'factor': 1,
+              'mpas': 'icePressure'},
+             {'name': 'levelIceArea',
+              'title': 'Integrated level-ice Area Cats',
+              'units': 'km$^2$',
+              'factor': 1e-6,
+              'mpas': 'levelIceArea'},
+             {'name': 'levelIceVolume',
+              'title': 'Integrated level-ice Volume Cats',
+              'units': 'km$^3$',
+              'factor': 1e-9,
+              'mpas': 'levelIceVolume'},
+             {'name': 'ridgedIceAreaAverage',
+              'title': 'Integrated ridged-ice Area',
+              'units': 'km$^2$',
+              'factor': 1e-6,
+              'mpas': 'ridgedIceAreaAverage'},
+             {'name': 'ridgedIceVolumeAverage',
+              'title': 'Integrated ridged-ice Volume',
+              'units': 'km$^3$',
+              'factor': 1e-9,
+              'mpas': 'ridgedIceVolumeAverage'},
+             {'name': 'ridgeConvergence',
+              'title': 'Normalized energy dissipation due to convergence',
+              'units': 's$^{-1}$',
+              'factor': 1,
+              'mpas': 'ridgeConvergence'},
+             {'name': 'ridgeShear',
+              'title': 'Normalized energy dissipation due to shear',
+              'units': 's$^{-1}$',
+              'factor': 1,
+              'mpas': 'ridgeShear'},
+#             {'name': 'iceAreaTendThermodynamics',
+#              'title': 'Integrated iceAreaTendThermodynamics',
+#              'units': 'km$^2$/day',
+#              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
+#              'mpas': 'iceAreaTendencyThermodynamics'},
+#             {'name': 'iceAreaTendTransport',
+#              'title': 'Integrated iceAreaTendTransport',
+#              'units': 'km$^2$/day',
+#              'factor': 8.64e-2, # 1e-6*86400 (original units of the non-integrated field are s-1)
+#              'mpas': 'iceAreaTendencyTransport'},
+#             {'name': 'iceVolumeTendThermodynamics',
+#              'title': 'Integrated IceVolumeTendThermodynamics',
+#              'units': 'km$^3$/day',
+#              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrat m s-1)
+#              'mpas': 'iceVolumeTendencyThermodynamics'},
+#             {'name': 'iceVolumeTendTransport',
+#              'title': 'Integrated IceVolumeTendTransport',
+#              'units': 'km$^3$/day',
+#              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrated field are m s-1)
+#              'mpas': 'iceVolumeTendencyTransport'}
             ]
 
 if isShortTermArchive:
@@ -275,7 +327,10 @@ years = range(startYear, endYear + 1)
 if mpasFile=='timeSeriesStatsMonthly':
     timeVariableNames = ['xtime_startMonthly', 'xtime_endMonthly']
 else:
-    timeVariableNames = ['xtime_startMonthlyMax', 'xtime_endMonthlyMax']
+    if mpasFile=='timeSeriesStatsDaily':
+        timeVariableNames = ['xtime_startDaily', 'xtime_endDaily']
+    else:
+        timeVariableNames = ['xtime_startMonthlyMax', 'xtime_endMonthlyMax']
 
 for regionGroup in regionGroups:
 
@@ -299,8 +354,11 @@ for regionGroup in regionGroups:
 
     if mpasFile=='timeSeriesStatsMonthly': # monthly averages 
         outfile = f'{groupName}_'
-    else: # monthly maxima
-        outfile = f'{groupName}_max_'
+    else:
+        if mpasFile=='timeSeriesStatsDaily': # daily averages
+            outfile = f'{groupName}_daily_'
+        else: # monthly maxima
+            outfile = f'{groupName}_max_'
 
     for var in variables:
         varname = var['name']
@@ -309,16 +367,18 @@ for regionGroup in regionGroups:
         varunits = var['units']
         vartitle = var['title']
 
+        varmpasname = f'{mpasvarHeader}{varmpasname}'
+
         if varname=='fwc':
-            variableList = ['timeMonthly_avg_activeTracers_salinity', 'timeMonthly_avg_layerThickness']
+            variableList = [f'{mpasvarHeader}activeTracers_salinity', f'{mpasvarHeader}layerThickness']
         elif varname=='totalHeatFlux':
-            variableList = ['timeMonthly_avg_sensibleHeatFlux', 'timeMonthly_avg_latentHeatFlux',
-                            'timeMonthly_avg_shortWaveHeatFlux', 'timeMonthly_avg_longWaveHeatFluxDown',
-                            'timeMonthly_avg_longWaveHeatFluxUp']
+            variableList = [f'{mpasvarHeader}sensibleHeatFlux', f'{mpasvarHeader}latentHeatFlux',
+                            f'{mpasvarHeader}shortWaveHeatFlux', f'{mpasvarHeader}longWaveHeatFluxDown',
+                            f'{mpasvarHeader}longWaveHeatFluxUp']
         elif varname=='totalFWFlux':
-            variableList = ['timeMonthly_avg_evaporationFlux', 'timeMonthly_avg_rainFlux',
-                            'timeMonthly_avg_snowFlux', 'timeMonthly_avg_riverRunoffFlux',
-                            'timeMonthly_avg_iceRunoffFlux', 'timeMonthly_avg_seaIceFreshWaterFlux']
+            variableList = [f'{mpasvarHeader}evaporationFlux', f'{mpasvarHeader}rainFlux',
+                            f'{mpasvarHeader}snowFlux', f'{mpasvarHeader}riverRunoffFlux',
+                            f'{mpasvarHeader}iceRunoffFlux', f'{mpasvarHeader}seaIceFreshWaterFlux']
         else:
             variableList = [varmpasname]
 
@@ -392,8 +452,8 @@ for regionGroup in regionGroups:
                         nCells = dsIn.sizes['nCells']
                         if regionNameShort=='arcticOcean_noBarents_KaraSeas' or \
                            regionNameShort=='beaufortGyre' or regionNameShort=='canadaBasin':
-                            salinity = dsIn['timeMonthly_avg_activeTracers_salinity'].values
-                            layerThickness = dsIn['timeMonthly_avg_layerThickness'].values
+                            salinity = dsIn[f'{mpasvarHeader}activeTracers_salinity'].values
+                            layerThickness = dsIn[f'{mpasvarHeader}layerThickness'].values
                             fwc = np.zeros([nTimes, nCells])
                             for itime in range(nTimes):
                                 for icell in range(nCells):
@@ -412,11 +472,11 @@ for regionGroup in regionGroups:
                             print('    Warning: Freshwater content is not computed for this region')
                             continue
                     elif varname=='totalHeatFlux':
-                        totalHeatFlux = dsIn['timeMonthly_avg_sensibleHeatFlux'] + \
-                                        dsIn['timeMonthly_avg_latentHeatFlux'] + \
-                                        dsIn['timeMonthly_avg_shortWaveHeatFlux'] + \
-                                        dsIn['timeMonthly_avg_longWaveHeatFluxDown'] + \
-                                        dsIn['timeMonthly_avg_longWaveHeatFluxUp']
+                        totalHeatFlux = dsIn[f'{mpasvarHeader}sensibleHeatFlux'] + \
+                                        dsIn[f'{mpasvarHeader}latentHeatFlux'] + \
+                                        dsIn[f'{mpasvarHeader}shortWaveHeatFlux'] + \
+                                        dsIn[f'{mpasvarHeader}longWaveHeatFluxDown'] + \
+                                        dsIn[f'{mpasvarHeader}longWaveHeatFluxUp']
                         if regionName=='Global':
                             totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalArea
                             totalArea = globalArea
@@ -427,12 +487,12 @@ for regionGroup in regionGroups:
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
                     elif varname=='totalFWFlux':
-                        totalFWFlux = dsIn['timeMonthly_avg_evaporationFlux'] + \
-                                      dsIn['timeMonthly_avg_rainFlux'] + \
-                                      dsIn['timeMonthly_avg_snowFlux'] + \
-                                      dsIn['timeMonthly_avg_riverRunoffFlux'] + \
-                                      dsIn['timeMonthly_avg_iceRunoffFlux'] + \
-                                      dsIn['timeMonthly_avg_seaIceFreshWaterFlux']
+                        totalFWFlux = dsIn[f'{mpasvarHeader}evaporationFlux'] + \
+                                      dsIn[f'{mpasvarHeader}rainFlux'] + \
+                                      dsIn[f'{mpasvarHeader}snowFlux'] + \
+                                      dsIn[f'{mpasvarHeader}riverRunoffFlux'] + \
+                                      dsIn[f'{mpasvarHeader}iceRunoffFlux'] + \
+                                      dsIn[f'{mpasvarHeader}seaIceFreshWaterFlux']
                         if regionName=='Global':
                             totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalArea
                             totalArea = globalArea
@@ -442,9 +502,12 @@ for regionGroup in regionGroups:
                         dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
-                    elif varname=='iceArea' or varname=='iceVolume' or varname=='iceAreaTendThermodynamics' or \
-                         varname=='iceAreaTendTransport' or varname=='iceVolumeTendThermodynamics' or \
-                         varname=='iceVolumeTendTransport':
+                    elif varname=='iceArea' or varname=='iceVolume' or \
+                         varname=='iceAreaCategory' or varname=='iceVolumeCategory' or \
+                         varname=='levelIceArea' or varname=='levelIceVolume' or \
+                         varname=='ridgedIceAreaAverage' or varname=='ridgedIceVolumeAverage' or \
+                         varname=='iceAreaTendThermodynamics' or varname=='iceAreaTendTransport' or \
+                         varname=='iceVolumeTendThermodynamics' or varname=='iceVolumeTendTransport':
                         if regionName=='Global':
                             fld = (areaCell*dsIn[varmpasname]).sum(dim='nCells')
                             totalArea = globalArea
@@ -489,65 +552,66 @@ for regionGroup in regionGroups:
             else:
                 print(f'Time series file already exists for {varname} and year {year}. Skipping it...')
 
-        # Time series calculated ==> make plots
-        print(f'\n  now plot {varname} for each region\n')
-        timeSeriesFiles = []
-        for year in years:
-            timeSeriesFile = f'{outdirvar}/{outfile}year{year:04d}.nc'
-            timeSeriesFiles.append(timeSeriesFile)
+        if plotTimeseries:
+            # Time series calculated ==> make plots
+            print(f'\n  now plot {varname} for each region\n')
+            timeSeriesFiles = []
+            for year in years:
+                timeSeriesFile = f'{outdirvar}/{outfile}year{year:04d}.nc'
+                timeSeriesFiles.append(timeSeriesFile)
 
-        for regionIndex, regionName in enumerate(regionNames):
-            print(f'    region: {regionName}')
-            regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
-            fc = FeatureCollection()
-            for feature in fcAll.features:
-                if feature['properties']['name'] == regionName:
-                    fc.add_feature(feature)
-                    break
+            for regionIndex, regionName in enumerate(regionNames):
+                print(f'    region: {regionName}')
+                regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '').replace('(', '_').replace(')', '').replace('/', '_')
+                fc = FeatureCollection()
+                for feature in fcAll.features:
+                    if feature['properties']['name'] == regionName:
+                        fc.add_feature(feature)
+                        break
 
-            dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
-                                     concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
+                dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                                         concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
-            if len(monthsToPlot)!=12:
-                # Subset time series (making sure that movingAverageMonths is set to 1
-                # (no running average))
-                movingAverageMonths = 1
-                referenceDate = '0001-01-01'
-                datetimes = netCDF4.num2date(dsIn.Time, f'days since {referenceDate}', calendar=calendar)
-                timemonths = []
-                for date in datetimes.flat:
-                    timemonths.append(date.month)
-                mask = np.logical_and(timemonths>=np.min(monthsToPlot), timemonths<=np.max(monthsToPlot))
-                #mask = xr.Dataset(data_vars=dict(mask=(['Time'], mask)))
-                dsIn['timeMonthlyMask'] = ('Time', mask)
-                dsIn = dsIn.where(dsIn.timeMonthlyMask, drop=True)
+                if len(monthsToPlot)!=12:
+                    # Subset time series (making sure that movingAverageMonths is set to 1
+                    # (no running average))
+                    movingAverageMonths = 1
+                    referenceDate = '0001-01-01'
+                    datetimes = netCDF4.num2date(dsIn.Time, f'days since {referenceDate}', calendar=calendar)
+                    timemonths = []
+                    for date in datetimes.flat:
+                        timemonths.append(date.month)
+                    mask = np.logical_and(timemonths>=np.min(monthsToPlot), timemonths<=np.max(monthsToPlot))
+                    #mask = xr.Dataset(data_vars=dict(mask=(['Time'], mask)))
+                    dsIn['timeMonthlyMask'] = ('Time', mask)
+                    dsIn = dsIn.where(dsIn.timeMonthlyMask, drop=True)
 
-            field = [dsIn[varname]]
-            xLabel = 'Time (yr)'
-            yLabel = f'{vartitle} ({varunits})'
-            lineColors = ['k']
-            lineWidths = [2.5]
-            legendText = [runNameShort]
-            if titleMonthsToPlot is None:
-                title = f'1-year running mean {vartitle} in {regionName} region\n{np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {varunits}'
-            else:
-                title = f'{titleMonthsToPlot} {vartitle} in {regionName} region\n{np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {varunits}'
-            figFileName = f'{figdir}/{regionNameShort}_{varname}_years{years[0]}-{years[-1]}.png'
+                field = [dsIn[varname]]
+                xLabel = 'Time (yr)'
+                yLabel = f'{vartitle} ({varunits})'
+                lineColors = ['k']
+                lineWidths = [2.5]
+                legendText = [runNameShort]
+                if titleMonthsToPlot is None:
+                    title = f'1-year running mean {vartitle} in {regionName} region\n{np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {varunits}'
+                else:
+                    title = f'{titleMonthsToPlot} {vartitle} in {regionName} region\n{np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {varunits}'
+                figFileName = f'{figdir}/{regionNameShort}_{varname}_years{years[0]}-{years[-1]}.png'
 
-            fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                           title, xLabel, yLabel,
-                                           calendar=calendar,
-                                           timevarname = 'Time',
-                                           lineColors=lineColors,
-                                           lineWidths=lineWidths,
-                                           legendText=legendText)
+                fig = timeseries_analysis_plot(field, movingAverageMonths,
+                                               title, xLabel, yLabel,
+                                               calendar=calendar,
+                                               timevarname = 'Time',
+                                               lineColors=lineColors,
+                                               lineWidths=lineWidths,
+                                               legendText=legendText)
 
-            # do this before the inset because otherwise it moves the inset
-            # and cartopy doesn't play too well with tight_layout anyway
-            plt.tight_layout()
+                # do this before the inset because otherwise it moves the inset
+                # and cartopy doesn't play too well with tight_layout anyway
+                plt.tight_layout()
 
-            if regionName!='Global':
-                add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
+                if regionName!='Global':
+                    add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
 
-            plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
-            plt.close()
+                plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
+                plt.close()
