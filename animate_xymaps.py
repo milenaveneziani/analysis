@@ -40,8 +40,11 @@ modelComp = 'mpassi'
 model = 'ice'
 
 #fileType = 'timeSeriesStatsMonthly'
+#varType = 'timeMonthly_avg_'
 #fileType = 'timeSeriesStatsMonthlyMax'
+#varType = 'timeMonthlyMax_max_'
 fileType = 'timeSeriesStatsDaily'
+varType = 'timeDaily_avg_'
 
 # Settings for compy
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
@@ -77,6 +80,7 @@ variable = 'SSSrestoringTend'
 variable = 'iceAreaCell'
 variable = 'iceVolumeCell'
 #variable = 'icePressure'
+variable = 'iceAirStressMagnitude'
 #variable = 'mld'
 #variable = 'maxmld'
 #variable = 'temperatureSurfaceFluxTendency'
@@ -118,7 +122,8 @@ variables = [
              {'name': 'temperature',
               'title': 'Temperature',
               'units': '$^\circ$C',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'mpas': f'{varType}temperature',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': cmocean.cm.balance,
               'clevels': [-2.0, -1.5, -1.0, -0.5, -0.1, 0.0, 0.1, 0.5, 1.0, 1.5, 2.0],
@@ -127,7 +132,8 @@ variables = [
              {'name': 'salinity',
               'title': 'Salinity',
               'units': 'psu',
-              'mpas': 'timeMonthly_avg_activeTracers_salinity',
+              'mpas': f'{varType}salinity',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': cmocean.cm.haline,
               'clevels': [27., 28., 29., 29.5, 30., 30.5, 31., 32., 33., 34., 35.],
@@ -136,7 +142,8 @@ variables = [
              {'name': 'SSSrestoringTend',
               'title': 'SSS restoring tendency',
               'units': 'm psu s$^{-1}$',
-              'mpas': 'timeMonthly_avg_salinitySurfaceRestoringTendency',
+              'mpas': f'{varType}salinitySurfaceRestoringTendency',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': cmocean.cm.balance,
               'clevels': [-5e-6, -4e-6, -3e-6, -2e-6, -1e-6, 0.0, 1e-6, 2e-6, 3e-6, 4e-6, 5e-6],
@@ -145,7 +152,8 @@ variables = [
              {'name': 'potentialDensity',
               'title': 'Potential Density',
               'units': 'kg m$^{-3}$',
-              'mpas': 'timeMonthly_avg_potentialDensity',
+              'mpas': f'{varType}potentialDensity',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': cmocean.cm.dense,
               'clevels': [24., 25.5, 25.9, 26.2, 26.5, 26.7, 26.8, 26.85, 26.9, 27.1, 27.75],
@@ -154,7 +162,8 @@ variables = [
              {'name': 'maxmld',
               'title': 'Maximum Mixed Layer Depth',
               'units': 'm',
-              'mpas': 'timeMonthlyMax_max_dThreshMLD',
+              'mpas': f'{varType}dThreshMLD',
+              'isOnVertices': False,
               'factor': 1,
               #'colormap': plt.get_cmap('viridis'),
               'colormap': cmocean.cm.balance,
@@ -164,7 +173,8 @@ variables = [
              {'name': 'mld',
               'title': 'Mixed Layer Depth',
               'units': 'm',
-              'mpas': 'timeMonthly_avg_dThreshMLD',
+              'mpas': f'{varType}dThreshMLD',
+              'isOnVertices': False,
               'factor': 1,
               #'colormap': plt.get_cmap('viridis'),
               'colormap': cmocean.cm.balance,
@@ -174,8 +184,8 @@ variables = [
              {'name': 'iceAreaCell',
               'title': 'Sea ice concentration',
               'units': '%',
-              'mpas': 'timeDaily_avg_iceAreaCell',
-              #'mpas': 'timeMonthly_avg_iceAreaCell',
+              'isOnVertices': False,
+              'mpas': f'{varType}iceAreaCell',
               'factor': 100,
               'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
                                                (0,     0.4,   0.4),   (0.169, 0.435, 0.223), (0.455, 0.478, 0.196),\
@@ -187,8 +197,8 @@ variables = [
              {'name': 'iceVolumeCell',
               'title': 'Sea ice thickness',
               'units': 'm',
-              #'mpas': 'timeMonthly_avg_iceVolumeCell',
-              'mpas': 'timeDaily_avg_iceVolumeCell',
+              'mpas': f'{varType}iceVolumeCell',
+              'isOnVertices': False,
               'factor': 1,
               #'colormap': plt.get_cmap('YlGnBu_r'),
               'colormap': cmocean.cm.thermal,
@@ -198,17 +208,28 @@ variables = [
              {'name': 'icePressure',
               'title': 'Sea ice pressure',
               'units': 'N m$^{-1}$',
-              #'mpas': 'timeMonthly_avg_icePressure',
-              'mpas': 'timeDaily_avg_icePressure',
+              'mpas': f'{varType}icePressure',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': cmocean.cm.speed_r,
               'clevels': [0.2e5, 0.25e5, 0.3e5, 0.35e5, 0.4e5, 0.5e5, 0.6e5, 0.7e5, 0.8e5, 0.9e5, 1e5],
               'plot_anomalies': False,
               'is3d': False},
+             {'name': 'iceAirStressMagnitude',
+              'title': 'Sea ice-air stress magnitude',
+              'units': 'N m$^{-2}$',
+              'mpas': None,
+              'isOnVertices': True,
+              'factor': 1,
+              'colormap': cmocean.cm.speed_r,
+              'clevels': [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.15, 0.18, 0.21, 0.24, 0.3],
+              'plot_anomalies': False,
+              'is3d': False},
              {'name': 'temperatureSurfaceFluxTendency',
               'title': 'Surface flux tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency',
+              'mpas': f'{varType}activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -217,7 +238,8 @@ variables = [
              {'name': 'temperatureShortWaveTendency',
               'title': 'Penetrating shortwave flux tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_temperatureShortWaveTendency',
+              'mpas': f'{varType}temperatureShortWaveTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -227,6 +249,7 @@ variables = [
               'title': 'Total forcing tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
               'mpas': None,
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -235,7 +258,8 @@ variables = [
              {'name': 'temperatureHorizontalAdvectionTendency',
               'title': 'Horizontal advection tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency',
+              'mpas': f'{varType}activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -244,7 +268,8 @@ variables = [
              {'name': 'temperatureVerticalAdvectionTendency',
               'title': 'Vertical advection tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency',
+              'mpas': f'{varType}activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -254,6 +279,7 @@ variables = [
               'title': 'Total advection tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
               'mpas': None,
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -262,7 +288,8 @@ variables = [
              {'name': 'temperatureHorMixTendency',
               'title': 'Horizontal mixing tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerHorMixTendency_temperatureHorMixTendency',
+              'mpas': f'{varType}activeTracerHorMixTendency_temperatureHorMixTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -271,7 +298,8 @@ variables = [
              {'name': 'temperatureVertMixTendency',
               'title': 'Vertical mixing tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerVertMixTendency_temperatureVertMixTendency',
+              'mpas': f'{varType}activeTracerVertMixTendency_temperatureVertMixTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -280,7 +308,8 @@ variables = [
              {'name': 'temperatureNonLocalTendency',
               'title': 'Non-local kpp flux tendency for temperature',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracerNonLocalTendency_temperatureNonLocalTendency',
+              'mpas': f'{varType}activeTracerNonLocalTendency_temperatureNonLocalTendency',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -290,6 +319,7 @@ variables = [
               'title': 'Sum of all tendency terms for temperature',
               'units': '$^\circ$C/s (x1e-6)',
               'mpas': None,
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -298,7 +328,8 @@ variables = [
              {'name': 'temperatureTendency',
               'title': 'Temperature tendency (derived)',
               'units': '$^\circ$C/s (x1e-6)',
-              'mpas': 'timeMonthly_avg_activeTracers_temperature',
+              'mpas': f'{varType}activeTracers_temperature',
+              'isOnVertices': False,
               'factor': 1e6,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4, -3, -2, -1, -0.5, 0.0, 0.5, 1, 2, 3, 4],
@@ -307,7 +338,8 @@ variables = [
              {'name': 'temperatureForcingMLTend',
               'title': 'Mixed Layer avg forcing tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerForcingMLTend_temperatureForcingMLTend',
+              'mpas': f'{varType}activeTracerForcingMLTend_temperatureForcingMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-6, -3e-6, -2e-6, -1e-6, -0.5e-6, 0.0, 0.5e-6, 1e-6, 2e-6, 3e-6, 4e-6],
@@ -316,7 +348,8 @@ variables = [
              {'name': 'temperatureHorAdvectionMLTend',
               'title': 'Mixed Layer avg Hadv tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerHorAdvectionMLTend_temperatureHorAdvectionMLTend',
+              'mpas': f'{varType}activeTracerHorAdvectionMLTend_temperatureHorAdvectionMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-6, -3e-6, -2e-6, -1e-6, -0.5e-6, 0.0, 0.5e-6, 1e-6, 2e-6, 3e-6, 4e-6],
@@ -325,7 +358,8 @@ variables = [
              {'name': 'temperatureVertAdvectionMLTend',
               'title': 'Mixed Layer avg Vadv tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerVertAdvectionMLTend_temperatureVertAdvectionMLTend',
+              'mpas': f'{varType}activeTracerVertAdvectionMLTend_temperatureVertAdvectionMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-6, -3e-6, -2e-6, -1e-6, -0.5e-6, 0.0, 0.5e-6, 1e-6, 2e-6, 3e-6, 4e-6],
@@ -334,7 +368,8 @@ variables = [
              {'name': 'temperatureHorMixMLTend',
               'title': 'Mixed Layer avg Hmix tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerHorMixMLTend_temperatureHorMixMLTend',
+              'mpas': f'{varType}activeTracerHorMixMLTend_temperatureHorMixMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-7, -3e-7, -2e-7, -1e-7, -0.5e-7, 0.0, 0.5e-7, 1e-7, 2e-7, 3e-7, 4e-7],
@@ -343,7 +378,8 @@ variables = [
              {'name': 'temperatureVertMixMLTend',
               'title': 'Mixed Layer avg Vmix tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerVertMixMLTend_temperatureVertMixMLTend',
+              'mpas': f'{varType}activeTracerVertMixMLTend_temperatureVertMixMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-6, -3e-6, -2e-6, -1e-6, -0.5e-6, 0.0, 0.5e-6, 1e-6, 2e-6, 3e-6, 4e-6],
@@ -352,7 +388,8 @@ variables = [
              {'name': 'temperatureNonLocalMLTend',
               'title': 'Mixed Layer avg Vmix-nonlocal tendency for temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracerNonLocalMLTend_temperatureNonLocalMLTend',
+              'mpas': f'{varType}activeTracerNonLocalMLTend_temperatureNonLocalMLTend',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-7, -3e-7, -2e-7, -1e-7, -0.5e-7, 0.0, 0.5e-7, 1e-7, 2e-7, 3e-7, 4e-7],
@@ -361,7 +398,8 @@ variables = [
              {'name': 'temperatureTendML',
               'title': 'Mixed Layer avg temporal tendency of temperature',
               'units': '$^\circ$C/s',
-              'mpas': 'timeMonthly_avg_activeTracersTendML_temperatureTendML',
+              'mpas': f'{varType}activeTracersTendML_temperatureTendML',
+              'isOnVertices': False,
               'factor': 1,
               'colormap': plt.get_cmap('RdBu_r'),
               'clevels': [-4e-6, -3e-6, -2e-6, -1e-6, -0.5e-6, 0.0, 0.5e-6, 1e-6, 2e-6, 3e-6, 4e-6],
@@ -376,6 +414,7 @@ varname = vardict['name']
 mpasvarname = vardict['mpas']
 factor = vardict['factor']
 plot_anomalies = vardict['plot_anomalies']
+isOnVertices = vardict['isOnVertices']
 is3d = vardict['is3d']
 vartitle = vardict['title']
 varunits = vardict['units']
@@ -400,8 +439,12 @@ if varname!='iceAreaCell':
 cnorm = cols.BoundaryNorm(clevels, colormap.N)
 
 mesh = xr.open_dataset(meshfile)
-lat = mesh.latCell.values
-lon = mesh.lonCell.values
+if isOnVertices:
+    lat = mesh.latVertex.values
+    lon = mesh.lonVertex.values
+else:
+    lat = mesh.latCell.values
+    lon = mesh.lonCell.values
 lat = np.rad2deg(lat)
 lon = np.rad2deg(lon)
 z = mesh.refBottomDepth
@@ -428,35 +471,35 @@ if is3d:
         figtitle0 = f'{vartitle} {figtitle0} (z={z[zlevels[iz]]:5.1f} m), {runname},'
 
         if varname=='temperatureTotalAdvectionTendency':
-            mpasvarname1 = 'timeMonthly_avg_activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency'
-            mpasvarname2 = 'timeMonthly_avg_activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency'
-            fld = np.add(ds[mpasvarname1].isel(nVertLevels=zlevels[iz]).values,
-                         ds[mpasvarname2].isel(nVertLevels=zlevels[iz]).values)
+            mpasvarname1 = f'{varType}activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency'
+            mpasvarname2 = f'{varType}activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency'
+            fld = ds[mpasvarname1].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname2].isel(nVertLevels=zlevels[iz])
         elif varname=='temperatureForcingTendency':
-            mpasvarname1 = 'timeMonthly_avg_activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency'
-            mpasvarname2 = 'timeMonthly_avg_temperatureShortWaveTendency'
-            fld = np.add(ds[mpasvarname1].isel(nVertLevels=zlevels[iz]).values,
-                         ds[mpasvarname2].isel(nVertLevels=zlevels[iz]).values)
+            mpasvarname1 = f'{varType}activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency'
+            mpasvarname2 = f'{varType}temperatureShortWaveTendency'
+            fld = ds[mpasvarname1].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname2].isel(nVertLevels=zlevels[iz])
         elif varname=='temperatureTendency':
             temp = ds[mpasvarname].isel(nVertLevels=zlevels[iz]).values
             #fld = np.nan*np.ones(np.shape(temp))
             #fld[1:-1, :] = np.diff(temp, n=1, axis=0)
             fld = np.diff(temp, n=1, axis=0, prepend=np.nan*np.ones([1, np.shape(temp)[1]]))/86400. # assumes daily values
         elif varname=='temperatureSumTendencyTerms':
-            mpasvarname1 = 'timeMonthly_avg_activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency'
-            mpasvarname2 = 'timeMonthly_avg_temperatureShortWaveTendency'
-            mpasvarname3 = 'timeMonthly_avg_activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency'
-            mpasvarname4 = 'timeMonthly_avg_activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency'
-            mpasvarname5 = 'timeMonthly_avg_activeTracerHorMixTendency_temperatureHorMixTendency'
-            mpasvarname6 = 'timeMonthly_avg_activeTracerVertMixTendency_temperatureVertMixTendency'
-            mpasvarname7 = 'timeMonthly_avg_activeTracerNonLocalTendency_temperatureNonLocalTendency'
-            fld = np.add(ds[mpasvarname1].isel(nVertLevels=zlevels[iz]).values,
-                         ds[mpasvarname2].isel(nVertLevels=zlevels[iz]).values)
-            fld = np.add(fld, ds[mpasvarname3].isel(nVertLevels=zlevels[iz]).values)
-            fld = np.add(fld, ds[mpasvarname4].isel(nVertLevels=zlevels[iz]).values)
-            fld = np.add(fld, ds[mpasvarname5].isel(nVertLevels=zlevels[iz]).values)
-            fld = np.add(fld, ds[mpasvarname6].isel(nVertLevels=zlevels[iz]).values)
-            fld = np.add(fld, ds[mpasvarname7].isel(nVertLevels=zlevels[iz]).values)
+            mpasvarname1 = f'{varType}activeTracerSurfaceFluxTendency_temperatureSurfaceFluxTendency'
+            mpasvarname2 = f'{varType}temperatureShortWaveTendency'
+            mpasvarname3 = f'{varType}activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency'
+            mpasvarname4 = f'{varType}activeTracerVerticalAdvectionTendency_temperatureVerticalAdvectionTendency'
+            mpasvarname5 = f'{varType}activeTracerHorMixTendency_temperatureHorMixTendency'
+            mpasvarname6 = f'{varType}activeTracerVertMixTendency_temperatureVertMixTendency'
+            mpasvarname7 = f'{varType}activeTracerNonLocalTendency_temperatureNonLocalTendency'
+            fld = ds[mpasvarname1].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname2].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname3].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname4].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname5].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname6].isel(nVertLevels=zlevels[iz]) + \
+                  ds[mpasvarname7].isel(nVertLevels=zlevels[iz])
         else:
             fld = ds[mpasvarname].isel(nVertLevels=zlevels[iz])
         fld = factor*fld
@@ -508,9 +551,14 @@ else:
     figfile = f'{figdir}/{varname}{figtitle0}_{runname}_years{yearStart:d}-{yearEnd:d}.mp4'
     figtitle0 = f'{vartitle} {figtitle0}, {runname},'
 
-    fld = ds[mpasvarname]
+    if varname=='iceAirStressMagnitude':
+        mpasvarname1 = f'{varType}airStressVertexUGeo'
+        mpasvarname2 = f'{varType}airStressVertexVGeo'
+        fld = 0.5 * (ds[mpasvarname1]**2 + ds[mpasvarname2]**2)**0.5
+    else:
+        fld = ds[mpasvarname]
     fld = factor*fld
-    if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure':
+    if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure' or varname=='iceAirStressMagnitude':
         mask = (fld < 1e-15)
         fld = fld.where(~mask, drop=False)
     if plot_anomalies:
