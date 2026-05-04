@@ -34,10 +34,10 @@ def save_with_progress(fig, update, nframes, out_path,
 			writer.grab_frame()
 
 
-#modelComp = 'mpaso'
-#model = 'ocn'
-modelComp = 'mpassi'
-model = 'ice'
+modelComp = 'mpaso'
+model = 'ocn'
+#modelComp = 'mpassi'
+#model = 'ice'
 
 #fileType = 'timeSeriesStatsMonthly'
 #varType = 'timeMonthly_avg_'
@@ -52,18 +52,22 @@ varType = 'timeDaily_avg_'
 #modeldir = f'/compyfs/malt823/E3SM_simulations/{runname}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
 #runname = 'E3SMv2.1G60to10_01'
+runname = 'E3SMv3G60to10_01cd25'
 #modeldir = f'/p/global/milena/{runname}/archive/{model}/hist'
+modeldir = f'/p/global/osinski/archive/{runname}/{model}/hist'
 
 # Settings for lanl
-meshfile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runname = 'E3SM-Arcticv3.1_1950control'
-modeldir = f'/lustre/scratch5/milena/E3SM/archive/{runname}/{model}/hist'
+#meshfile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runname = 'E3SM-Arcticv3.1_1950control'
+#modeldir = f'/lustre/scratch5/milena/E3SM/archive/{runname}/{model}/hist'
 
-yearStart = 10
-yearEnd = 11
+#yearStart = 10
+#yearEnd = 11
+yearStart = 1
+yearEnd = 9
 years = range(yearStart, yearEnd + 1)
 referenceDate = '0001-01-01'
 calendar = 'noleap'
@@ -76,9 +80,9 @@ print(f'\ninfiles={infiles}\n')
 
 # Check is choice of variable is 
 variable = 'salinity'
-variable = 'SSSrestoringTend'
-variable = 'iceAreaCell'
-variable = 'iceVolumeCell'
+#variable = 'SSSrestoringTend'
+#variable = 'iceAreaCell'
+#variable = 'iceVolumeCell'
 #variable = 'icePressure'
 variable = 'iceAirStressMagnitude'
 #variable = 'mld'
@@ -103,8 +107,8 @@ figsize = [20, 20]
 figdpi = 100
 dotSize = 1.0
 data_crs = ccrs.PlateCarree()
-#centralLon = 0.0
-centralLon = -90.0
+centralLon = 0.0
+#centralLon = -90.0
 lon1 = -180.0
 lon2 = 180.0
 dlon = 20.0
@@ -468,7 +472,7 @@ else:
 if is3d:
     for iz in range(len(dlevels)):
         figfile = f'{figdir}/{varname}{figtitle0}_depth{int(dlevels[iz]):04d}_{runname}_years{yearStart:d}-{yearEnd:d}.mp4'
-        figtitle0 = f'{vartitle} {figtitle0} (z={z[zlevels[iz]]:5.1f} m), {runname},'
+        figtitle0 = f'{vartitle} {figtitle0} (z={z[zlevels[iz]]:5.1f} m) {runname}'
 
         if varname=='temperatureTotalAdvectionTendency':
             mpasvarname1 = f'{varType}activeTracerHorizontalAdvectionTendency_temperatureHorizontalAdvectionTendency'
@@ -523,25 +527,37 @@ if is3d:
 
         # Circular boundary of the map
         # (see https://scitools.org.uk/cartopy/docs/v0.15/examples/always_circular_stereo.html)
-        theta  = np.linspace(0, 2*np.pi, 100)
-        center = [0.5, 0.5]
-        radius =  0.5
-        verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
-        circle = mpath.Path(verts * radius + center)
-        ax.set_boundary(circle, transform=ax.transAxes)
+        #theta  = np.linspace(0, 2*np.pi, 100)
+        #center = [0.5, 0.5]
+        #radius =  0.5
+        #verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
+        #circle = mpath.Path(verts * radius + center)
+        #ax.set_boundary(circle, transform=ax.transAxes)
 
         sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
         cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
         cbar.ax.tick_params(labelsize=20, labelcolor='black')
         cbar.set_label(varunits, fontsize=20)
-        figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}'
+        if fileType=='timeSeriesStatsMonthly' or fileType=='timeSeriesStatsMonthlyMax':
+            figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}'
+        if fileType=='timeSeriesStatsDaily':
+            figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}, day={1:d}'
         add_land_lakes_coastline(ax)
         ax.set_title(figtitle, y=1.08, fontsize=22)
         #plt.savefig('tmp.png', bbox_inches='tight')
 
         def animate(i):
             sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-            figtitle = f'{figtitle0} year={year:d}, month={i+1:d}'
+            year = datetimes[i].year + yearStart - 1
+            month = datetimes[i].month
+            if fileType=='timeSeriesStatsMonthly' or fileType=='timeSeriesStatsMonthlyMax':
+                figtitle = f'{figtitle0} year={year:d}, month={month:d}'
+                print(f'Processing year={year:d}, month={month:d}...')
+            if fileType=='timeSeriesStatsDaily':
+                day = datetimes[i].day
+                figtitle = f'{figtitle0} year={year:d}, month={month:d}, day={day:d}'
+                print(f'Processing year={year:d}, month={month:d}, day={day:d}...')
+            #figtitle = f'{figtitle0} year={year:d}, month={i+1:d}'
             ax.set_title(figtitle, y=1.08, fontsize=22)
 
         interval = 100 #in seconds
@@ -549,7 +565,7 @@ if is3d:
         ani.save(figfile)
 else:
     figfile = f'{figdir}/{varname}{figtitle0}_{runname}_years{yearStart:d}-{yearEnd:d}.mp4'
-    figtitle0 = f'{vartitle} {figtitle0}, {runname},'
+    figtitle0 = f'{vartitle} {figtitle0} {runname}'
 
     if varname=='iceAirStressMagnitude':
         mpasvarname1 = f'{varType}airStressVertexUGeo'
@@ -582,12 +598,12 @@ else:
 
     # Circular boundary of the map
     # (see https://scitools.org.uk/cartopy/docs/v0.15/examples/always_circular_stereo.html)
-    theta  = np.linspace(0, 2*np.pi, 100)
-    center = [0.5, 0.5]
-    radius =  0.5
-    verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
-    circle = mpath.Path(verts * radius + center)
-    ax.set_boundary(circle, transform=ax.transAxes)
+    #theta  = np.linspace(0, 2*np.pi, 100)
+    #center = [0.5, 0.5]
+    #radius =  0.5
+    #verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
+    #circle = mpath.Path(verts * radius + center)
+    #ax.set_boundary(circle, transform=ax.transAxes)
 
     sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
     if varname!='iceAreaCell':
@@ -605,19 +621,17 @@ else:
     #plt.savefig('tmp.png', bbox_inches='tight')
 
     def animate(i):
-        #t0 = time.time()
         year = datetimes[i].year + yearStart - 1
         month = datetimes[i].month
         if fileType=='timeSeriesStatsMonthly' or fileType=='timeSeriesStatsMonthlyMax':
             figtitle = f'{figtitle0} year={year:d}, month={month:d}'
+            print(f'Processing year={year:d}, month={month:d}')
         if fileType=='timeSeriesStatsDaily':
             day = datetimes[i].day
             figtitle = f'{figtitle0} year={year:d}, month={month:d}, day={day:d}'
+            print(f'Processing year={year:d}, month={month:d}, day={day:d}...')
         sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
         ax.set_title(figtitle, y=1.08, fontsize=22)
-        #t1 = time.time()
-        #print(f'Processing year={year:d}, month={month:d}, day={day:d} (time taken={t1-t0} seconds)...')
-        print(f'Processing year={year:d}, month={month:d}, day={day:d}...')
 
     interval = 100 #in seconds
     ani = animation.FuncAnimation(fig, animate, frames=range(nframes), interval=interval)
