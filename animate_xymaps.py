@@ -4,11 +4,13 @@ import os
 import numpy as np
 import numpy.ma as ma
 import xarray as xr
-import glob
+import netCDF4
+import time
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as cols
 import matplotlib.animation as animation
+import matplotlib.path as mpath
 from matplotlib.pyplot import cm
 from matplotlib.colors import from_levels_and_colors
 from matplotlib.colors import BoundaryNorm
@@ -37,30 +39,43 @@ def save_with_progress(fig, update, nframes, out_path,
 modelComp = 'mpassi'
 model = 'ice'
 
+#fileType = 'timeSeriesStatsMonthly'
+#fileType = 'timeSeriesStatsMonthlyMax'
+fileType = 'timeSeriesStatsDaily'
+
 # Settings for compy
 #meshfile = '/compyfs/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.200908.nc'
 #runname = '20201030.alpha5_v1p-1_target.piControl.ne30pg2_r05_EC30to60E2r2-1900_ICG.compy'
 #modeldir = f'/compyfs/malt823/E3SM_simulations/{runname}/archive/ocn/hist'
 
 # Settings for erdc.hpc.mil
-meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
-runname = 'E3SMv2.1G60to10_01'
-modeldir = f'/p/global/milena/{runname}/archive/{model}/hist'
+#runname = 'E3SMv2.1G60to10_01'
+#modeldir = f'/p/global/milena/{runname}/archive/{model}/hist'
 
-# Number of time records to animate
-ntimes = 120
-#ntimes = 2
+# Settings for lanl
+meshfile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runname = 'E3SM-Arcticv3.1_1950control'
+modeldir = f'/lustre/scratch5/milena/E3SM/archive/{runname}/{model}/hist'
 
-infiles = sorted(glob.glob(f'{modeldir}/{runname}.{modelComp}.hist.am.timeSeriesStatsMonthly.00*'))[0:ntimes]
-#infiles = sorted(glob.glob(f'{modeldir}/{runname}.{modelComp}.hist.am.timeSeriesStatsMonthlyMax.00*'))[0:ntimes]
+yearStart = 10
+yearEnd = 11
+years = range(yearStart, yearEnd + 1)
+referenceDate = '0001-01-01'
+calendar = 'noleap'
+
+infiles = []
+for year in years:
+    for month in range(1, 13):
+         infiles.append(f'{modeldir}/{runname}.{modelComp}.hist.am.{fileType}.{year:04d}-{month:02d}-01.nc')
 print(f'\ninfiles={infiles}\n')
 
 # Check is choice of variable is 
 variable = 'salinity'
 variable = 'SSSrestoringTend'
 variable = 'iceAreaCell'
-#variable = 'iceVolumeCell'
+variable = 'iceVolumeCell'
 #variable = 'icePressure'
 #variable = 'mld'
 #variable = 'maxmld'
@@ -82,13 +97,22 @@ if not os.path.isdir(figdir):
 
 figsize = [20, 20]
 figdpi = 100
+dotSize = 1.0
 data_crs = ccrs.PlateCarree()
+#centralLon = 0.0
+centralLon = -90.0
+lon1 = -180.0
+lon2 = 180.0
+dlon = 20.0
+lat1 = 65.0
+lat2 = 90.0
+dlat = 5.0
 
 # z levels [m] (relevant for 3d variables)
 #dlevels = [50.0, 100.0, 250.0, 500.0, 3000.0]
 dlevels = [0.]
 
-colorIndices0 = [0, 10, 28, 57, 85, 113, 142, 170, 198, 227, 242, 255]
+colorIndices0 = [0, 15, 28, 57, 85, 113, 142, 170, 198, 227, 242, 255]
 
 variables = [
              {'name': 'temperature',
@@ -150,7 +174,8 @@ variables = [
              {'name': 'iceAreaCell',
               'title': 'Sea ice concentration',
               'units': '%',
-              'mpas': 'timeMonthly_avg_iceAreaCell',
+              'mpas': 'timeDaily_avg_iceAreaCell',
+              #'mpas': 'timeMonthly_avg_iceAreaCell',
               'factor': 100,
               'colormap': cols.ListedColormap([(0.102, 0.094, 0.204), (0.07, 0.145, 0.318),  (0.082, 0.271, 0.306),\
                                                (0,     0.4,   0.4),   (0.169, 0.435, 0.223), (0.455, 0.478, 0.196),\
@@ -162,19 +187,22 @@ variables = [
              {'name': 'iceVolumeCell',
               'title': 'Sea ice thickness',
               'units': 'm',
-              'mpas': 'timeMonthly_avg_iceVolumeCell',
+              #'mpas': 'timeMonthly_avg_iceVolumeCell',
+              'mpas': 'timeDaily_avg_iceVolumeCell',
               'factor': 1,
-              'colormap': plt.get_cmap('YlGnBu_r'),
-              'clevels': [0.1, 0.4, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5],
+              #'colormap': plt.get_cmap('YlGnBu_r'),
+              'colormap': cmocean.cm.thermal,
+              'clevels': [0.3, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.4, 3.8],
               'plot_anomalies': False,
               'is3d': False},
              {'name': 'icePressure',
               'title': 'Sea ice pressure',
               'units': 'N m$^{-1}$',
-              'mpas': 'timeMonthly_avg_icePressure',
+              #'mpas': 'timeMonthly_avg_icePressure',
+              'mpas': 'timeDaily_avg_icePressure',
               'factor': 1,
-              'colormap': plt.get_cmap('YlGnBu_r'),
-              'clevels': [0.1, 0.4, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5],
+              'colormap': cmocean.cm.speed_r,
+              'clevels': [0.2e5, 0.25e5, 0.3e5, 0.35e5, 0.4e5, 0.5e5, 0.6e5, 0.7e5, 0.8e5, 0.9e5, 1e5],
               'plot_anomalies': False,
               'is3d': False},
              {'name': 'temperatureSurfaceFluxTendency',
@@ -384,7 +412,10 @@ for id in range(len(dlevels)):
     zlevels[id] = np.argmin(dz)
 #print('Model levels = ', z[zlevels])
 
-ds = xr.open_mfdataset(infiles, combine='nested', concat_dim='Time')
+ds = xr.open_mfdataset(infiles, combine='nested', concat_dim='Time', decode_times=False)
+datetimes = netCDF4.num2date(ds.Time, f'days since {referenceDate}', calendar=calendar)
+nframes = ds.Time.sizes['Time']
+print('Total number of frames = ', nframes)
 
 if plot_anomalies:
     figtitle0 = 'Anomaly'
@@ -393,7 +424,7 @@ else:
 
 if is3d:
     for iz in range(len(dlevels)):
-        figfile = f'{figdir}/{varname}{figtitle0}_depth{int(dlevels[iz]):04d}_{runname}_nrecords{ntimes:d}.mp4'
+        figfile = f'{figdir}/{varname}{figtitle0}_depth{int(dlevels[iz]):04d}_{runname}_years{yearStart:d}-{yearEnd:d}.mp4'
         figtitle0 = f'{vartitle} {figtitle0} (z={z[zlevels[iz]]:5.1f} m), {runname},'
 
         if varname=='temperatureTotalAdvectionTendency':
@@ -434,11 +465,11 @@ if is3d:
         #print(varname, int(dlevels[iz]), np.min(fld), np.max(fld))
 
         fig = plt.figure(figsize=figsize, dpi=figdpi)
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-        ax.set_extent([-180, 180, 50, 90], crs=data_crs)
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=centralLon))
+        ax.set_extent([lon1, lon2, lat1, lat1], crs=data_crs)
         gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-        gl.xlocator = mticker.FixedLocator(np.arange(-180, 200, 20))
-        gl.ylocator = mticker.FixedLocator(np.arange(55, 85, 5))
+        gl.xlocator = mticker.FixedLocator(np.arange(lon1, lon2+dlon, dlon))
+        gl.ylocator = mticker.FixedLocator(np.arange(lat1, lat2-dlat, dlat))
         gl.n_steps = 100
         gl.right_labels = False
         gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
@@ -447,42 +478,52 @@ if is3d:
         gl.ylabel_style = {'size': 16}
         gl.rotate_labels = False
 
-        sc = ax.scatter(lon, lat, s=0.25, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
+        # Circular boundary of the map
+        # (see https://scitools.org.uk/cartopy/docs/v0.15/examples/always_circular_stereo.html)
+        theta  = np.linspace(0, 2*np.pi, 100)
+        center = [0.5, 0.5]
+        radius =  0.5
+        verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.transAxes)
+
+        sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
         cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
         cbar.ax.tick_params(labelsize=20, labelcolor='black')
         cbar.set_label(varunits, fontsize=20)
-        figtitle = f'{figtitle0} month={1:d}'
+        figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}'
         add_land_lakes_coastline(ax)
         ax.set_title(figtitle, y=1.08, fontsize=22)
         #plt.savefig('tmp.png', bbox_inches='tight')
 
         def animate(i):
-            sc = ax.scatter(lon, lat, s=0.25, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-            figtitle = f'{figtitle0} month={i+1:d}'
+            sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
+            figtitle = f'{figtitle0} year={year:d}, month={i+1:d}'
             ax.set_title(figtitle, y=1.08, fontsize=22)
 
-        interval = 100 #in seconds     
-        ani = animation.FuncAnimation(fig, animate, frames=range(ntimes), interval=interval)
+        interval = 100 #in seconds
+        ani = animation.FuncAnimation(fig, animate, frames=range(nframes), interval=interval)
         ani.save(figfile)
 else:
-    figfile = f'{figdir}/{varname}{figtitle0}_{runname}_nrecords{ntimes:d}.mp4'
+    figfile = f'{figdir}/{varname}{figtitle0}_{runname}_years{yearStart:d}-{yearEnd:d}.mp4'
     figtitle0 = f'{vartitle} {figtitle0}, {runname},'
 
     fld = ds[mpasvarname]
     fld = factor*fld
-    #if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure':
-    #    fld[np.where(fld<1e-15)] = np.nan
+    if varname=='iceAreaCell' or varname=='iceVolumeCell' or varname=='icePressure':
+        mask = (fld < 1e-15)
+        fld = fld.where(~mask, drop=False)
     if plot_anomalies:
         fld = fld - fld.isel(Time=0)
-    #print(varname, np.min(fld.isel(Time=0).values), np.max(fld.isel(Time=0).values))
-    #print(varname, np.min(fld.isel(Time=100).values), np.max(fld.isel(Time=100).values))
+    #print(varname, np.nanmin(fld.isel(Time=0).values), np.nanmax(fld.isel(Time=0).values))
+    #print(varname, np.nanmin(fld.isel(Time=100).values), np.nanmax(fld.isel(Time=100).values))
 
     fig = plt.figure(figsize=figsize, dpi=figdpi)
-    ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
-    ax.set_extent([-180, 180, 50, 90], crs=data_crs)
+    ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=centralLon))
+    ax.set_extent([lon1, lon2, lat1, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
-    gl.xlocator = mticker.FixedLocator(np.arange(-180, 200, 20))
-    gl.ylocator = mticker.FixedLocator(np.arange(55, 85, 5))
+    gl.xlocator = mticker.FixedLocator(np.arange(lon1, lon2+dlon, dlon))
+    gl.ylocator = mticker.FixedLocator(np.arange(lat1, lat2-dlat, dlat))
     gl.n_steps = 100
     gl.right_labels = False
     gl.xformatter = cartopy.mpl.gridliner.LONGITUDE_FORMATTER
@@ -491,21 +532,46 @@ else:
     gl.ylabel_style = {'size': 16}
     gl.rotate_labels = False
 
-    sc = ax.scatter(lon, lat, s=0.25, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-    cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
+    # Circular boundary of the map
+    # (see https://scitools.org.uk/cartopy/docs/v0.15/examples/always_circular_stereo.html)
+    theta  = np.linspace(0, 2*np.pi, 100)
+    center = [0.5, 0.5]
+    radius =  0.5
+    verts  = np.vstack([np.sin(theta), np.cos(theta)]).T
+    circle = mpath.Path(verts * radius + center)
+    ax.set_boundary(circle, transform=ax.transAxes)
+
+    sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=0), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
+    if varname!='iceAreaCell':
+        cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
+    else:
+        cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4)
     cbar.ax.tick_params(labelsize=20, labelcolor='black')
     cbar.set_label(varunits, fontsize=20)
-    figtitle = f'{figtitle0} month={1:d}'
+    if fileType=='timeSeriesStatsMonthly' or fileType=='timeSeriesStatsMonthlyMax':
+        figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}'
+    if fileType=='timeSeriesStatsDaily':
+        figtitle = f'{figtitle0} year={yearStart:d}, month={1:d}, day={1:d}'
     add_land_lakes_coastline(ax)
     ax.set_title(figtitle, y=1.08, fontsize=22)
     #plt.savefig('tmp.png', bbox_inches='tight')
 
     def animate(i):
-        sc = ax.scatter(lon, lat, s=1.0, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-        figtitle = f'{figtitle0} month={i+1:d}'
+        #t0 = time.time()
+        year = datetimes[i].year + yearStart - 1
+        month = datetimes[i].month
+        if fileType=='timeSeriesStatsMonthly' or fileType=='timeSeriesStatsMonthlyMax':
+            figtitle = f'{figtitle0} year={year:d}, month={month:d}'
+        if fileType=='timeSeriesStatsDaily':
+            day = datetimes[i].day
+            figtitle = f'{figtitle0} year={year:d}, month={month:d}, day={day:d}'
+        sc = ax.scatter(lon, lat, s=dotSize, c=fld.isel(Time=i), cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
         ax.set_title(figtitle, y=1.08, fontsize=22)
+        #t1 = time.time()
+        #print(f'Processing year={year:d}, month={month:d}, day={day:d} (time taken={t1-t0} seconds)...')
+        print(f'Processing year={year:d}, month={month:d}, day={day:d}...')
 
-    interval = 100 #in seconds     
-    ani = animation.FuncAnimation(fig, animate, frames=range(ntimes), interval=interval)
+    interval = 100 #in seconds
+    ani = animation.FuncAnimation(fig, animate, frames=range(nframes), interval=interval)
     ani.save(figfile)
-    #save_with_progress(fig, animate, nframes=range(ntimes), fps=4, out_path=figfile)
+    #save_with_progress(fig, animate, nframes=range(nframes), fps=4, out_path=figfile)
