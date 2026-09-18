@@ -109,34 +109,41 @@ meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpa
 ##featurefile = '/p/home/milena/mpas-region_masks/NH.geojson'
 #regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_new20240408.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_new20240408.geojson'
+regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regions_20260827.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_20260827.geojson'
 #regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticRegions.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/arcticRegions.geojson'
-regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_regions.nc'
-featurefile = '/p/home/milena/mpas-region_masks/amocPaper_regions.geojson'
-#casenameFull = 'E3SMv2.1G60to10_01'
-#casename = 'E3SMv2.1G60to10_01'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
+#regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_regions.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/amocPaper_regions.geojson'
+casenameFull = 'E3SMv2.1G60to10_01'
+casename = 'E3SMv2.1G60to10_01'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
 modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
 #modeldir = f'/p/global/apcraig/archive/{casenameFull}/ocn/hist'
+#casenameFull = 'E3SMv3G60to10_01cd25'
+#casename = 'E3SMv3G60to10_01cd25'
+#modeldir = f'/p/global/osinski/archive/{casenameFull}/ocn/hist'
 
 #regionNames = ['all']
 #regionNames = ['Irminger Sea']
 #regionNames = ['Irminger Sea', 'Labrador Sea']
 #regionNames = ['Arctic Ocean (no Barents/Kara Seas)', 'North Atlantic subpolar gyre', 'Irminger Sea', 'Labrador Sea', 'Greenland Sea', 'Norwegian Sea']
 #regionNames = ['Arctic Ocean (no Barents/Kara Seas)', 'Irminger Sea', 'Labrador Sea', 'Greenland Sea', 'Norwegian Sea']
+#regionNames = ['Labrador Sea']
+regionNames = ['North Atlantic subpolar gyre', 'North Atlantic greater subpolar gyre', 'Greater Arctic', 'Nordic Seas', 'North Atlantic subtropical gyre']
 #
 #regionNames = ['North Atlantic Wilbert', 'South Atlantic Wilbert']
-regionNames = ['South Atlantic Wilbert']
+#regionNames = ['South Atlantic Wilbert']
 
 # Choose years
 #year1 = 1950
 #year2 = 1952
 #year2 = 2014
 year1 = 1
-year2 = 40
+year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
@@ -638,7 +645,6 @@ for n in range(nRegions):
                 salinityTend = (salinityTend * dzOnCells).where(depthMask, drop=False).where(cellMask, drop=True)
                 salinityTend = (salinityTend * regionArea).sum(dim='nCells') / regionAreaTot
                 salinityTend = salinityTend.sum(dim='nVertLevels', skipna=True)
-
                 dsOutMonthly['saltSurfaceFluxTendency'] = xr.DataArray(
                     data=salinityTend,
                     dims=('Time', ),
@@ -1380,7 +1386,9 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
         #
-        ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
+        #ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
+        ax.plot(t, fac * np.cumsum(monthlyMask*(tempSurfaceFluxTend+tempShortWaveTend)), 'b', linewidth=2, \
+                label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempSeaIceTend), 'c', linewidth=2, label=f'sea-ice-tempFlux ({tempSeaIceTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempSensibleHeatTend), 'teal', linewidth=2, label=f'sensible ({tempSensibleHeatTendMean:.2e})')
         ax.plot(t, fac * np.cumsum(monthlyMask*tempLatentHeatTend), 'dodgerblue', linewidth=2, label=f'latent ({tempLatentHeatTendMean:.2e})')
