@@ -17,11 +17,11 @@ from mpas_analysis.shared.io.utility import decode_strings
 
 
 # Settings for erdc.hpc.mil
-#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_transects4transports20240910.nc'
+#featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_transects4transports20240910.geojson'
 #transportfile0 = './transports_data/E3SMv2.1B60to10rA02/atlanticZonalSectionsTransportsvsdepth_E3SMv2.1B60to10rA02'
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections4transports20210323.nc'
+featurefile = '/p/home/milena/mpas-region_masks/arcticSections4transports20210323.geojson'
 transportfile0 = './transports_data/E3SMv2.1B60to10rA02/arcticSectionsTransportsvsdepth_E3SMv2.1B60to10rA02'
 casename = 'E3SMv2.1B60to10rA02'
 

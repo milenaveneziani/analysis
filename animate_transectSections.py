@@ -130,8 +130,7 @@ featurefile = '/global/homes/m/milena/mpas_geojson_files/amocPaper_transects.geo
 #featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticTransectsFramToBeaufortEast20230901.geojson'
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_transects.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects20230313.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
+#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_arctic_atlantic_budget_regionsTransects4transports20240910.nc'
 #maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_standardTransportSections20210323.nc'
 casename = 'E3SMv2.1B60to10rA02'
 cname = 'Control'
@@ -142,15 +141,6 @@ modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/oc
 #icfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.220730.nc'
 #modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casename}/archive/ocn/singleVarFiles'
 #singleVarFiles = True
-##meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/ocean.EC30to60E2r2.210210.nc'
-##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arctic_atlantic_budget_regionsTransects20230313.nc'
-##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_arcticSections20220914.nc'
-##maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_standardTransportSections20210323.nc'
-##maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/EC30to60E2r2_arcticTransectsFramToBeaufortEast20230901.nc'
-##casename = 'GMPAS-JRA1p4_EC30to60E2r2_GM600_Redi600_perlmutter'
-##cname = 'GM600_Redi600'
-##modeldir = f'/global/cfs/cdirs/e3sm/maltrud/archive/onHPSS/{casename}/ocn/hist'
-##singleVarFiles = False
 
 # Settings for lcrc
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arcticSections20210323.geojson'

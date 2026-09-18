@@ -37,11 +37,11 @@ def get_mask_short_names(mask):
 
 # Settings for nersc
 meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
-#outfile0 = 'atlanticZonalSectionsTransports'
-maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections20210323.geojson'
+#maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_transects4transports20240910.nc'
+#featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/atlanticZonal_transects4transports20240910.geojson'
+#outfile0 = 'atlanticZonalSectionsTransportsWithPrimes'
+maskfile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections4transports20220916.nc'
+featurefile = '/global/cfs/cdirs/m1199/milena/mpas-region_masks/arcticSections4transports20210323.geojson'
 outfile0 = 'arcticSectionsTransportsWithPrimes'
 casenameFull = 'E3SMv2.1B60to10rA02'
 casename = 'E3SMv2.1B60to10rA02'
@@ -130,11 +130,6 @@ depthmask2 = depthmask.isel(nCells=coe1)
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for i in range(nTransects):
     edgeSigns[i, :] = dsMask.sel(nEdges=edgesToRead, shortNames=transectList[i]).squeeze().transectEdgeMaskSigns.values
-    # WARNING: The following is a quick hack valid only for the arcticSections mask file!
-    # I will need to change the geojson files to make *all* transects go from south to north
-    # or west to east, so that I can have the correct edgeSigns for all of them.
-    if transectNames[i]!='Bering Strait' and transectNames[i]!='Hudson Bay-Labrador Sea':
-        edgeSigns[i, :] = -edgeSigns[i, :]
 edgeSigns = xr.DataArray(data=edgeSigns, dims=('nTransect', 'nEdges'))
 refBottom = dsMesh.refBottomDepth
 latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()

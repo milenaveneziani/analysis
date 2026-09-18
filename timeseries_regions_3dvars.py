@@ -16,7 +16,7 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import timeseries_analysis_plot, add_inset
 
 startYear = 1
-endYear = 59
+endYear = 50
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
@@ -43,10 +43,10 @@ calendar = 'gregorian'
 regionMaskDir = '/p/home/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1G60to10_01'
-runNameShort = 'E3SMv2.1G60to10_01'
-#runName = 'E3SMv2.1B60to10rA02'
-#runNameShort = 'E3SMv2.1B60to10rA02'
+#runName = 'E3SMv2.1G60to10_01'
+#runNameShort = 'E3SMv2.1G60to10_01'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
 rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
@@ -64,16 +64,17 @@ isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir
 
 computeDepthAvg = True
 # Relevant only for computeDepthAvg = True
-zmins = [-300.]
+zmins = [-50.]
 zmaxs = [0.]
 # Relevant only for computeDepthAvg = False
 dlevels = [0.]
 
 #regionGroups = ['Arctic Regions']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
+regionGroups = ['arctic_atlantic_budget_regions_20260827']
 #regionGroups = ['OceanOHC Regions']
 #regionGroups = ['Antarctic Regions']
-regionGroups = ['southAtlantic_eastWest_regions']
+#regionGroups = ['southAtlantic_eastWest_regions']
 
 # Choose ocean 3d variables to process
 #
@@ -88,7 +89,12 @@ variables = [
               'title': 'Salinity',
               'units': 'psu',
               'factor': 1,
-              'mpas': 'timeMonthly_avg_activeTracers_salinity'}
+              'mpas': 'timeMonthly_avg_activeTracers_salinity'},
+             {'name': 'potentialDensity',
+              'title': 'Potential density',
+              'units': 'Kg/m$^3$',
+              'factor': 1,
+              'mpas': 'timeMonthly_avg_potentialDensity'}
             ]
 
 if isShortTermArchive:

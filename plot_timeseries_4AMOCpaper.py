@@ -14,20 +14,26 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import add_inset
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#tsdir = '/global/cfs/cdirs/m4259/milena/AMOCpaper/timeseries_data'
+#tsdir = './transports_data'
+
+# Settings for erdc.hpc.mil
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+tsdir = './timeseries_data'
+#tsdir = './transports_data'
 runNameControl = 'E3SMv2.1B60to10rA02'
-runNameRecovery = 'E3SMv2.1B60to10rA07'
 runNameCollapse = 'E3SMv2.1G60to10_01'
+runNameRecovery = 'E3SMv2.1B60to10rA07'
 #colors = ['mediumblue', 'dodgerblue', 'deepskyblue', 'lightseagreen', 'green']
  
 startYear = 1
-endYear = 50
+endYear = 47
 years = range(startYear, endYear + 1)
 
 movingAverageYears = 1 # number of years over which to compute running average
 
 # Settings for regional time series
-tsdir = '/global/cfs/cdirs/m4259/milena/AMOCpaper/timeseries_data'
 variables = [
 #             {'name': 'maxMLD',
 #              'title': 'Max MLD',
@@ -38,21 +44,27 @@ variables = [
 #             {'name': 'iceVolume',
 #              'title': 'Ice volume',
 #              'units': 'km$^3$'},
-#             {'name': 'sensibleHeatFlux',
-#              'title': 'Sensible heat flux',
-#              'units': 'W/m$^2$'},
-#             {'name': 'latentHeatFlux',
-#              'title': 'Latent heat flux',
-#              'units': 'W/m$^2$'},
-#             {'name': 'evaporationFlux',
-#              'title': 'Evaporation flux',
-#              'units': 'kg m$^-2$ s$^-1$'},
-#             {'name': 'rainFlux',
-#              'title': 'Rain flux',
-#              'units': 'kg m$^-2$ s$^-1$'},
-#             {'name': 'snowFlux',
-#              'title': 'Snow flux',
-#              'units': 'kg m$^-2$ s$^-1$'},
+             {'name': 'sensibleHeatFlux',
+              'title': 'Sensible heat flux',
+              'units': 'W/m$^2$'},
+             {'name': 'latentHeatFlux',
+              'title': 'Latent heat flux',
+              'units': 'W/m$^2$'},
+             {'name': 'shortWaveHeatFlux',
+              'title': 'SW heat flux',
+              'units': 'W/m$^2$'},
+             {'name': 'longWaveHeatFlux',
+              'title': 'Net LW heat flux',
+              'units': 'W/m$^2$'},
+             {'name': 'evaporationFlux',
+              'title': 'Evaporation flux',
+              'units': 'kg m$^-2$ s$^-1$'},
+             {'name': 'rainFlux',
+              'title': 'Rain flux',
+              'units': 'kg m$^-2$ s$^-1$'},
+             {'name': 'snowFlux',
+              'title': 'Snow flux',
+              'units': 'kg m$^-2$ s$^-1$'},
 #             {'name': 'riverRunoffFlux',
 #              'title': 'River runoff flux',
 #              'units': 'kg m$^-2$ s$^-1$'},
@@ -68,9 +80,9 @@ variables = [
              {'name': 'totalHeatFlux',
               'title': 'Total heat flux (Sens+Lat+SWNet+LWNet)',
               'units': 'W/m$^2$'},
-             {'name': 'totalFWFlux',
-              'title': 'Total FW flux (E-P+runoff+seaiceFW)',
-              'units': 'kg m$^-2$ s$^-1$'},
+#             {'name': 'totalFWFlux',
+#              'title': 'Total FW flux (E-P+runoff+seaiceFW)',
+#              'units': 'kg m$^-2$ s$^-1$'},
 #             {'name': 'temperature',
 #              'title': 'SST',
 #              'units': '$^\circ$C'},
@@ -97,7 +109,6 @@ regionGroupName = regionGroup[0].lower() + regionGroup[1:].replace(' ', '')
 transectName = None
 
 # Settings for transect time series
-#tsdir = './transports_data'
 #variables = [
 #             {'name': 'FWTransportSref',
 #              'title': 'FW (Sref=34.8 psu) transport',
@@ -172,89 +183,145 @@ for var in variables:
     if regionName is not None:
         figfile = f'{figdir}/{varname}_{regionNameShort}_years{years[0]}-{years[-1]}.png'
         figtitle = f'{vartitle} in {regionName} region'
-        if varname=='temperature' or varname=='salinity':
+        if varname=='temperature' or varname=='salinity' or varname=='longWaveHeatFlux':
             timeseriesDirControl = f'{tsdir}/{runNameControl}'
-            timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}'
             timeseriesDirCollapse = f'{tsdir}/{runNameCollapse}'
+            timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}'
         else:
             timeseriesDirControl = f'{tsdir}/{runNameControl}/{varname}'
-            timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}/{varname}'
             timeseriesDirCollapse = f'{tsdir}/{runNameCollapse}/{varname}'
-        timeseriesFilesControl = []
-        timeseriesFilesRecovery = []
-        timeseriesFilesCollapse = []
+            timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}/{varname}'
+        if varname=='longWaveHeatFlux':
+            timeseriesFilesControlD = []
+            timeseriesFilesControlU = []
+            timeseriesFilesCollapseD = []
+            timeseriesFilesCollapseU = []
+            #timeseriesFilesRecoveryD = []
+            #timeseriesFilesRecoveryU = []
+        else:
+            timeseriesFilesControl = []
+            timeseriesFilesCollapse = []
+            #timeseriesFilesRecovery = []
         for year in years:
             if varname=='maxMLD':
                 timeseriesFilesControl.append(f'{timeseriesDirControl}/{regionGroupName}_max_year{year:04d}.nc')
-                timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_max_year{year:04d}.nc')
                 timeseriesFilesCollapse.append(f'{timeseriesDirCollapse}/{regionGroupName}_max_year{year:04d}.nc')
+                #timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_max_year{year:04d}.nc')
+            elif varname=='longWaveHeatFlux':
+                timeseriesFilesControlD.append(f'{timeseriesDirControl}/longWaveHeatFluxDown/{regionGroupName}_year{year:04d}.nc')
+                timeseriesFilesControlU.append(f'{timeseriesDirControl}/longWaveHeatFluxUp/{regionGroupName}_year{year:04d}.nc')
+                timeseriesFilesCollapseD.append(f'{timeseriesDirCollapse}/longWaveHeatFluxDown/{regionGroupName}_year{year:04d}.nc')
+                timeseriesFilesCollapseU.append(f'{timeseriesDirCollapse}/longWaveHeatFluxUp/{regionGroupName}_year{year:04d}.nc')
+                #timeseriesFilesRecoveryD.append(f'{timeseriesDirRecovery}/longWaveHeatFluxDown/{regionGroupName}_year{year:04d}.nc')
+                #timeseriesFilesRecoveryU.append(f'{timeseriesDirRecovery}/longWaveHeatFluxUp/{regionGroupName}_year{year:04d}.nc')
             else:
                 if varname=='temperature' or varname=='salinity':
                     timeseriesFilesControl.append(f'{timeseriesDirControl}/{regionGroupName}_depth0000_year{year:04d}.nc')
-                    timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_depth0000_year{year:04d}.nc')
                     timeseriesFilesCollapse.append(f'{timeseriesDirCollapse}/{regionGroupName}_depth0000_year{year:04d}.nc')
+                    #timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_depth0000_year{year:04d}.nc')
                 else:
                     timeseriesFilesControl.append(f'{timeseriesDirControl}/{regionGroupName}_year{year:04d}.nc')
-                    timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_year{year:04d}.nc')
                     timeseriesFilesCollapse.append(f'{timeseriesDirCollapse}/{regionGroupName}_year{year:04d}.nc')
-        dsControl = xr.open_mfdataset(timeseriesFilesControl, combine='nested',
-                                      concat_dim='Time', decode_times=False)
-        dsRecovery = xr.open_mfdataset(timeseriesFilesRecovery, combine='nested',
-                                       concat_dim='Time', decode_times=False)
-        dsCollapse = xr.open_mfdataset(timeseriesFilesCollapse, combine='nested',
-                                       concat_dim='Time', decode_times=False)
-        regionNames = dsControl.regionNames[0].values
+                    #timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{regionGroupName}_year{year:04d}.nc')
+        if varname=='longWaveHeatFlux':
+            dsControlD = xr.open_mfdataset(timeseriesFilesControlD, combine='nested',
+                                           concat_dim='Time', decode_times=False)
+            dsControlU = xr.open_mfdataset(timeseriesFilesControlU, combine='nested',
+                                           concat_dim='Time', decode_times=False)
+            dsCollapseD = xr.open_mfdataset(timeseriesFilesCollapseD, combine='nested',
+                                            concat_dim='Time', decode_times=False)
+            dsCollapseU = xr.open_mfdataset(timeseriesFilesCollapseU, combine='nested',
+                                            concat_dim='Time', decode_times=False)
+            #dsRecoveryD = xr.open_mfdataset(timeseriesFilesRecoveryD, combine='nested',
+            #                                concat_dim='Time', decode_times=False)
+            #dsRecoveryU = xr.open_mfdataset(timeseriesFilesRecoveryU, combine='nested',
+            #                                concat_dim='Time', decode_times=False)
+            regionNames = dsControlD.regionNames[0].values
+        else:
+            dsControl = xr.open_mfdataset(timeseriesFilesControl, combine='nested',
+                                          concat_dim='Time', decode_times=False)
+            dsCollapse = xr.open_mfdataset(timeseriesFilesCollapse, combine='nested',
+                                           concat_dim='Time', decode_times=False)
+            #dsRecovery = xr.open_mfdataset(timeseriesFilesRecovery, combine='nested',
+            #                               concat_dim='Time', decode_times=False)
+            regionNames = dsControl.regionNames[0].values
         regionIndex = np.where(regionNames==regionName)[0]
-        dsvarControl = dsControl[varname].isel(nRegions=regionIndex)
-        dsvarRecovery = dsRecovery[varname].isel(nRegions=regionIndex)
-        dsvarCollapse = dsCollapse[varname].isel(nRegions=regionIndex)
+        if varname=='longWaveHeatFlux':
+            dsvarControl = dsControlD['longWaveHeatFluxDown'].isel(nRegions=regionIndex) + \
+                           dsControlU['longWaveHeatFluxUp'].isel(nRegions=regionIndex)
+            dsvarCollapse = dsCollapseD['longWaveHeatFluxDown'].isel(nRegions=regionIndex) + \
+                            dsCollapseU['longWaveHeatFluxUp'].isel(nRegions=regionIndex)
+            #dsvarRecovery = dsRecoveryD['longWaveHeatFluxDown'].isel(nRegions=regionIndex) + \
+            #                dsRecoveryU['longWaveHeatFluxUp'].isel(nRegions=regionIndex)
+        else:
+            dsvarControl = dsControl[varname].isel(nRegions=regionIndex)
+            dsvarCollapse = dsCollapse[varname].isel(nRegions=regionIndex)
+            #dsvarRecovery = dsRecovery[varname].isel(nRegions=regionIndex)
+        if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+           varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+           varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or varname=='totalHeatFlux':
+            dsvarControl_iceUnweighted = dsControl[f'{varname}_iceUnweighted'].isel(nRegions=regionIndex)
+            dsvarCollapse_iceUnweighted = dsCollapse[f'{varname}_iceUnweighted'].isel(nRegions=regionIndex)
+        elif varname=='longWaveHeatFlux':
+            dsvarControl_iceUnweighted = dsControlD['longWaveHeatFluxDown_iceUnweighted'].isel(nRegions=regionIndex) + \
+                                         dsControlU['longWaveHeatFluxUp_iceUnweighted'].isel(nRegions=regionIndex)
+            dsvarCollapse_iceUnweighted = dsCollapseD['longWaveHeatFluxDown_iceUnweighted'].isel(nRegions=regionIndex) + \
+                                          dsCollapseU['longWaveHeatFluxUp_iceUnweighted'].isel(nRegions=regionIndex)
     elif transectName is not None:
         figfile = f'{figdir}/{varname}_{transectNameShort}_years{years[0]}-{years[-1]}.png'
         figtitle = f'{vartitle} across {transectName}'
         timeseriesDirControl = f'{tsdir}/{runNameControl}'
-        timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}'
         timeseriesDirCollapse = f'{tsdir}/{runNameCollapse}'
+        timeseriesDirRecovery = f'{tsdir}/{runNameRecovery}'
         timeseriesFilesControl = []
-        timeseriesFilesRecovery = []
         timeseriesFilesCollapse = []
+        timeseriesFilesRecovery = []
         for year in years:
             timeseriesFilesControl.append(f'{timeseriesDirControl}/{transectGroupName}Transports_{runNameControl}_year{year:04d}.nc')
-            timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{transectGroupName}Transports_{runNameRecovery}_year{year:04d}.nc')
             timeseriesFilesCollapse.append(f'{timeseriesDirCollapse}/{transectGroupName}Transports_{runNameCollapse}_year{year:04d}.nc')
+            timeseriesFilesRecovery.append(f'{timeseriesDirRecovery}/{transectGroupName}Transports_{runNameRecovery}_year{year:04d}.nc')
         dsControl = xr.open_mfdataset(timeseriesFilesControl, combine='nested',
                                       concat_dim='Time', decode_times=False)
-        dsRecovery = xr.open_mfdataset(timeseriesFilesRecovery, combine='nested',
-                                       concat_dim='Time', decode_times=False)
         dsCollapse = xr.open_mfdataset(timeseriesFilesCollapse, combine='nested',
+                                       concat_dim='Time', decode_times=False)
+        dsRecovery = xr.open_mfdataset(timeseriesFilesRecovery, combine='nested',
                                        concat_dim='Time', decode_times=False)
         transectNames = dsControl.transectNames[0].values
         transectIndex = np.where(transectNames==transectName)[0]
         dsvarControl = dsControl[varname].isel(nTransects=transectIndex)
-        dsvarRecovery = dsRecovery[varname].isel(nTransects=transectIndex)
         dsvarCollapse = dsCollapse[varname].isel(nTransects=transectIndex)
+        dsvarRecovery = dsRecovery[varname].isel(nTransects=transectIndex)
 
     window = int(movingAverageYears*12)
     timeseriesControl = np.squeeze(dsvarControl.values)
     timeseriesControl_runavg = pd.Series(timeseriesControl).rolling(window, center=True).mean()
-    timeseriesRecovery = np.squeeze(dsvarRecovery.values)
-    timeseriesRecovery_runavg = pd.Series(timeseriesRecovery).rolling(window, center=True).mean()
     timeseriesCollapse = np.squeeze(dsvarCollapse.values)
     timeseriesCollapse_runavg = pd.Series(timeseriesCollapse).rolling(window, center=True).mean()
+    #timeseriesRecovery = np.squeeze(dsvarRecovery.values)
+    #timeseriesRecovery_runavg = pd.Series(timeseriesRecovery).rolling(window, center=True).mean()
+    if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+       varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+       varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or varname=='longWaveHeatFlux' or \
+       varname=='totalHeatFlux':
+        timeseriesControl_iceUnweighted = np.squeeze(dsvarControl_iceUnweighted.values)
+        timeseriesControl_iceUnweighted_runavg = pd.Series(timeseriesControl_iceUnweighted).rolling(window, center=True).mean()
+        timeseriesCollapse_iceUnweighted = np.squeeze(dsvarCollapse_iceUnweighted.values)
+        timeseriesCollapse_iceUnweighted_runavg = pd.Series(timeseriesCollapse_iceUnweighted).rolling(window, center=True).mean()
     #meanControl = np.nanmean(timeseriesControl)
     #stdControl = np.nanstd(timeseriesControl)
 
     plt.plot(dsControl.Time.values/365, timeseriesControl, 'grey', linewidth=1.2)
     plt.plot(dsControl.Time.values/365, timeseriesControl_runavg, 'k', linewidth=2, label=f'control {movingAverageYears:d}-year run-avg')
-    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery, 'salmon', linewidth=1.2)
-    plt.plot(dsRecovery.Time.values/365, timeseriesRecovery_runavg, 'r', linewidth=2, label=f'recovery {movingAverageYears:d}-year run-avg')
     plt.plot(dsCollapse.Time.values/365, timeseriesCollapse, 'lightgreen', linewidth=1.2)
     plt.plot(dsCollapse.Time.values/365, timeseriesCollapse_runavg, 'green', linewidth=2, label=f'collapse {movingAverageYears:d}-year run-avg')
+    #plt.plot(dsRecovery.Time.values/365, timeseriesRecovery, 'salmon', linewidth=1.2)
+    #plt.plot(dsRecovery.Time.values/365, timeseriesRecovery_runavg, 'r', linewidth=2, label=f'recovery {movingAverageYears:d}-year run-avg')
     #plt.axhline(y=np.nanmean(timeseries), color='k', label='mean')
     #plt.axhline(y=np.nanmean(timeseriesControl), color='salmon', label='control mean')
     #plt.axhspan(meanControl-stdControl, meanControl+stdControl, alpha=0.3, color='salmon', label='control range')
-    plt.axvline(x=8, color='mediumturquoise')
-    plt.axvline(x=34, color='deepskyblue')
-    plt.axvline(x=38, color='blue')
+    #plt.axvline(x=8, color='mediumturquoise')
+    #plt.axvline(x=34, color='deepskyblue')
+    #plt.axvline(x=38, color='blue')
     #plt.axvline(x=8, color='paleturquoise', label='recovery start')
     #plt.axvline(x=34, color='deepskyblue', label='first crossing')
     #plt.axvline(x=38, color='blue', label='recovery end')
@@ -271,3 +338,35 @@ for var in variables:
     ax.set_title(figtitle, fontsize=fontsize_titles, fontweight='bold')
     plt.savefig(figfile, dpi='figure', bbox_inches='tight', pad_inches=0.1)
     plt.close()
+
+    if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+       varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+       varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or varname=='longWaveHeatFlux' or \
+       varname=='totalHeatFlux':
+        fig0 = plt.figure(figsize=figsize, dpi=figdpi)
+        ax0 = fig0.add_subplot()
+        for tick in ax0.xaxis.get_ticklabels():
+            tick.set_fontsize(fontsize_smallLabels)
+            tick.set_weight('bold')
+        for tick in ax0.yaxis.get_ticklabels():
+            tick.set_fontsize(fontsize_smallLabels)
+            tick.set_weight('bold')
+        ax0.yaxis.get_offset_text().set_fontsize(fontsize_smallLabels)
+        ax0.yaxis.get_offset_text().set_weight('bold')
+        ax0.set_xlabel('Time (yr)', fontsize=fontsize_labels, fontweight='bold')
+        ax0.set_ylabel(varunits, fontsize=fontsize_labels, fontweight='bold')
+        ax0.set_xlim(years[0], years[-1])
+        plt.grid(alpha=0.75)
+        plt.plot(dsControl.Time.values/365, timeseriesControl_iceUnweighted, 'grey', linewidth=1.2)
+        plt.plot(dsControl.Time.values/365, timeseriesControl_iceUnweighted_runavg, 'k', linewidth=2, label=f'control {movingAverageYears:d}-year run-avg')
+        plt.plot(dsCollapse.Time.values/365, timeseriesCollapse_iceUnweighted, 'lightgreen', linewidth=1.2)
+        plt.plot(dsCollapse.Time.values/365, timeseriesCollapse_iceUnweighted_runavg, 'green', linewidth=2, label=f'collapse {movingAverageYears:d}-year run-avg')
+        ax0.legend(prop=legend_properties)
+        plt.tight_layout()
+        if regionName!='Global':
+            add_inset(fig0, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
+        figtitle0 = f'{vartitle} (un-weighted by iceFrac) in {regionName} region'
+        figfile0 = f'{figdir}/{varname}_iceUnweighted_{regionNameShort}_years{years[0]}-{years[-1]}.png'
+        ax0.set_title(figtitle0, fontsize=fontsize_titles, fontweight='bold')
+        plt.savefig(figfile0, dpi='figure', bbox_inches='tight', pad_inches=0.1)
+        plt.close()

@@ -39,18 +39,17 @@ def get_mask_short_names(mask):
 # Settings for erdc.hpc.mil
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20240910.nc'
-featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_sections20240910.geojson'
+maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_transects4transports20240910.nc'
+featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_transects4transports20240910.geojson'
 outfile0 = 'atlanticZonalSectionsFHovFHaz'
-#maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_arcticSections20220916.nc'
-#featurefile = '/p/home/milena/mpas-region_masks/arcticSections20210323.geojson'
-#outfile0 = 'arcticSectionsFHovFHaz'
 #casenameFull = 'E3SMv2.1B60to10rA02'
 #casename = 'E3SMv2.1B60to10rA02'
-#modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
-casenameFull = 'E3SMv2.1B60to10rA07'
-casename = 'E3SMv2.1B60to10rA07'
-modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
+casenameFull = 'E3SMv2.1G60to10_01'
+casename = 'E3SMv2.1G60to10_01'
+modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
+#casenameFull = 'E3SMv2.1B60to10rA07'
+#casename = 'E3SMv2.1B60to10rA07'
+#modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Settings for anvil/chrysalis:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
@@ -72,36 +71,20 @@ modeldir = f'/p/work/milena/{casenameFull}/archive/ocn/hist'
 
 # Settings for nersc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/EC30to60E2r2/mpaso.EC30to60E2r2.rstFromG-anvil.201001.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/EC30to60E2r2_atlanticZonal_sections20230307.nc'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-#outfile0 = 'atlanticZonalSectionsFHovFHaz'
-#casenameFull = '20220715.submeso.piControl.ne30pg2_EC30to60E2r2.chrysalis'
-#casename = '20220715.submeso.piControl.ne30pg2_EC30to60E2r2'
-#modeldir = f'/global/cfs/cdirs/m4259/E3SMv2_1/{casenameFull}/ocn/hist'
-#
 #meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_sections20230307.nc'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
+#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_transects4transports20240910.nc'
+#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_transects4transports20240910.geojson'
 #outfile0 = 'atlanticZonalSectionsFHovFHaz'
 #casenameFull = 'E3SMv2.1B60to10rA02'
 #casename = 'E3SMv2.1B60to10rA02'
 #modeldir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{casenameFull}/ocn/hist'
 #
-#meshfile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/SOwISC12to60E2r4/mpaso.SOwISC12to60E2r4.rstFromG-anvil.210203.nc'
-#maskfile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/SOwISC12to60E2r4_atlanticZonal_sections20230307.nc'
-#featurefile = '/global/cfs/cdirs/e3sm/milena/mpas-region_masks/atlanticZonal_sections20230307.geojson'
-#outfile0 = 'atlanticZonalSectionsFHovFHaz'
-#casenameFull = '20221116.CRYO1950.ne30pg2_SOwISC12to60E2r4.N2Dependent.submeso'
-#casename = 'SORRMv2.1.1950control'
-#modeldir = f'/pscratch/sd/a/abarthel/data/E3SMv2.1/{casenameFull}/archive/ocn/hist'
-#casenameFull = f'{casenameFull}.chrysalis'
-#
 
 # Choose years
 year1 = 1
+year2 = 50
 #year2 = 386 # rA02
-year2 = 246 # rA07
+#year2 = 246 # rA07
 years = range(year1, year2+1)
 
 sZero = 34.8
@@ -196,11 +179,6 @@ depthmask2 = depthmask.isel(nCells=coe1)
 edgeSigns = np.zeros((nTransects, len(edgesToRead)))
 for i in range(nTransects):
     edgeSigns[i, :] = dsMask.sel(nEdges=edgesToRead, shortNames=transectList[i]).squeeze().transectEdgeMaskSigns.values
-    # WARNING: The following is a quick hack valid only for the arcticSections mask file!
-    # I will need to change the geojson files to make *all* transects go from south to north
-    # or west to east, so that I can have the correct edgeSigns for all of them.
-    if transectNames[i]!='Bering Strait' and transectNames[i]!='Hudson Bay-Labrador Sea':
-        edgeSigns[i, :] = -edgeSigns[i, :]
 edgeSigns = xr.DataArray(data=edgeSigns, dims=('nTransect', 'nEdges'))
 refBottom = dsMesh.refBottomDepth
 #latmean = 180.0/np.pi * dsMesh.latEdge.sel(nEdges=edgesToRead).mean()

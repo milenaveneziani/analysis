@@ -67,8 +67,8 @@ runname = 'E3SMv2.1B60to10rA02'
 #runname = 'E3SM-Arcticv2.1_historical0101'
 
 meshname = 'ARRM10to60E2r1' # still need to change meshfile below accordingly
-#maskname = 'arcticSections20210323'
-#maskname = 'atlanticZonal_sections20240910'
+#maskname = 'arcticSections4transports20210323'
+#maskname = 'atlanticZonal_transects4transports20240910'
 maskname = 'arctic_subarctic_transects4transports20250918'
 
 # *** Settings for nersc

@@ -17,8 +17,8 @@ from common_functions import timeseries_analysis_plot, add_inset
 
 #startYear = 1950
 #endYear = 2014
-startYear = 120
-endYear = 120
+startYear = 1
+endYear = 47
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
@@ -31,8 +31,8 @@ plotTimeseries = False
 #meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SM-Arcticv2.1_historical0301'
 #runNameShort = 'E3SMv2.1-Arctic-historical0301'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#rundir0 = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir0 later on
 #isPostproc = True # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for lcrc
@@ -41,40 +41,40 @@ plotTimeseries = False
 ##meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/ocean.EC30to60E2r2.200908.nc'
 ##runName = '20210127_JRA_POPvertMix_EC30to60E2r2'
 ##runNameShort = 'JRA_POPvertMix_noSSSrestoring'
-##rundir = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
-##isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir later on
+##rundir0 = '/lcrc/group/acme/ac.vanroekel/scratch/anvil/20210127_JRA_POPvertMix_EC30to60E2r2/run'
+##isShortTermArchive = False # if True '{modelComp}/hist' will be affixed to rundir0 later on
 #meshName = 'RRSwISC6to18E3r5'
 #meshFile = f'/lcrc/group/acme/public_html/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
 #runName = '20240729.HRr5-test12.chrysalis'
 #runNameShort = '20240729.HRr5-test12'
-#rundir = '/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/20240729.HRr5-test12.chrysalis/archive'
+#rundir0 = '/lcrc/group/e3sm2/ac.jwolfe/E3SMv3_dev/20240729.HRr5-test12.chrysalis/archive'
 #isShortTermArchive = True
 #isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1G60to10_01'
-#runNameShort = 'E3SMv2.1G60to10_01'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/global/milena/{runName}'
+rundir0 = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
-#rundir = f'/p/global/apcraig/archive/{runName}'
-#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
-#isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
+#rundir0 = f'/p/global/apcraig/archive/{runName}'
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir0 later on
+isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
 
 # Settings for lanl
-regionMaskDir = '/users/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv3.1_1950control'
-runNameShort = 'E3SM-Arcticv3.1_1950control'
-rundir = f'/lustre/scratch5/milena/E3SM/{runName}/run'
-isShortTermArchive = False
-isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
+#regionMaskDir = '/users/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv3.1_1950control'
+#runNameShort = 'E3SM-Arcticv3.1_1950control'
+#rundir0 = f'/lustre/scratch5/milena/E3SM/{runName}/run'
+#isShortTermArchive = False
+#isPostproc = False # if True use postprocessed input files (e.g. for barotropic streamfunction)
 
 sref = 34.8 # needed for Arctic fwc calculation
 
@@ -99,8 +99,8 @@ regionGroups = ['Arctic Regions']
 # ice variables (2d only)
 #
 #   Ocean variables
-#mpasComp = 'mpaso'
-#modelComp = 'ocn'
+mpasComp = 'mpaso'
+modelComp = 'ocn'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
 #mpasvarHeader = 'timeMonthlyMax_max_'
 #variables = [
@@ -111,9 +111,9 @@ regionGroups = ['Arctic Regions']
 #              'mpas': 'dThreshMLD'}
 #            ]
 
-#mpasFile = 'timeSeriesStatsMonthly'
-#mpasvarHeader = 'timeMonthly_avg_'
-#variables = [
+mpasFile = 'timeSeriesStatsMonthly'
+mpasvarHeader = 'timeMonthly_avg_'
+variables = [
 #             {'name': 'barotropicStreamfunction',
 #              'title': 'Barotropic streamfuncion',
 #              'units': 'Sv',
@@ -184,11 +184,11 @@ regionGroups = ['Arctic Regions']
 #              'units': 'm$^2$ s$^{-3}$',
 #              'factor': 1,
 #              'mpas': 'surfaceBuoyancyForcing'},
-#             {'name': 'totalHeatFlux',
-#              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
-#              'units': 'W/m$^2$',
-#              'factor': 1,
-#              'mpas': None},
+             {'name': 'totalHeatFlux',
+              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
+              'units': 'W/m$^2$',
+              'factor': 1,
+              'mpas': None},
 #             {'name': 'totalFWFlux',
 #              'title': 'Total FW Flux (E-P+Runoff+SeaIce)',
 #              'units': 'kg m^$-2$ s^$-1$',
@@ -199,71 +199,71 @@ regionGroups = ['Arctic Regions']
 #              'units': '10$^3$ km$^3$',
 #              'factor': 1e-12,
 #              'mpas': None}
-#            ]
+            ]
 
 #   Sea ice variables
-mpasComp = 'mpassi'
-modelComp = 'ice'
+#mpasComp = 'mpassi'
+#modelComp = 'ice'
 #mpasFile = 'timeSeriesStatsMonthly'
 #mpasvarHeader = 'timeMonthly_avg_'
-mpasFile = 'timeSeriesStatsDaily'
-mpasvarHeader = 'timeDaily_avg_'
-variables = [
-             {'name': 'iceArea',
-              'title': 'Integrated Ice Area',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'iceAreaCell'},
-             {'name': 'iceVolume',
-              'title': 'Integrated Ice Volume',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'iceVolumeCell'},
-             {'name': 'iceAreaCategory',
-              'title': 'Integrated Ice Area Cats',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'iceAreaCategory'},
-             {'name': 'iceVolumeCategory',
-              'title': 'Integrated Ice Volume Cats',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'iceVolumeCategory'},
-             {'name': 'icePressure',
-              'title': 'Ice Pressure',
-              'units': 'N m$^{-1}$',
-              'factor': 1,
-              'mpas': 'icePressure'},
-             {'name': 'levelIceArea',
-              'title': 'Integrated level-ice Area Cats',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'levelIceArea'},
-             {'name': 'levelIceVolume',
-              'title': 'Integrated level-ice Volume Cats',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'levelIceVolume'},
-             {'name': 'ridgedIceAreaAverage',
-              'title': 'Integrated ridged-ice Area',
-              'units': 'km$^2$',
-              'factor': 1e-6,
-              'mpas': 'ridgedIceAreaAverage'},
-             {'name': 'ridgedIceVolumeAverage',
-              'title': 'Integrated ridged-ice Volume',
-              'units': 'km$^3$',
-              'factor': 1e-9,
-              'mpas': 'ridgedIceVolumeAverage'},
-             {'name': 'ridgeConvergence',
-              'title': 'Normalized energy dissipation due to convergence',
-              'units': 's$^{-1}$',
-              'factor': 1,
-              'mpas': 'ridgeConvergence'},
-             {'name': 'ridgeShear',
-              'title': 'Normalized energy dissipation due to shear',
-              'units': 's$^{-1}$',
-              'factor': 1,
-              'mpas': 'ridgeShear'},
+#mpasFile = 'timeSeriesStatsDaily'
+#mpasvarHeader = 'timeDaily_avg_'
+#variables = [
+#             {'name': 'iceArea',
+#              'title': 'Integrated Ice Area',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'iceAreaCell'},
+#             {'name': 'iceVolume',
+#              'title': 'Integrated Ice Volume',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'iceVolumeCell'},
+#             {'name': 'iceAreaCategory',
+#              'title': 'Integrated Ice Area Cats',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'iceAreaCategory'},
+#             {'name': 'iceVolumeCategory',
+#              'title': 'Integrated Ice Volume Cats',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'iceVolumeCategory'},
+#             {'name': 'icePressure',
+#              'title': 'Ice Pressure',
+#              'units': 'N m$^{-1}$',
+#              'factor': 1,
+#              'mpas': 'icePressure'},
+#             {'name': 'levelIceArea',
+#              'title': 'Integrated level-ice Area Cats',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'levelIceArea'},
+#             {'name': 'levelIceVolume',
+#              'title': 'Integrated level-ice Volume Cats',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'levelIceVolume'},
+#             {'name': 'ridgedIceAreaAverage',
+#              'title': 'Integrated ridged-ice Area',
+#              'units': 'km$^2$',
+#              'factor': 1e-6,
+#              'mpas': 'ridgedIceAreaAverage'},
+#             {'name': 'ridgedIceVolumeAverage',
+#              'title': 'Integrated ridged-ice Volume',
+#              'units': 'km$^3$',
+#              'factor': 1e-9,
+#              'mpas': 'ridgedIceVolumeAverage'},
+#             {'name': 'ridgeConvergence',
+#              'title': 'Normalized energy dissipation due to convergence',
+#              'units': 's$^{-1}$',
+#              'factor': 1,
+#              'mpas': 'ridgeConvergence'},
+#             {'name': 'ridgeShear',
+#              'title': 'Normalized energy dissipation due to shear',
+#              'units': 's$^{-1}$',
+#              'factor': 1,
+#              'mpas': 'ridgeShear'},
 #             {'name': 'iceAreaTendThermodynamics',
 #              'title': 'Integrated iceAreaTendThermodynamics',
 #              'units': 'km$^2$/day',
@@ -284,19 +284,23 @@ variables = [
 #              'units': 'km$^3$/day',
 #              'factor': 8.64e-5, # 1e-9*86400 (original units of the non-integrated field are m s-1)
 #              'mpas': 'iceVolumeTendencyTransport'}
-            ]
+#            ]
 
 if isShortTermArchive:
     if runName=='E3SMv2.1B60to10rA07':
         if isPostproc:
-            rundir = f'{rundir}/{modelComp}/postproc'
+            rundir = f'{rundir0}/{modelComp}/postproc'
         else:
-            rundir = f'{rundir}/{modelComp}/hist'
+            rundir = f'{rundir0}/{modelComp}/hist'
+        icedir = f'{rundir0}/ice/hist'
     else:
         if isPostproc:
-            rundir = f'{rundir}/archive/{modelComp}/postproc'
+            rundir = f'{rundir0}/archive/{modelComp}/postproc'
         else:
-            rundir = f'{rundir}/archive/{modelComp}/hist'
+            rundir = f'{rundir0}/archive/{modelComp}/hist'
+        icedir = f'{rundir0}/archive/ice/hist'
+else:
+    rundir = rundir0
 
 outdir = f'./timeseries_data/{runName}'
 if not os.path.isdir(outdir):
@@ -395,6 +399,7 @@ for regionGroup in regionGroups:
                 print(f'Processing variable = {vartitle},  year={year}')
                 # Load in yearly data set for chosen variable
                 datasets = []
+                datasetsIce = []
                 for month in range(1, 13):
                     if isPostproc:
                         inputFile = f'{rundir}/{varname}.{runName}.{mpasComp}.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
@@ -405,24 +410,52 @@ for regionGroup in regionGroups:
                         inputFile = f'{rundir}/{runName}.{mpasComp}.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
                         if not os.path.exists(inputFile):
                             raise IOError(f'Input file: {inputFile} not found')
+                        #dsTimeSlice = open_mpas_dataset(fileName=inputFile,
+                        #                                calendar=calendar,
+                        #                                timeVariableNames=timeVariableNames,
+                        #                                variableList=variableList,
+                        #                                startDate=startDate,
+                        #                                endDate=endDate)
                         dsTimeSlice = open_mpas_dataset(fileName=inputFile,
                                                         calendar=calendar,
-                                                        timeVariableNames=timeVariableNames,
+                                                        timeVariableNames=None,
                                                         variableList=variableList,
-                                                        startDate=startDate,
-                                                        endDate=endDate)
-                    #if not os.path.exists(inputFile):
-                    #    raise IOError(f'Input file: {inputFile} not found')
-
-                    #dsTimeSlice = open_mpas_dataset(fileName=inputFile,
-                    #                                calendar=calendar,
-                    #                                timeVariableNames=timeVariableNames,
-                    #                                variableList=variableList,
-                    #                                startDate=startDate,
-                    #                                endDate=endDate)
+                                                        startDate=None,
+                                                        endDate=None)
                     datasets.append(dsTimeSlice)
+                    if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+                       varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+                       varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or \
+                       varname=='totalHeatFlux' or varname=='totalFWFlux':
+                        inputFile = f'{icedir}/{runName}.mpassi.hist.am.{mpasFile}.{year:04d}-{month:02d}-01.nc'
+                        if not os.path.exists(inputFile):
+                            raise IOError(f'Input file: {inputFile} not found')
+                        #dsIceSlice = open_mpas_dataset(fileName=inputFile,
+                        #                                calendar=calendar,
+                        #                                timeVariableNames=timeVariableNames,
+                        #                                variableList=[f'{mpasvarHeader}iceAreaCell'],
+                        #                                startDate=startDate,
+                        #                                endDate=endDate)
+                        dsIceSlice = open_mpas_dataset(fileName=inputFile,
+                                                        calendar=calendar,
+                                                        timeVariableNames=None,
+                                                        variableList=[f'{mpasvarHeader}iceAreaCell'],
+                                                        startDate=None,
+                                                        endDate=None)
+                        datasetsIce.append(dsIceSlice)
                 # combine data sets into a single data set
                 dsIn = xr.concat(datasets, 'Time')
+                if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+                   varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+                   varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or \
+                   varname=='totalHeatFlux' or varname=='totalFWFlux':
+                    dsIce = xr.concat(datasetsIce, 'Time')
+                    iceFrac = dsIce[f'{mpasvarHeader}iceAreaCell']
+                    #iceFrac = iceFrac.assign_coords(startTime=dsIn[varmpasname].startTime, endTime=dsIn[varmpasname].endTime)
+                    iceFactor = (1-iceFrac)
+                    iceFactor = iceFactor.where(iceFactor>1e-20, 1e-20)
+                    iceFactor = 1/iceFactor
+                    
 
                 datasets = []
                 regionIndices = []
@@ -478,14 +511,20 @@ for regionGroup in regionGroups:
                                         dsIn[f'{mpasvarHeader}longWaveHeatFluxDown'] + \
                                         dsIn[f'{mpasvarHeader}longWaveHeatFluxUp']
                         if regionName=='Global':
-                            totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalArea
+                            totalHeatFlux_iceWeighted = (areaCell*totalHeatFlux).sum(dim='nCells') / globalArea
+                            totalHeatFlux_iceUnweighted = (areaCell*iceFactor*totalHeatFlux).sum(dim='nCells') / globalArea
                             totalArea = globalArea
                         else:
-                            totalHeatFlux = (localArea*totalHeatFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalHeatFlux_iceWeighted = (localArea*totalHeatFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalHeatFlux_iceUnweighted = (localArea*(iceFactor*totalHeatFlux).where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
                             totalArea = regionalArea
-                        dsOut = xr.Dataset(data_vars={varname: totalHeatFlux},
-                                           coords={'Time': dsIn.Time},
-                                           attrs={'units': varunits, 'description': vartitle})
+                        dsOut = xr.Dataset(data_vars={varname: totalHeatFlux_iceWeighted,
+                                                      f'{varname}_iceUnweighted': totalHeatFlux_iceUnweighted},
+                                           coords={'Time': dsIn.Time})
+                        dsOut[varname].attrs['units'] = varunits
+                        dsOut[varname].attrs['description'] = vartitle
+                        dsOut[f'{varname}_iceUnweighted'].attrs['units'] = varunits
+                        dsOut[f'{varname}_iceUnweighted'].attrs['description'] = f'{vartitle} un-weigthed by ice fraction'
                     elif varname=='totalFWFlux':
                         totalFWFlux = dsIn[f'{mpasvarHeader}evaporationFlux'] + \
                                       dsIn[f'{mpasvarHeader}rainFlux'] + \
@@ -494,14 +533,39 @@ for regionGroup in regionGroups:
                                       dsIn[f'{mpasvarHeader}iceRunoffFlux'] + \
                                       dsIn[f'{mpasvarHeader}seaIceFreshWaterFlux']
                         if regionName=='Global':
-                            totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalArea
+                            totalFWFlux_iceWeighted = (areaCell*totalFWFlux).sum(dim='nCells') / globalArea
+                            totalFWFlux_iceUnweighted = (areaCell*iceFactor*totalFWFlux).sum(dim='nCells') / globalArea
                             totalArea = globalArea
                         else:
-                            totalFWFlux = (localArea*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalFWFlux_iceWeighted = (localArea*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalFWFlux_iceUnweighted = (localArea*(iceFactor*totalFWFlux).where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
                             totalArea = regionalArea
-                        dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
-                                           coords={'Time': dsIn.Time},
-                                           attrs={'units': varunits, 'description': vartitle})
+                        dsOut = xr.Dataset(data_vars={varname: totalFWFlux_iceWeighted,
+                                                      f'{varname}_iceUnweighted': totalFWFlux_iceUnweighted},
+                                           coords={'Time': dsIn.Time})
+                        dsOut[varname].attrs['units'] = varunits
+                        dsOut[varname].attrs['description'] = vartitle
+                        dsOut[f'{varname}_iceUnweighted'].attrs['units'] = varunits
+                        dsOut[f'{varname}_iceUnweighted'].attrs['description'] = f'{vartitle} un-weigthed by ice fraction'
+                    elif varname=='evaporationFlux' or varname=='rainFlux' or \
+                         varname=='snowFlux' or varname=='sensibleHeatFlux' or \
+                         varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+                         varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp':
+                        if regionName=='Global':
+                            fld = (areaCell*dsIn[varmpasname]).sum(dim='nCells') / globalArea
+                            fld_iceUnweighted = (areaCell*iceFactor*dsIn[varmpasname]).sum(dim='nCells') / globalArea
+                            totalArea = globalArea
+                        else:
+                            fld = (localArea*dsIn[varmpasname].where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            fld_iceUnweighted = (localArea*(iceFactor*dsIn[varmpasname]).where(cellMask, drop=True)).sum(dim='nCells') / regionalArea
+                            totalArea = regionalArea
+                        dsOut = xr.Dataset(data_vars={varname: fld,
+                                                      f'{varname}_iceUnweighted': fld_iceUnweighted},
+                                           coords={'Time': dsIn.Time})
+                        dsOut[varname].attrs['units'] = varunits
+                        dsOut[varname].attrs['description'] = vartitle
+                        dsOut[f'{varname}_iceUnweighted'].attrs['units'] = varunits
+                        dsOut[f'{varname}_iceUnweighted'].attrs['description'] = f'{vartitle} un-weigthed by ice fraction'
                     elif varname=='iceArea' or varname=='iceVolume' or \
                          varname=='iceAreaCategory' or varname=='iceVolumeCategory' or \
                          varname=='levelIceArea' or varname=='levelIceVolume' or \
@@ -538,6 +602,11 @@ for regionGroup in regionGroups:
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
                     dsOut[varname] = varfactor * dsOut[varname]
+                    if varname=='evaporationFlux' or varname=='rainFlux' or varname=='snowFlux' or \
+                       varname=='sensibleHeatFlux' or varname=='latentHeatFlux' or varname=='shortWaveHeatFlux' or \
+                       varname=='longWaveHeatFluxDown' or varname=='longWaveHeatFluxUp' or \
+                       varname=='totalHeatFlux' or varname=='totalFWFlux':
+                        dsOut[f'{varname}_iceUnweighted'] = varfactor * dsOut[f'{varname}_iceUnweighted']
                     dsOut['totalArea'] = totalArea
                     dsOut['totalArea'].attrs['units'] = 'm^2'
                     dsOut['regionNames'] = regionName

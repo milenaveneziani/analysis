@@ -55,8 +55,8 @@ varType = 'timeDaily_avg_'
 meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runname = 'E3SMv2.1B60to10rA02'
 #runname = 'E3SMv2.1G60to10_01'
-runname = 'E3SMv3G60to10_01cd25'
 #modeldir = f'/p/global/milena/{runname}/archive/{model}/hist'
+runname = 'E3SMv3G60to10_01cd25'
 modeldir = f'/p/global/osinski/archive/{runname}/{model}/hist'
 
 # Settings for lanl

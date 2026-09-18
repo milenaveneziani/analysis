@@ -16,23 +16,23 @@ from geometric_features import FeatureCollection, read_feature_collection
 from common_functions import timeseries_analysis_plot, add_inset
 
 #startYear = 2000
-startYear = 2010
-endYear = 2014
-#startYear = 1
+#startYear = 2010
+#endYear = 2014
+startYear = 1
 #endYear = 1
-#endYear = 50
+endYear = 50
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0101'
+#runNameShort = 'E3SMv2.1-Arctic-historical0101'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -50,18 +50,18 @@ isShortTermArchive = True # if True '{modelComp}/hist' will be affixed to rundir
 #isShortTermArchive = True
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1G60to10_01'
 #runNameShort = 'E3SMv2.1G60to10_01'
-#runName = 'E3SMv2.1B60to10rA02'
-#runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/global/milena/{runName}'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
+rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -85,10 +85,11 @@ titleMonthsToPlot = None
 # region mask file will be $meshname_$regionGroups.nc
 #regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
+regionGroups = ['arctic_atlantic_budget_regions_20260827']
 #regionGroups = ['Arctic Regions']
 ##regionGroups = ['OceanOHC Regions']
 ##regionGroups = ['Antarctic Regions']
-regionGroups = ['Beaufort Sea Siobhan']
+#regionGroups = ['Beaufort Sea Siobhan']
 
 # Choose either 2d variables in timeSeriesStatsMonthly
 # or variables in timeSeriesStatsMonthlyMax (2d only) or
@@ -195,21 +196,21 @@ regionGroups = ['Beaufort Sea Siobhan']
 #   Sea ice variables
 mpasComp = 'mpassi'
 modelComp = 'ice'
-#mpasFile = 'timeSeriesStatsMonthly'
-#mpasvar = 'timeMonthly_avg'
-mpasFile = 'timeSeriesStatsDaily'
-mpasvar = 'timeDaily_avg'
+mpasFile = 'timeSeriesStatsMonthly'
+mpasvar = 'timeMonthly_avg'
+#mpasFile = 'timeSeriesStatsDaily'
+#mpasvar = 'timeDaily_avg'
 variables = [
-             {'name': 'icePressure',
-              'title': 'sea ice pressure',
-              'units': 'N m$^{-1}$',
-              'factor': 1,
-              'mpas': f'{mpasvar}_icePressure'},
-             {'name': 'iceConcentration',
-              'title': 'sea ice concentration',
-              'units': 'fraction',
-              'factor': 1,
-              'mpas': f'{mpasvar}_iceAreaCell'},
+#             {'name': 'icePressure',
+#              'title': 'sea ice pressure',
+#              'units': 'N m$^{-1}$',
+#              'factor': 1,
+#              'mpas': f'{mpasvar}_icePressure'},
+#             {'name': 'iceConcentration',
+#              'title': 'sea ice concentration',
+#              'units': 'fraction',
+#              'factor': 1,
+#              'mpas': f'{mpasvar}_iceAreaCell'},
              {'name': 'iceArea',
               'title': 'integrated sea ice area',
               'units': 'km$^2$',
@@ -220,16 +221,16 @@ variables = [
               'units': 'km$^3$',
               'factor': 1e-9,
               'mpas': f'{mpasvar}_iceVolumeCell'},
-             {'name': 'uVelocityGeo',
-              'title': 'sea ice velocity zonal',
-              'units': 'm/s',
-              'factor': 1,
-              'mpas': f'{mpasvar}_uVelocityGeo'},
-             {'name': 'vVelocityGeo',
-              'title': 'sea ice velocity meridional',
-              'units': 'm/s',
-              'factor': 1,
-              'mpas': f'{mpasvar}_vVelocityGeo'},
+#             {'name': 'uVelocityGeo',
+#              'title': 'sea ice velocity zonal',
+#              'units': 'm/s',
+#              'factor': 1,
+#              'mpas': f'{mpasvar}_uVelocityGeo'},
+#             {'name': 'vVelocityGeo',
+#              'title': 'sea ice velocity meridional',
+#              'units': 'm/s',
+#              'factor': 1,
+#              'mpas': f'{mpasvar}_vVelocityGeo'},
 # the following are only available as monthly (for E3SMv2.1 runs):
 #             {'name': 'iceDivergence',
 #              'title': 'sea ice divergence',
