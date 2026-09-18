@@ -122,6 +122,7 @@ animations_xymaps/
 TSprofiles/
 composites_maxMLDbased/
 ocean_native/
+animations_jra55/
 
 # Processed data directories
 *_data/

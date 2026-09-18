@@ -35,7 +35,7 @@ mocfile2 = f'{mocdir}/{runname2}/mocTimeSeries_0001-0246.nc'
 mocfile3 = f'{mocdir}/{runname3}/mocTimeSeries_0001-0059.nc'
 regionalTSdir = '/global/cfs/cdirs/m4259/milena/AMOCpaper/timeseries_data'
 
-moccolors = ['black', 'red', 'green'] # same length as number of runnames
+moccolors = ['black', 'magenta', 'green'] # same length as number of runnames
 #moccolors = ['mediumblue', 'dodgerblue', 'teal'] #, 'lightseagreen', 'green'] # same length as number of runnames
 
 regionGroup = 'arctic_atlantic_budget_regions_new20240408'
@@ -49,9 +49,9 @@ regionName = 'Greater Arctic'
 #regionName = 'Nordic Seas'
 #regionName = 'North Atlantic subpolar gyre'
 regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '')
-moclats = [26, 45, 65]
+moclats = [-34, 26, 45, 60, 65]
 movingAverageMonths = 12 # months
-movingAverageMonths = 5*12 # months
+#movingAverageMonths = 5*12 # months
 
 npanelsToPlot = 1 # only plots multi-model moc (for each moclats)
 # This script needs to be edited in order to plot more than 1 panel (as of Apr 2026)
@@ -95,7 +95,7 @@ for nlat in range(len(moclats)):
     if lat>0:
         legendlabel = f'{lat:d}N'
     elif lat<0:
-        legendlabel = f'{lat:d}S'
+        legendlabel = f'{np.abs(lat):d}S'
     else:
         legendlabel = f'{lat:d}'
 
