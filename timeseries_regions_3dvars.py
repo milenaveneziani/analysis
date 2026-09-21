@@ -43,10 +43,10 @@ calendar = 'gregorian'
 regionMaskDir = '/p/home/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1G60to10_01'
-#runNameShort = 'E3SMv2.1G60to10_01'
-runName = 'E3SMv2.1B60to10rA02'
-runNameShort = 'E3SMv2.1B60to10rA02'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
+#runName = 'E3SMv2.1B60to10rA02'
+#runNameShort = 'E3SMv2.1B60to10rA02'
 rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
@@ -64,8 +64,8 @@ isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir
 
 computeDepthAvg = True
 # Relevant only for computeDepthAvg = True
-zmins = [-50.]
-zmaxs = [0.]
+zmins = [-800.]
+zmaxs = [10.]
 # Relevant only for computeDepthAvg = False
 dlevels = [0.]
 
@@ -188,7 +188,10 @@ for regionGroup in regionGroups:
                 zmin = zmins[k]
                 zmax = zmaxs[k]
 
-                timeSeriesFile = f'{outdir}/{groupName}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_year{year:04d}.nc'
+                if zmax>0:
+                    timeSeriesFile = f'{outdir}/{groupName}_z0000-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
+                else:
+                    timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
 
                 if not os.path.exists(timeSeriesFile):
                     print(f'Computing regional time series for year={year}, depth range= {zmax}, {zmin}')
