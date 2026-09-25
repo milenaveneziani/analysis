@@ -343,7 +343,10 @@ for regionGroup in regionGroups:
             zmax = zmaxs[k]
             timeSeriesFiles = []
             for year in years:
-                timeSeriesFile = f'{outdir}/{groupName}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_year{year:04d}.nc'
+                if zmax>0:
+                    timeSeriesFile = f'{outdir}/{groupName}_z0000-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
+                else:
+                    timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_year{year:04d}.nc'
                 timeSeriesFiles.append(timeSeriesFile)
 
             for regionIndex, regionName in enumerate(regionNames):
@@ -374,7 +377,10 @@ for regionGroup in regionGroups:
                     lineWidths = [2.5]
                     legendText = [runNameShort]
                     title = f'Volume-Mean {title} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {units})'
-                    figFileName = f'{figdir}/{regionNameShort}_z{np.int32(zmin):05d}_{np.int32(zmax):05d}_{varName}_years{years[0]}-{years[-1]}.png'
+                    if zmax>0:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_{varName}_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varName}_years{years[0]}-{years[-1]}.png'
 
                     fig = timeseries_analysis_plot(field, movingAverageMonths,
                                                    title, xLabel, yLabel,
