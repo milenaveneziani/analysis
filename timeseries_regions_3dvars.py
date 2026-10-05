@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, \
 import os
 import xarray as xr
 import numpy as np
-import gsw
 import matplotlib.pyplot as plt
 
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
@@ -20,16 +19,18 @@ startYear = 1
 endYear = 50
 #endYear = 246 # rA07
 #endYear = 386 # rA02
+startYear = 1950
+endYear = 1950
 calendar = 'gregorian'
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0301'
-#runNameShort = 'E3SMv2.1-Arctic-historical0301'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -41,18 +42,18 @@ calendar = 'gregorian'
 #isShortTermArchive = False
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1G60to10_01'
-runNameShort = 'E3SMv2.1G60to10_01'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1G60to10_01'
+#runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/global/milena/{runName}'
+#rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -95,12 +96,7 @@ variables = [
               'title': 'Potential density',
               'units': 'Kg/m$^3$',
               'factor': 1,
-              'mpas': 'timeMonthly_avg_potentialDensity'},
-             {'name': 'alphaOnBeta',
-              'title': 'alpha/beta ratio',
-              'units': 'g/(Kg * K)',
-              'factor': 1,
-              'mpas': None}
+              'mpas': 'timeMonthly_avg_potentialDensity'}
             ]
 
 if isShortTermArchive:
@@ -130,8 +126,6 @@ areaCell = dsMesh.areaCell
 globalArea = areaCell.sum()
 depth = dsMesh.bottomDepth
 maxLevelCell = dsMesh.maxLevelCell - 1 # now compute_zmid uses 0-based indexing
-latCell = dsMesh.latCell
-lonCell = dsMesh.lonCell
 
 # Find model levels for each depth level (relevant if computeDepthAvg = False)
 z = dsMesh.refBottomDepth
@@ -144,7 +138,11 @@ startDate = f'{startYear:04d}-01-01_00:00:00'
 endDate = f'{endYear:04d}-12-31_23:59:59'
 years = range(startYear, endYear + 1)
 
-variableList = [var['mpas'] for var in variables] + ['timeMonthly_avg_layerThickness']
+variableList = []
+for var in variables:
+    if var['mpas'] is not None:
+        variableList.append(var['mpas'])
+variableList.append('timeMonthly_avg_layerThickness')
 timeVariableNames = ['xtime_startMonthly', 'xtime_endMonthly']
 
 for regionGroup in regionGroups:
@@ -230,15 +228,6 @@ for regionGroup in regionGroups:
                             localLayerVol = layerVol.where(cellMask, drop=True)
                             regionalLayerVol = localLayerVol.sum(dim='nVertLevels').sum(dim='nCells')
 
-                            depthmean = zMid.where(depthMask, drop=False).where(cellMask, drop=True)
-                            #depthmean = depthmean.mean(dim='nVertLevels')
-                            print(depthMean.values)
-                            latmean = 180.0/np.pi * latCell.where(cellMask, drop=True)
-                            lonmean = 180.0/np.pi * lonCell.where(cellMask, drop=True)
-                            pressure = gsw.p_from_z(depthMean, latmean)
-                            print(pressure.values)
-                            boh
-
                         dsOut = xr.Dataset()
                         for var in variables:
                             outName = var['name']
@@ -246,14 +235,7 @@ for regionGroup in regionGroups:
                             units = var['units']
                             description = var['title']
 
-                            if outname=='alphaOnBeta':
-                                temp = dsIn[]
-                                salt = dsIn[]
-                                SA = gsw.SA_from_SP(salt, pressure, lonmean, latmean)
-                                CT = gsw.CT_from_pt(SA, temp)
-                                timeSeries = gsw.density.alpha_on_beta(SA, CT, pressure)
-                            else:
-                                timeSeries = dsIn[mpasVarName]
+                            timeSeries = dsIn[mpasVarName]
                             timeSeries = timeSeries.where(depthMask, drop=False)
                             if regionName=='Global':
                                 timeSeries = \
