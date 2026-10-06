@@ -32,7 +32,7 @@ def make_mosaic_descriptor(dsMesh, projectionName):
     descriptor = mosaic.Descriptor(dsMesh, projection, transform, use_latlon=True)
     return descriptor
 
-def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, ttestMask=None, showEdges=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, ttestMask=None, showEdges=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, lonCentral=0):
     
     figdpi = 150
     figsize = [20, 20]
@@ -42,13 +42,13 @@ def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, ttestMa
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='SouthPolarStereo':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='Miller':
-        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=lonCentral))
     else:
-        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=lonCentral))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
     gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
@@ -97,7 +97,7 @@ def make_mosaic_plot(lon, lat, fld, mosaicDescriptor, figTitle, figFile, ttestMa
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
 
-def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, fld=None, ttestMask=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
+def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, lonCentral=0, fld=None, ttestMask=None, cmap=None, clevels=None, cindices=None, cbarLabel=None, contourfld=None, contourLevels=None, contourColors=None):
     
     figdpi = 150
     figsize = [20, 20]
@@ -107,13 +107,13 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='SouthPolarStereo':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='Miller':
-        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=lonCentral))
     else:
-        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=lonCentral))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
     gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
@@ -160,7 +160,7 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     plt.savefig(figFile, bbox_inches='tight')
     plt.close()
 
-def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices, cbarLabel, projectionName, figTitle, figFile, lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices, cbarLabel, projectionName, figTitle, figFile, lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, lonCentral=0):
     
     figdpi = 150
     figsize = [20, 20]
@@ -172,13 +172,13 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='SouthPolarStereo':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='Miller':
-        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=lonCentral))
     else:
-        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=lonCentral))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
     gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
@@ -210,7 +210,7 @@ def make_streamline_plot(lon, lat, u, v, speed, density, cmap, clevels, cindices
     plt.close()
 
 
-def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTitle, figFile, contourFld=None, contourValues=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTitle, figFile, contourFld=None, contourValues=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, lonCentral=0):
     
     figdpi = 150
     figsize = [20, 20]
@@ -222,13 +222,13 @@ def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTit
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='SouthPolarStereo':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='Miller':
-        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=lonCentral))
     else:
-        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=lonCentral))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
     gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
@@ -262,7 +262,7 @@ def make_contourf_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTit
     plt.close()
     
 
-def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTitle, figFile, contourFld=None, contourValues=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20):
+def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figTitle, figFile, contourFld=None, contourValues=None, projectionName='Robinson', lon0=-180, lon1=180, dlon=40, lat0=-90, lat1=90, dlat=20, lonCentral=0):
     
     figdpi = 150
     figsize = [20, 20]
@@ -274,13 +274,13 @@ def make_pcolormesh_plot(lon, lat, fld, cmap, clevels, cindices, cbarLabel, figT
     plt.figure(figsize=figsize, dpi=figdpi)
 
     if projectionName=='NorthPolarStereo':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='SouthPolarStereo':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=0))
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(central_longitude=lonCentral))
     elif projectionName=='Miller':
-        ax = plt.axes(projection=ccrs.Miller(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=lonCentral))
     else:
-        ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+        ax = plt.axes(projection=ccrs.Robinson(central_longitude=lonCentral))
     ax.set_extent([lon0, lon1, lat0, lat1], crs=data_crs)
     gl = ax.gridlines(crs=data_crs, color='k', linestyle=':', zorder=6, draw_labels=True)
     gl.xlocator = mticker.FixedLocator(np.arange(lon0, lon1+dlon, dlon))
