@@ -129,7 +129,7 @@ def make_scatter_plot(lon, lat, dotSize, figTitle, figFile, projectionName='Robi
     if fld is not None:
         [colormap, cnorm] = _make_discrete_colormap(cmap, cindices, clevels)
         sc = ax.scatter(lon, lat, s=dotSize, c=fld, cmap=colormap, norm=cnorm, marker='o', transform=data_crs)
-        if cindices is not None:
+        if cindices is not None and len(clevels)+1==len(cindices):
             cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4, extend='both')
         else:
             cbar = plt.colorbar(sc, ticks=clevels, boundaries=clevels, location='right', pad=0.03, shrink=.4)
