@@ -23,19 +23,19 @@ endYear = 50
 endYear = 2
 #endYear = 246 # rA07
 #endYear = 386 # rA02
-#startYear = 1950
-#endYear = 1950
+startYear = 1950
+endYear = 1951
 year0 = startYear # Plotting of anomalies wrt month 1 of year0
 calendar = 'gregorian'
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0101'
-#runNameShort = 'E3SMv2.1-Arctic-historical0101'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -47,18 +47,18 @@ calendar = 'gregorian'
 #isShortTermArchive = False
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1G60to10_01'
-runNameShort = 'E3SMv2.1G60to10_01'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1G60to10_01'
+#runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/global/milena/{runName}'
+#rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -321,7 +321,7 @@ for regionGroup in regionGroups:
                         dsOut.zbounds.attrs['units'] = 'm'
 
                         dsOut['regionNames'] = regionName
-                        dsOut['Time'] = dsIn['Time']
+                        #dsOut['Time'] = dsIn['Time']
 
                         datasets.append(dsOut)
 
@@ -330,7 +330,6 @@ for regionGroup in regionGroups:
 
                     # zbounds has become region dependent and shouldn't be
                     dsOut['zbounds'] = dsOut['zbounds'].isel(nRegions=0, drop=True)
-                    print(dsOut)
 
                     #write_netcdf(dsOut, timeSeriesFile)
                     write_netcdf_with_fill(dsOut, timeSeriesFile)
@@ -446,9 +445,9 @@ for regionGroup in regionGroups:
             timeSeriesFiles = []
             for year in years:
                 if zmax>0:
-                    timeSeriesFile = f'{outdir}/{groupName}_z0000-{np.abs(np.int32(zmin)):04d}_anomalieswrtYear{year0}_year{year0:04d}.nc'
+                    timeSeriesFile = f'{outdir}/{groupName}_z0000-{np.abs(np.int32(zmin)):04d}_anomalieswrtYear{year0}_year{year:04d}.nc'
                 else:
-                    timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_anomalieswrtYear{year0}_year{year0:04d}.nc'
+                    timeSeriesFile = f'{outdir}/{groupName}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_anomalieswrtYear{year0}_year{year:04d}.nc'
                 timeSeriesFiles.append(timeSeriesFile)
 
             for regionIndex, regionName in enumerate(regionNames):
@@ -459,14 +458,9 @@ for regionGroup in regionGroups:
                         fc.add_feature(feature)
                         break
 
-                print(timeSeriesFiles)
                 dsIn  = xr.open_mfdataset(timeSeriesFiles, combine='nested',
                                           concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
-                print(dsIn.Time)
-                dsIn  = xr.open_mfdataset(timeSeriesFiles, combine='nested',
-                                          concat_dim='Time').isel(nRegions=regionIndex)
-                print(dsIn.Time)
-                boh
+                print(dsIn['Time'])
 
                 zbounds = dsIn.zbounds.values[0]
 
