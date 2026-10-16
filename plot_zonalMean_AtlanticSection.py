@@ -20,7 +20,6 @@ from mpas_analysis.shared.io.utility import decode_strings
 
 from geometric_features import FeatureCollection, read_feature_collection
 
-from common_functions import timeseries_analysis_plot, add_inset
 
 # Settings for anvil/chrysalis
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'

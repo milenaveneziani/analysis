@@ -50,10 +50,10 @@ calendar = 'gregorian'
 regionMaskDir = '/p/home/milena/mpas-region_masks'
 meshName = 'ARRM10to60E2r1'
 meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1G60to10_01'
-#runNameShort = 'E3SMv2.1G60to10_01'
-runName = 'E3SMv2.1B60to10rA02'
-runNameShort = 'E3SMv2.1B60to10rA02'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
+#runName = 'E3SMv2.1B60to10rA02'
+#runNameShort = 'E3SMv2.1B60to10rA02'
 rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
@@ -251,6 +251,7 @@ for regionGroup in regionGroups:
                         dgswrho = gsw_rho - gsw_rho0
                         dgswrho_alpha = - gsw_rho * alpha * dCT
                         dgswrho_beta  =   gsw_rho * beta  * dSA
+                        alphaBetaRatio = dgswrho_alpha/dgswrho_beta.clip(min=1e-15)
 
                         # Debugging
                         #dCT = CT.isel(Time=11) - CT.isel(Time=10)
@@ -285,9 +286,9 @@ for regionGroup in regionGroups:
                         dsalt = (localLayerVol * (salt-salt0)).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
                         drho = (localLayerVol * (rho-rho0)).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
                         dgswrho = (localLayerVol * dgswrho).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
-                        alphaBetaRatio = (localLayerVol * dgswrho_alpha/dgswrho_beta).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
                         dgswrho_alpha = (localLayerVol * dgswrho_alpha).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
                         dgswrho_beta = (localLayerVol * dgswrho_beta).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
+                        alphaBetaRatio = (localLayerVol * alphaBetaRatio).sum(dim='nVertLevels').sum(dim='nCells') / regionalLayerVol
 
                         # Save to dataset
                         dsOut = xr.Dataset()
@@ -386,15 +387,16 @@ for regionGroup in regionGroups:
                         dgswrho = gsw_rho - gsw_rho0
                         dgswrho_alpha = - gsw_rho * alpha * dCT
                         dgswrho_beta  =   gsw_rho * beta  * dSA
+                        alphaBetaRatio = dgswrho_alpha/dgswrho_beta.clip(min=1e-15)
 
                         # Now weight-average horizontally and vertically
                         dtemp = (localArea * (temp-temp0)).sum(dim='nCells') / regionalArea
                         dsalt = (localArea * (salt-salt0)).sum(dim='nCells') / regionalArea
                         drho = (localArea * (rho-rho0)).sum(dim='nCells') / regionalArea
                         dgswrho = (localArea * dgswrho).sum(dim='nCells') / regionalArea
-                        alphaBetaRatio = (localLayerVol * dgswrho_alpha/dgswrho_beta).sum(dim='nCells') / regionalArea
                         dgswrho_alpha = (localArea * dgswrho_alpha).sum(dim='nCells') / regionalArea
                         dgswrho_beta = (localArea * dgswrho_beta).sum(dim='nCells') / regionalArea
+                        alphaBetaRatio = (localLayerVol * alphaBetaRatio).sum(dim='nCells') / regionalArea
 
                         # Save to dataset
                         dsOut = xr.Dataset()
@@ -424,7 +426,7 @@ for regionGroup in regionGroups:
                         dsOut['totalArea'] = regionalArea
                         dsOut.totalArea.attrs['units'] = 'm^2'
 
-                        dsOut['regionNames'] = regionName
+                        dsOus['regionNames'] = regionName
 
                         datasets.append(dsOut)
 
@@ -459,7 +461,6 @@ for regionGroup in regionGroups:
 
                 dsIn  = xr.open_mfdataset(timeSeriesFiles, combine='nested',
                                           concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
-                print(dsIn['Time'])
 
                 zbounds = dsIn.zbounds.values[0]
 
@@ -481,13 +482,9 @@ for regionGroup in regionGroups:
                 else:
                     figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
 
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
 
                 # do this before the inset because otherwise it moves the inset
                 # and cartopy doesn't play too well with tight_layout anyway
@@ -509,13 +506,9 @@ for regionGroup in regionGroups:
                     figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 else:
                     figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
@@ -545,12 +538,13 @@ for regionGroup in regionGroups:
                 [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
                                                      calendar=calendar, timevarname = 'Time', lineColors=lineColors,
                                                      lineWidths=lineWidths, legendText=legendText)
-                ax2 = ax.twinx()
-                ax2color = 'green'
-                ax2.plot(dIn.Time, alphaBetaRatio, '-', color=ax2color, linewidth=2.5)
-                ax2.tick_params(axis='y', labelcolor=ax2color)
-                ax2.spines['right'].set_color(ax2color)
-                ax2.set_ylabel('alpha/beta ratio', color=ax2color)
+                #ax2 = ax.twinx()
+                #ax2color = 'green'
+                #ax2.plot(dsIn.Time, alphaBetaRatio, '-', color=ax2color, linewidth=2.5)
+                #ax2.tick_params(axis='y', labelcolor=ax2color)
+                #ax2.spines['right'].set_color(ax2color)
+                #ax2.set_ylabel('alpha/beta ratio', color=ax2color)
+
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
@@ -589,13 +583,9 @@ for regionGroup in regionGroups:
                 lineColors = ['k']
                 lineWidths = [2.5]
                 figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
@@ -608,13 +598,9 @@ for regionGroup in regionGroups:
                 lineColors = ['k']
                 lineWidths = [2.5]
                 figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
@@ -636,13 +622,9 @@ for regionGroup in regionGroups:
                 legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} $\pm$ {np.nanstd(dgswrho_alpha):5.2f})')
                 legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} $\pm$ {np.nanstd(dgswrho_beta):5.2f})')
                 field = [drho, dgswrho, dgswrho_alpha, dgswrho_beta]
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)

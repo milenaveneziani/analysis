@@ -198,13 +198,9 @@ for var in variables:
     if atmfile=='h2':
         figFileName = f'{figdir}/{regionNameShort}_{varname}_years{years[0]}-{years[-1]}_6hourly.png'
 
-    fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                   title, xLabel, yLabel,
-                                   calendar=calendar,
-                                   timevarname='time',
-                                   lineColors=lineColors,
-                                   lineWidths=lineWidths,
-                                   legendText=legendText)
+    [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                         calendar=calendar, timevarname='time', lineColors=lineColors,
+                                         lineWidths=lineWidths, legendText=legendText)
 
     plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
     plt.close()

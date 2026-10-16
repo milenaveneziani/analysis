@@ -388,13 +388,9 @@ for regionGroup in regionGroups:
                     else:
                         figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{varName}_years{years[0]}-{years[-1]}.png'
 
-                    fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                                   title, xLabel, yLabel,
-                                                   calendar=calendar,
-                                                   timevarname = 'Time',
-                                                   lineColors=lineColors,
-                                                   lineWidths=lineWidths,
-                                                   legendText=legendText)
+                    [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                         calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                         lineWidths=lineWidths, legendText=legendText)
 
                     # do this before the inset because otherwise it moves the inset
                     # and cartopy doesn't play too well with tight_layout anyway
@@ -442,13 +438,9 @@ for regionGroup in regionGroups:
                     title = f'Mean {title} in {regionName} (z={z[zlevels[k]]:5.1f} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {units})'
                     figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_{varName}_years{years[0]}-{years[-1]}.png'
 
-                    fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                                   title, xLabel, yLabel,
-                                                   calendar=calendar,
-                                                   timevarname = 'Time',
-                                                   lineColors=lineColors,
-                                                   lineWidths=lineWidths,
-                                                   legendText=legendText)
+                    [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                         calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                         lineWidths=lineWidths, legendText=legendText)
 
                     # do this before the inset because otherwise it moves the inset
                     # and cartopy doesn't play too well with tight_layout anyway

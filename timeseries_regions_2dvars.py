@@ -667,13 +667,9 @@ for regionGroup in regionGroups:
                     title = f'{titleMonthsToPlot} {vartitle} in {regionName} region\n{np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f} {varunits}'
                 figFileName = f'{figdir}/{regionNameShort}_{varname}_years{years[0]}-{years[-1]}.png'
 
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
 
                 # do this before the inset because otherwise it moves the inset
                 # and cartopy doesn't play too well with tight_layout anyway
