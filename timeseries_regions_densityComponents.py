@@ -20,22 +20,22 @@ from make_plots import make_scatter_plot
 
 startYear = 1
 endYear = 50
-endYear = 2
+#endYear = 2
 #endYear = 246 # rA07
 #endYear = 386 # rA02
-startYear = 1950
-endYear = 1951
+#startYear = 1950
+#endYear = 1951
 year0 = startYear # Plotting of anomalies wrt month 1 of year0
 calendar = 'gregorian'
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0101'
+#runNameShort = 'E3SMv2.1-Arctic-historical0101'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -47,18 +47,18 @@ isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir
 #isShortTermArchive = False
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1G60to10_01'
 #runNameShort = 'E3SMv2.1G60to10_01'
-#runName = 'E3SMv2.1B60to10rA02'
-#runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/global/milena/{runName}'
+runName = 'E3SMv2.1B60to10rA02'
+runNameShort = 'E3SMv2.1B60to10rA02'
+rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -321,7 +321,6 @@ for regionGroup in regionGroups:
                         dsOut.zbounds.attrs['units'] = 'm'
 
                         dsOut['regionNames'] = regionName
-                        #dsOut['Time'] = dsIn['Time']
 
                         datasets.append(dsOut)
 
@@ -530,25 +529,28 @@ for regionGroup in regionGroups:
                     figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 else:
                     figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
-                lineColors = ['k', 'gray', 'red', 'blue']
+                lineColors = ['gray', 'k', 'red', 'blue']
                 lineWidths = [2.5, 2.5, 2.5, 2.5]
 
                 drho = dsIn['potentialDensity']
                 dgswrho  = dsIn['gswPotentialDensity']
                 dgswrho_alpha = dsIn['alphaPotentialDensity']
                 dgswrho_beta = dsIn['betaPotentialDensity']
+                alphaBetaRatio = dsIn['alphaBetaRatio']
                 legendText = [f'rho ({np.nanmean(drho):5.2f} $\pm$ {np.nanstd(drho):5.2f})']
                 legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} $\pm$ {np.nanstd(dgswrho):5.2f})')
                 legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} $\pm$ {np.nanstd(dgswrho_alpha):5.2f})')
                 legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} $\pm$ {np.nanstd(dgswrho_beta):5.2f})')
                 field = [drho, dgswrho, dgswrho_alpha, dgswrho_beta]
-                fig = timeseries_analysis_plot(field, movingAverageMonths,
-                                               title, xLabel, yLabel,
-                                               calendar=calendar,
-                                               timevarname = 'Time',
-                                               lineColors=lineColors,
-                                               lineWidths=lineWidths,
-                                               legendText=legendText)
+                [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
+                                                     calendar=calendar, timevarname = 'Time', lineColors=lineColors,
+                                                     lineWidths=lineWidths, legendText=legendText)
+                ax2 = ax.twinx()
+                ax2color = 'green'
+                ax2.plot(dIn.Time, alphaBetaRatio, '-', color=ax2color, linewidth=2.5)
+                ax2.tick_params(axis='y', labelcolor=ax2color)
+                ax2.spines['right'].set_color(ax2color)
+                ax2.set_ylabel('alpha/beta ratio', color=ax2color)
                 plt.tight_layout()
                 add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.2, ybuffer=-1)
                 plt.savefig(figFileName, dpi='figure', bbox_inches='tight', pad_inches=0.1)
@@ -622,7 +624,7 @@ for regionGroup in regionGroups:
                 yLabel = f'Potential density ({units})'
                 title = f'Mean potential density anomaly contributions wrt year {year0} in {regionName} (z={z[zlevels[k]]:5.1f} m)'
                 figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
-                lineColors = ['k', 'gray', 'red', 'blue']
+                lineColors = ['gray', 'k', 'red', 'blue']
                 lineWidths = [2.5, 2.5, 2.5, 2.5]
 
                 drho = dsIn['potentialDensity']

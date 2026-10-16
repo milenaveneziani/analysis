@@ -690,7 +690,7 @@ def timeseries_analysis_plot(dsvalues, N, title, xlabel, ylabel,
     if ylabel is not None:
         plt.ylabel(ylabel, **axis_font)
 
-    return fig
+    return fig, ax
 
 
 def timeseries_analysis_plot_polar(dsvalues, N, title,
