@@ -6,10 +6,12 @@ import xarray as xr
 import numpy as np
 import gsw
 import matplotlib.pyplot as plt
+import netCDF4
+from sympy import Symbol, latex
+import time
 
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
-#from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf
-from mpas_analysis.shared.io.utility import get_files_year_month, decode_strings
+from mpas_analysis.shared.io.utility import decode_strings
 from mpas_analysis.ocean.utility import compute_zmid
 
 from geometric_features import FeatureCollection, read_feature_collection
@@ -23,19 +25,21 @@ endYear = 50
 #endYear = 2
 #endYear = 246 # rA07
 #endYear = 386 # rA02
-#startYear = 1950
-#endYear = 1951
+startYear = 1950
+endYear = 1970
 year0 = startYear # Plotting of anomalies wrt month 1 of year0
-calendar = 'gregorian'
+referenceDate = '0001-01-01 00:00:00'
+calendar = 'noleap'
+daysInYear = 365.0
 
 # Settings for nersc
-#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SM-Arcticv2.1_historical0101'
-#runNameShort = 'E3SMv2.1-Arctic-historical0101'
-#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv2.1_historical0101'
+runNameShort = 'E3SMv2.1-Arctic-historical0101'
+rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -47,18 +51,18 @@ calendar = 'gregorian'
 #isShortTermArchive = False
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SMv2.1G60to10_01'
-runNameShort = 'E3SMv2.1G60to10_01'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SMv2.1G60to10_01'
+#runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/global/milena/{runName}'
+#rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -76,6 +80,11 @@ zmaxs = [10.]
 # Relevant only for computeDepthAvg = False
 dlevels = [0.]
 
+plotAnnualAvg = True
+# Relevant only for plotAnnualAvg = False
+movingAverageMonths = 1
+#movingAverageMonths = 12
+
 #regionGroups = ['Arctic Regions']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
 regionGroups = ['arctic_atlantic_budget_regions_20260827']
@@ -86,6 +95,9 @@ regionGroups = ['arctic_atlantic_budget_regions_20260827']
 # MPAS variables needed
 #
 mpasFile = 'timeSeriesStatsMonthly'
+
+# For debugging only and assuming the timeseries has already been calculated
+#variableList = ['timeMonthly_avg_layerThickness']
 variableList = ['timeMonthly_avg_activeTracers_temperature',
                 'timeMonthly_avg_activeTracers_salinity',
                 'timeMonthly_avg_potentialDensity',
@@ -169,6 +181,8 @@ for regionGroup in regionGroups:
     # Compute regional averages one year at a time
     for year in years:
 
+        print('start loading yearly data')
+        t0 = time.time()
         # Load in entire data set for all chosen variables (all x's, y's, z's) for each year
         datasets = []
         for month in range(1, 13):
@@ -185,6 +199,7 @@ for regionGroup in regionGroups:
             datasets.append(dsTimeSlice)
         # combine data sets into a single data set
         dsIn = xr.concat(datasets, 'Time')
+        print(f'end loading yearly data. Time taken={time.time()-t0} seconds')
 
         if computeDepthAvg is True: # computeDepthAvg=True case
             layerThickness = dsIn.timeMonthly_avg_layerThickness
@@ -328,6 +343,10 @@ for regionGroup in regionGroups:
                     # combine data sets into a single data set
                     dsOut = xr.concat(datasets, 'nRegions')
 
+                    # This is necessary because the time variable was changed
+                    # in ways that I do not quite understand..
+                    dsOut['Time'] = dsIn['Time']
+
                     # zbounds has become region dependent and shouldn't be
                     dsOut['zbounds'] = dsOut['zbounds'].isel(nRegions=0, drop=True)
 
@@ -422,16 +441,19 @@ for regionGroup in regionGroups:
                         dsOut['alphaBetaRatio'].attrs['units'] = 'unitless'
                         dsOut['alphaBetaRatio'].attrs['description'] = f'ratio of alpha/beta components of potential density (-alpha*dCT/(beta*dSA); GSW-computed; pref=0) anomaly wrt Jan of year {year0}'
 
-
                         dsOut['totalArea'] = regionalArea
                         dsOut.totalArea.attrs['units'] = 'm^2'
 
-                        dsOus['regionNames'] = regionName
+                        dsOut['regionNames'] = regionName
 
                         datasets.append(dsOut)
 
                     # combine data sets into a single data set
                     dsOut = xr.concat(datasets, 'nRegions')
+
+                    # This is necessary because the time variable was changed
+                    # in ways that I do not quite understand..
+                    dsOut['Time'] = dsIn['Time']
 
                     #write_netcdf(dsOut, timeSeriesFile)
                     write_netcdf_with_fill(dsOut, timeSeriesFile)
@@ -459,28 +481,67 @@ for regionGroup in regionGroups:
                         fc.add_feature(feature)
                         break
 
-                dsIn  = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                dsIn  = xr.open_mfdataset(timeSeriesFiles, combine='nested', data_vars='all', 
                                           concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
                 zbounds = dsIn.zbounds.values[0]
-
-                movingAverageMonths = 1
-                #movingAverageMonths = 12
-
                 xLabel = 'Time (yr)'
                 legendText = ['']
+                pmTex = latex(Symbol('pm'))
+
+                if plotAnnualAvg is True:
+                    dsToPlot = []
+                    t = dsIn.Time
+                    datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
+                    #print(datetimes)
+                    t_years = np.empty(np.shape(t), dtype=np.int64)
+                    for i, date in enumerate(datetimes.flat):
+                        t_years[i] = date.year
+                    #print(t_years)
+                    weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])/daysInYear
+                    #weights = xr.Dataset(data_vars={'weights': (('Time', ), weights)},
+                    #                     coords={'Time': (('Time', ), t.values)})
+                    weights = xr.DataArray(weights, dims=('Time', ), coords={'Time': t.values})
+                    print(weights.values)
+                    dsAnnual = xr.Dataset()
+                    for year in years:
+                        indexYears = np.where(t_years==year)[0]
+                        #print(indexYears)
+                        for var in ['temperature', 'salinity', 'potentialDensity',
+                                    'gswPotentialDensity', 'alphaPotentialDensity',
+                                    'betaPotentialDensity', 'alphaBetaRatio']:
+                            annualData = dsIn[var].isel(Time=indexYears)
+                            annualData = (weights * annualData).sum(dim='Time', keepdims=True)
+                            annualData.name = var
+                            dsAnnual[var] = xr.DataArray(
+                                                         data=annualData,
+                                                         dims=('Time', ),
+                                                         attrs=dsIn[var].attrs
+                                                        )
+                        dsToPlot.append(dsAnnual)
+                    dsToPlot = xr.concat(dsToPlot, dim='Time')
+                    print(dsToPlot)
+                else:
+                    dsToPlot = dsIn
+                movingAverageMonths = 1
 
                 # Plot temperature anomaly first
-                field = [dsIn['temperature']]
-                units = dsIn['temperature'].attrs['units']
+                field = [dsToPlot['temperature']]
+                units = dsToPlot['temperature'].attrs['units']
                 yLabel = f'Temperature ({units})'
-                title = f'Volume-Mean temperature anomaly wrt year {year0} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f})'
+                title = f'Volume-Mean temperature anomaly wrt year {year0} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} {pmTex} {np.nanstd(field):5.2f})'
                 lineColors = ['k']
                 lineWidths = [2.5]
                 if zmax>0:
-                    figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 else:
-                    figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
 
                 [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
                                                      calendar=calendar, timevarname = 'Time', lineColors=lineColors,
@@ -496,16 +557,22 @@ for regionGroup in regionGroups:
                 plt.close()
 
                 # Then plot salinity anomaly
-                field = [dsIn['salinity']]
-                units = dsIn['salinity'].attrs['units']
+                field = [dsToPlot['salinity']]
+                units = dsToPlot['salinity'].attrs['units']
                 yLabel = f'Salinity ({units})'
-                title = f'Volume-Mean salinity anomaly wrt year {year0} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f})'
+                title = f'Volume-Mean salinity anomaly wrt year {year0} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m; {np.nanmean(field):5.2f} {pmTex} {np.nanstd(field):5.2f})'
                 lineColors = ['k']
                 lineWidths = [2.5]
                 if zmax>0:
-                    figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 else:
-                    figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
                                                      calendar=calendar, timevarname = 'Time', lineColors=lineColors,
                                                      lineWidths=lineWidths, legendText=legendText)
@@ -515,32 +582,38 @@ for regionGroup in regionGroups:
                 plt.close()
 
                 # Finally plot density anomaly
-                units = dsIn['potentialDensity'].attrs['units']
+                units = dsToPlot['potentialDensity'].attrs['units']
                 yLabel = f'Potential density ({units})'
                 title = f'Volume-Mean potential density anomaly contributions wrt year {year0} in {regionName} ({zbounds[0]} < z < {zbounds[1]} m)'
                 if zmax>0:
-                    figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z0000-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 else:
-                    figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
+                    if plotAnnualAvg is True:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}Annual_years{years[0]}-{years[-1]}.png'
+                    else:
+                        figFileName = f'{figdir}/{regionNameShort}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_rhoAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
                 lineColors = ['gray', 'k', 'red', 'blue']
                 lineWidths = [2.5, 2.5, 2.5, 2.5]
 
-                drho = dsIn['potentialDensity']
-                dgswrho  = dsIn['gswPotentialDensity']
-                dgswrho_alpha = dsIn['alphaPotentialDensity']
-                dgswrho_beta = dsIn['betaPotentialDensity']
-                alphaBetaRatio = dsIn['alphaBetaRatio']
-                legendText = [f'rho ({np.nanmean(drho):5.2f} $\pm$ {np.nanstd(drho):5.2f})']
-                legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} $\pm$ {np.nanstd(dgswrho):5.2f})')
-                legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} $\pm$ {np.nanstd(dgswrho_alpha):5.2f})')
-                legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} $\pm$ {np.nanstd(dgswrho_beta):5.2f})')
+                drho = dsToPlot['potentialDensity']
+                dgswrho  = dsToPlot['gswPotentialDensity']
+                dgswrho_alpha = dsToPlot['alphaPotentialDensity']
+                dgswrho_beta = dsToPlot['betaPotentialDensity']
+                alphaBetaRatio = dsToPlot['alphaBetaRatio']
+                legendText = [f'rho ({np.nanmean(drho):5.2f} {pmTex} {np.nanstd(drho):5.2f})']
+                legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} {pmTex} {np.nanstd(dgswrho):5.2f})')
+                legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} {pmTex} {np.nanstd(dgswrho_alpha):5.2f})')
+                legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} {pmTex} {np.nanstd(dgswrho_beta):5.2f})')
                 field = [drho, dgswrho, dgswrho_alpha, dgswrho_beta]
                 [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
                                                      calendar=calendar, timevarname = 'Time', lineColors=lineColors,
                                                      lineWidths=lineWidths, legendText=legendText)
                 #ax2 = ax.twinx()
                 #ax2color = 'green'
-                #ax2.plot(dsIn.Time, alphaBetaRatio, '-', color=ax2color, linewidth=2.5)
+                #ax2.plot(dsToPlot.Time, alphaBetaRatio, '-', color=ax2color, linewidth=2.5)
                 #ax2.tick_params(axis='y', labelcolor=ax2color)
                 #ax2.spines['right'].set_color(ax2color)
                 #ax2.set_ylabel('alpha/beta ratio', color=ax2color)
@@ -566,7 +639,7 @@ for regionGroup in regionGroups:
                         fc.add_feature(feature)
                         break
 
-                dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested',
+                dsIn = xr.open_mfdataset(timeSeriesFiles, combine='nested', data_vars='all',
                                          concat_dim='Time', decode_times=False).isel(nRegions=regionIndex)
 
                 movingAverageMonths = 1
@@ -579,7 +652,7 @@ for regionGroup in regionGroups:
                 field = [dsIn['temperature']]
                 units = dsIn['temperature'].attrs['units']
                 yLabel = f'Temperature ({units})'
-                title = f'Mean temperature anomaly wrt year {year0} in {regionName} (z={z[zlevels[k]]:5.1f} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f})'
+                title = f'Mean temperature anomaly wrt year {year0} in {regionName} (z={z[zlevels[k]]:5.1f} m; {np.nanmean(field):5.2f} {pmTex} {np.nanstd(field):5.2f})'
                 lineColors = ['k']
                 lineWidths = [2.5]
                 figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_tempAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
@@ -594,7 +667,7 @@ for regionGroup in regionGroups:
                 field = [dsIn['salinity']]
                 units = dsIn['salinity'].attrs['units']
                 yLabel = f'Salinity ({units})'
-                title = f'Mean salinity anomaly wrt year {year0} in {regionName} (z={z[zlevels[k]]:5.1f} m; {np.nanmean(field):5.2f} $\pm$ {np.nanstd(field):5.2f})'
+                title = f'Mean salinity anomaly wrt year {year0} in {regionName} (z={z[zlevels[k]]:5.1f} m; {np.nanmean(field):5.2f} {pmTex} {np.nanstd(field):5.2f})'
                 lineColors = ['k']
                 lineWidths = [2.5]
                 figFileName = f'{figdir}/{regionNameShort}_depth{int(dlevels[k]):04d}_saltAnomalywrtYear{year0}_years{years[0]}-{years[-1]}.png'
@@ -617,10 +690,10 @@ for regionGroup in regionGroups:
                 dgswrho  = dsIn['gswPotentialDensity']
                 dgswrho_alpha = dsIn['alphaPotentialDensity']
                 dgswrho_beta = dsIn['betaPotentialDensity']
-                legendText = [f'rho ({np.nanmean(drho):5.2f} $\pm$ {np.nanstd(drho):5.2f})']
-                legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} $\pm$ {np.nanstd(dgswrho):5.2f})')
-                legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} $\pm$ {np.nanstd(dgswrho_alpha):5.2f})')
-                legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} $\pm$ {np.nanstd(dgswrho_beta):5.2f})')
+                legendText = [f'rho ({np.nanmean(drho):5.2f} {pmTex} {np.nanstd(drho):5.2f})']
+                legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} {pmTex} {np.nanstd(dgswrho):5.2f})')
+                legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} {pmTex} {np.nanstd(dgswrho_alpha):5.2f})')
+                legendText.append(f'gsw_rhoBeta ({np.nanmean(dgswrho_beta):5.2f} {pmTex} {np.nanstd(dgswrho_beta):5.2f})')
                 field = [drho, dgswrho, dgswrho_alpha, dgswrho_beta]
                 [fig, ax] = timeseries_analysis_plot(field, movingAverageMonths, title, xLabel, yLabel,
                                                      calendar=calendar, timevarname = 'Time', lineColors=lineColors,
