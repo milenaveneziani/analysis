@@ -228,14 +228,14 @@ def compute_regional_maskfile(meshFile, featureFile, outFile):
 def days_to_datetime(days, calendar='gregorian', referenceDate='0001-01-01'):
     """
     Convert days to ``datetime.datetime`` objects given a reference date and an
-    MPAS calendar (either 'gregorian' or 'gregorian_noleap').
+    MPAS calendar (either 'gregorian' or 'noleap').
 
     Parameters
     ----------
     days : float or array-like of floats
         The number of days since the reference date.
 
-    calendar : {'gregorian', 'gregorian_noleap'}, optional
+    calendar : {'gregorian', 'noleap'}, optional
         A calendar to be used to convert days to a ``datetime.datetime``
         object.
 
@@ -258,12 +258,6 @@ def days_to_datetime(days, calendar='gregorian', referenceDate='0001-01-01'):
     # Authors
     # -------
     # Xylar Asay-Davis
-
-    # Convert from MPAS calendar to NetCDF4 calendar names.
-    if calendar == 'gregorian_noleap':
-        calendar = 'noleap'
-    elif calendar != 'gregorian':
-        raise ValueError('Unsupported calendar {}'.format(calendar))
 
     datetimes = netCDF4.num2date(days,
                                  'days since {}'.format(referenceDate),
@@ -302,7 +296,7 @@ def date_to_days(year=1, month=1, day=1, hour=0, minute=0, second=0,
         The date to be converted to days since ``referenceDate`` on the
         given ``calendar``.
 
-    calendar : {'gregorian', 'gregorian_noleap'}, optional
+    calendar : {'gregorian', 'noleap'}, optional
         A calendar to be used to convert days to a ``datetime.datetime``
         object.
 
@@ -331,7 +325,7 @@ def date_to_days(year=1, month=1, day=1, hour=0, minute=0, second=0,
     # Convert from MPAS calendar to NetCDF4 calendar names.
     if calendar == 'gregorian_noleap':
         calendar = 'noleap'
-    elif calendar != 'gregorian':
+    if calendar not in ['gregorian', 'noleap']:
         raise ValueError('Unsupported calendar {}'.format(calendar))
 
     return netCDF4.date2num(date, 'days since {}'.format(referenceDate),

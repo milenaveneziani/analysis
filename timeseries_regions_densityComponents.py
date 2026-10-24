@@ -13,6 +13,7 @@ import time
 from mpas_analysis.shared.io import open_mpas_dataset, write_netcdf_with_fill
 from mpas_analysis.shared.io.utility import decode_strings
 from mpas_analysis.ocean.utility import compute_zmid
+#from mpas_analysis.shared.plot import timeseries_analysis_plot, add_inset
 
 from geometric_features import FeatureCollection, read_feature_collection
 
@@ -25,21 +26,21 @@ endYear = 50
 #endYear = 2
 #endYear = 246 # rA07
 #endYear = 386 # rA02
-startYear = 1950
-endYear = 1970
+#startYear = 1950
+#endYear = 1970
 year0 = startYear # Plotting of anomalies wrt month 1 of year0
 referenceDate = '0001-01-01 00:00:00'
 calendar = 'noleap'
 daysInYear = 365.0
 
 # Settings for nersc
-regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-runName = 'E3SM-Arcticv2.1_historical0101'
-runNameShort = 'E3SMv2.1-Arctic-historical0101'
-rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
-isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+#regionMaskDir = '/global/cfs/cdirs/m1199/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/global/cfs/cdirs/e3sm/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#runName = 'E3SM-Arcticv2.1_historical0101'
+#runNameShort = 'E3SMv2.1-Arctic-historical0101'
+#rundir = f'/global/cfs/cdirs/m1199/e3sm-arrm-simulations/{runName}'
+#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
  
 # Settings for lcrc
 #regionMaskDir = '/lcrc/group/e3sm/ac.milena/mpas-region_masks'
@@ -51,18 +52,18 @@ isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir
 #isShortTermArchive = False
  
 # Settings for erdc.hpc.mil
-#regionMaskDir = '/p/home/milena/mpas-region_masks'
-#meshName = 'ARRM10to60E2r1'
-#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
-#runName = 'E3SMv2.1G60to10_01'
-#runNameShort = 'E3SMv2.1G60to10_01'
+regionMaskDir = '/p/home/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SMv2.1G60to10_01'
+runNameShort = 'E3SMv2.1G60to10_01'
 #runName = 'E3SMv2.1B60to10rA02'
 #runNameShort = 'E3SMv2.1B60to10rA02'
-#rundir = f'/p/global/milena/{runName}'
+rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-#isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
+isShortTermArchive = True # if True 'archive/ocn/hist' will be affixed to rundir later on
 
 # Settings for chicoma
 #regionMaskDir = '/users/milena/mpas-region_masks'
@@ -97,11 +98,11 @@ regionGroups = ['arctic_atlantic_budget_regions_20260827']
 mpasFile = 'timeSeriesStatsMonthly'
 
 # For debugging only and assuming the timeseries has already been calculated
-#variableList = ['timeMonthly_avg_layerThickness']
-variableList = ['timeMonthly_avg_activeTracers_temperature',
-                'timeMonthly_avg_activeTracers_salinity',
-                'timeMonthly_avg_potentialDensity',
-                'timeMonthly_avg_layerThickness']
+variableList = ['timeMonthly_avg_layerThickness']
+#variableList = ['timeMonthly_avg_activeTracers_temperature',
+#                'timeMonthly_avg_activeTracers_salinity',
+#                'timeMonthly_avg_potentialDensity',
+#                'timeMonthly_avg_layerThickness']
 timeVariableNames = ['xtime_startMonthly', 'xtime_endMonthly']
 
 if isShortTermArchive:
@@ -181,29 +182,29 @@ for regionGroup in regionGroups:
     # Compute regional averages one year at a time
     for year in years:
 
-        print('start loading yearly data')
-        t0 = time.time()
-        # Load in entire data set for all chosen variables (all x's, y's, z's) for each year
-        datasets = []
-        for month in range(1, 13):
-            inputFile = f'{rundir}/{runName}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
-            if not os.path.exists(inputFile):
-                raise IOError(f'Input file: {inputFile} not found')
-
-            dsTimeSlice = open_mpas_dataset(fileName=inputFile,
-                                            calendar=calendar,
-                                            timeVariableNames=timeVariableNames,
-                                            variableList=variableList,
-                                            startDate=startDate,
-                                            endDate=endDate)
-            datasets.append(dsTimeSlice)
-        # combine data sets into a single data set
-        dsIn = xr.concat(datasets, 'Time')
-        print(f'end loading yearly data. Time taken={time.time()-t0} seconds')
+        #print('start loading yearly data')
+        #t0 = time.time()
+        ## Load in entire data set for all chosen variables (all x's, y's, z's) for each year
+        #datasets = []
+        #for month in range(1, 13):
+        #    inputFile = f'{rundir}/{runName}.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-{month:02d}-01.nc'
+        #    if not os.path.exists(inputFile):
+        #        raise IOError(f'Input file: {inputFile} not found')
+        #
+        #    dsTimeSlice = open_mpas_dataset(fileName=inputFile,
+        #                                    calendar=calendar,
+        #                                    timeVariableNames=timeVariableNames,
+        #                                    variableList=variableList,
+        #                                    startDate=startDate,
+        #                                    endDate=endDate)
+        #    datasets.append(dsTimeSlice)
+        ## combine data sets into a single data set
+        #dsIn = xr.concat(datasets, 'Time')
+        #print(f'end loading yearly data. Time taken={time.time()-t0} seconds')
 
         if computeDepthAvg is True: # computeDepthAvg=True case
-            layerThickness = dsIn.timeMonthly_avg_layerThickness
-            zMid = compute_zmid(depth, maxLevelCell, layerThickness)
+            #layerThickness = dsIn.timeMonthly_avg_layerThickness
+            #zMid = compute_zmid(depth, maxLevelCell, layerThickness)
 
             # Compute regional averages one depth range at a time
             for k in range(len(zmins)):
@@ -490,7 +491,6 @@ for regionGroup in regionGroups:
                 pmTex = latex(Symbol('pm'))
 
                 if plotAnnualAvg is True:
-                    dsToPlot = []
                     t = dsIn.Time
                     datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
                     #print(datetimes)
@@ -499,31 +499,91 @@ for regionGroup in regionGroups:
                         t_years[i] = date.year
                     #print(t_years)
                     weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])/daysInYear
-                    #weights = xr.Dataset(data_vars={'weights': (('Time', ), weights)},
-                    #                     coords={'Time': (('Time', ), t.values)})
-                    weights = xr.DataArray(weights, dims=('Time', ), coords={'Time': t.values})
-                    print(weights.values)
-                    dsAnnual = xr.Dataset()
+                    weights = xr.DataArray(weights, dims=('Time', ))
+                    #dsToPlot = []
+                    t_annual = []
+                    temp = []
+                    salt = []
+                    rho = []
+                    gsw_rho = []
+                    gsw_rhoAlpha = []
+                    gsw_rhoBeta = []
+                    #dsAnnual = xr.Dataset()
+                    dsToPlot = xr.Dataset()
                     for year in years:
                         indexYears = np.where(t_years==year)[0]
-                        #print(indexYears)
-                        for var in ['temperature', 'salinity', 'potentialDensity',
-                                    'gswPotentialDensity', 'alphaPotentialDensity',
-                                    'betaPotentialDensity', 'alphaBetaRatio']:
-                            annualData = dsIn[var].isel(Time=indexYears)
-                            annualData = (weights * annualData).sum(dim='Time', keepdims=True)
-                            annualData.name = var
-                            dsAnnual[var] = xr.DataArray(
-                                                         data=annualData,
-                                                         dims=('Time', ),
-                                                         attrs=dsIn[var].attrs
-                                                        )
-                        dsToPlot.append(dsAnnual)
-                    dsToPlot = xr.concat(dsToPlot, dim='Time')
-                    print(dsToPlot)
+                        annualData = dsIn['temperature'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        temp.append(annualData)
+                        annualData = dsIn['salinity'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        salt.append(annualData)
+                        annualData = dsIn['potentialDensity'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        rho.append(annualData)
+                        annualData = dsIn['gswPotentialDensity'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        gsw_rho.append(annualData)
+                        annualData = dsIn['alphaPotentialDensity'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        gsw_rhoAlpha.append(annualData)
+                        annualData = dsIn['betaPotentialDensity'].isel(Time=indexYears)
+                        annualData = (weights * annualData).sum().values
+                        gsw_rhoBeta.append(annualData)
+                        #for var in ['temperature', 'salinity', 'potentialDensity',
+                        #            'gswPotentialDensity', 'alphaPotentialDensity',
+                        #            'betaPotentialDensity', 'alphaBetaRatio']:
+                        #    annualData = dsIn[var].isel(Time=indexYears)
+                        #    annualData = (weights * annualData).sum(dim='Time', keepdims=True)
+                        #    annualData.name = var
+                        #    dsAnnual[var] = xr.DataArray(
+                        #                                 data=annualData,
+                        #                                 dims=('Time', ),
+                        #                                 attrs=dsIn[var].attrs
+                        #                                )
+#                       #                                  coords={'Time': ('Time', t.isel(Time=indexYears).mean().values)},
+                        t_annual.append(t.isel(Time=indexYears).mean().values)
+                        #dsToPlot.append(dsAnnual)
+                        #if year==years[0]:
+                        #    dsToPlot = dsAnnual
+                        #else:
+                        #    dsToPlot = xr.concat([dsToPlot, dsAnnual], dim='Time')
+                        #dsToPlot = xr.concat([dsToPlot, dsAnnual], dim='Time', join='inner')
+                    #dsToPlot = xr.concat(dsToPlot, dim='Time')
+                    dsToPlot['temperature'] = xr.DataArray(
+                                                           data=temp,
+                                                           dims=('Time', ),
+                                                           attrs=dsIn['temperature'].attrs
+                                                          )
+                    dsToPlot['salinity'] = xr.DataArray(
+                                                        data=salt,
+                                                        dims=('Time', ),
+                                                        attrs=dsIn['salinity'].attrs
+                                                       )
+                    dsToPlot['potentialDensity'] = xr.DataArray(
+                                                                data=rho,
+                                                                dims=('Time', ),
+                                                                attrs=dsIn['potentialDensity'].attrs
+                                                               )
+                    dsToPlot['gswPotentialDensity'] = xr.DataArray(
+                                                                   data=gsw_rho,
+                                                                   dims=('Time', ),
+                                                                   attrs=dsIn['gswPotentialDensity'].attrs
+                                                                  )
+                    dsToPlot['alphaPotentialDensity'] = xr.DataArray(
+                                                                     data=gsw_rhoAlpha,
+                                                                     dims=('Time', ),
+                                                                     attrs=dsIn['alphaPotentialDensity'].attrs
+                                                                    )
+                    dsToPlot['betaPotentialDensity'] = xr.DataArray(
+                                                                    data=gsw_rhoBeta,
+                                                                    dims=('Time', ),
+                                                                    attrs=dsIn['betaPotentialDensity'].attrs
+                                                                   )
+                    dsToPlot = dsToPlot.assign_coords({'Time': ('Time', t_annual)})
+                    movingAverageMonths = 1
                 else:
                     dsToPlot = dsIn
-                movingAverageMonths = 1
 
                 # Plot temperature anomaly first
                 field = [dsToPlot['temperature']]
@@ -602,7 +662,7 @@ for regionGroup in regionGroups:
                 dgswrho  = dsToPlot['gswPotentialDensity']
                 dgswrho_alpha = dsToPlot['alphaPotentialDensity']
                 dgswrho_beta = dsToPlot['betaPotentialDensity']
-                alphaBetaRatio = dsToPlot['alphaBetaRatio']
+                #alphaBetaRatio = dsToPlot['alphaBetaRatio']
                 legendText = [f'rho ({np.nanmean(drho):5.2f} {pmTex} {np.nanstd(drho):5.2f})']
                 legendText.append(f'gsw_rho ({np.nanmean(dgswrho):5.2f} {pmTex} {np.nanstd(dgswrho):5.2f})')
                 legendText.append(f'gsw_rhoAlpha ({np.nanmean(dgswrho_alpha):5.2f} {pmTex} {np.nanstd(dgswrho_alpha):5.2f})')
