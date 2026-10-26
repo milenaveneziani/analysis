@@ -34,48 +34,6 @@ from geometric_features import FeatureCollection, read_feature_collection
 
 
 ################################
-def _vertical_transmission_function(z, attenuationCoefficient):
-    # vertical distribution function for external surface fluxes
-    transmissionCoefficient = np.exp( np.maximum(z/attenuationCoefficient, -100.0) )
-    return transmissionCoefficient
-
-def _apply_attCoef_to_externalFlux(layerThickness, attenuationCoefficient, externalFlux):
-
-    z = layerThickness.cumsum(dim='nVertLevels')
-    # Create a zero dataset with the same metadata for concatenation
-    zero_z = z.isel(nVertLevels=[0]).astype(z.dtype) * 0
-    # Concatenate the zero dataset at the beginning of z
-    z = xr.concat([zero_z, z], dim='nVertLevels')
-    nLevels = z.sizes['nVertLevels']
-    transmissionCoeff = _vertical_transmission_function(-z, attenuationCoefficient)
-    fractionAbsorbed = transmissionCoeff.isel(nVertLevels=range(0, nLevels-1)) - \
-                       transmissionCoeff.isel(nVertLevels=range(1, nLevels))
-
-    externalFlux = externalFlux * fractionAbsorbed
-
-    # From MPAS-ocean code:
-    #zTop = 0.0
-    #transmissionCoeffTop = vertical_transmission_function(zTop, attenuationCoefficient)
-    #do k = minLevelCell(iCell), maxLevelCell(iCell)
-    #   zBot = zTop - layerThickness(k,iCell)
-    #   transmissionCoeffBot = ocn_forcing_transmission(zBot, sfcFlxAttCoeff(iCell))
-    #   fractionAbsorbed(k, iCell) = transmissionCoeffTop - transmissionCoeffBot
-    #   zTop = zBot
-    #   transmissionCoeffTop = transmissionCoeffBot
-    #end do
-    #remainingFlux = 1.0
-    #do k = minLevelCell(iCell), maxLevelCell(iCell)
-    #  remainingFlux = remainingFlux - transmissionCoefficient(k, iCell)
-    #  surfaceThicknessFlux(iCell) * transmissionCoefficient(k, iCell) # thicknessTend
-    #end do
-    #if(maxLevelCell(iCell) > 0 .and. remainingFlux > 0.0_RKIND) then
-    #  tend(maxLevelCell(iCell), iCell) = tend(maxLevelCell(iCell), iCell) + remainingFlux * surfaceThicknessFlux(iCell)
-    #end if
-
-    return externalFlux
-################################
-
-
 # Settings for lcrc:
 #   NOTE: make sure to use the same mesh file that is in streams.ocean!
 #featurefile = '/lcrc/group/e3sm/ac.milena/mpas-region_masks/arctic_atlantic_budget_regions.geojson'
@@ -140,12 +98,11 @@ regionNames = ['North Atlantic subpolar gyre', 'North Atlantic greater subpolar 
 #regionNames = ['South Atlantic Wilbert']
 
 # Choose years
-#year1 = 1950
-#year2 = 1952
+year1 = 1950
+year2 = 1955
 #year2 = 2014
-year1 = 1
-year2 = 20
-year2 = 50
+#year1 = 1
+#year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
 referenceDate = '0001-01-01'
@@ -157,9 +114,9 @@ zmax = 10.0
 
 makePlots = True
 
-#movingAverageMonths = 1
-movingAverageMonths = 12
-#movingAverageMonths = 5*12
+# If plotAnnualAvg = False, time-integrated tendency terms 
+# will be plotted instead of annual averages
+plotAnnualAvg = True
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1026.0 # kg/m^3 (config_density0)
@@ -265,192 +222,12 @@ for n in range(nRegions):
                 depthMask = np.logical_and(zMid >= zmin, zMid <= zmax)
                 depthLayer = dzOnCells.where(depthMask, drop=False).sum(dim='nVertLevels')
 
-                #####
-                ##### Volume budget terms
-                #####
-                #print('Compute volume budget terms')
-                ## Compute net lateral fluxes
-                #print('  net lateral fluxes')
-                #if 'timeMonthly_avg_normalTransportVelocity' in dsIn.keys():
-                #    vel = dsIn.timeMonthly_avg_normalTransportVelocity.isel(nEdges=openBryEdges)
-                #elif 'timeMonthly_avg_normalVelocity' in dsIn.keys():
-                #    vel = dsIn.timeMonthly_avg_normalVelocity.isel(nEdges=openBryEdges)
-                #    if 'timeMonthly_avg_normalGMBolusVelocity' in dsIn.keys():
-                #        vel = vel + dsIn.timeMonthly_avg_normalGMBolusVelocity.isel(nEdges=openBryEdges)
-                #    if 'timeMonthly_avg_normalMLEvelocity' in dsIn.keys():
-                #        vel = vel + dsIn.timeMonthly_avg_normalMLEvelocity.isel(nEdges=openBryEdges)
-                #else:
-                #    raise KeyError('no normalVelocity variable found')
-                ##  First, get dz's from two neighboring cells for each edge
-                #dzOnCells0 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe0)
-                #dzOnCells1 = dsIn.timeMonthly_avg_layerThickness.isel(nCells=coe1)
-                ##  Then, interpolate dz's onto edges
-                #dzOnEdges = 0.5 * (dzOnCells0 + dzOnCells1)
-                #dArea = dvEdge * dzOnEdges
-                #normalVel = vel * xr.DataArray(openBrySigns, dims='nEdges')
-                #lateralFlux = (normalVel * dArea).where(depthMask, drop=False)
-                #lateralFlux = lateralFlux.sum(dim='nVertLevels', skipna=True).sum(dim='nEdges')
-                #dsOutMonthly['volNetLateralFlux'] = xr.DataArray(
-                ##    data=m3ps_to_Sv * lateralFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Net lateral volume transport across all open boundaries over depth range {zmax:d},{zmin:d}', units='Sv', )
-                #    )
-
-                ## Compute net vertical fluxes
-                ## Note: vertAleTransportTop is not routinely saved as monthly output,
-                ## but this should be OK for regional budgets because the net vertical
-                ## advection of mass over the whole water column is very small compared
-                ## to the net lateral advection.
-                #if 'timeMonthly_avg_vertAleTransportTop' in dsIn.keys():
-                #    print('  net vertical fluxes (using vertAleTransportTop)')
-                #    vel = dsIn.timeMonthly_avg_vertAleTransportTop
-                #    dvel = vel.isel(nVertLevelsP1=range(1, nVertLevels+1)) - vel.isel(nVertLevelsP1=range(0, nVertLevels))
-                #    dvel = dvel.rename({'nVertLevelsP1': 'nVertLevels'})
-                #    dvel = dvel.where(depthMask, drop=False).where(cellMask, drop=True)
-                #    verticalFlux = (dvel * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
-                #    dsOutMonthly['volNetVerticalFlux'] = xr.DataArray(
-                #        data=m3ps_to_Sv * verticalFlux,
-                #        dims=('Time', ),
-                #        attrs=dict(description='Net vertical volume transport over depth range {zmax:d},{zmin:d}', units='Sv', )
-                #        )
-                #else:
-                #    print('  WARNING: variable vertAleTransportTop unavailable: skipping net vertical fluxes')
-
-                ## Compute net surface fluxes
-                #print('  surface fluxes (evaporation)')
-                #if not 'timeMonthly_avg_evaporationFlux' in dsIn.keys():
-                #    raise KeyError('no evaporation flux variable found')
-                #flux = dsIn.timeMonthly_avg_evaporationFlux
-                #if attCoef > attCoefMax:
-                #    flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
-                #    flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
-                #    flux = flux.sum('nVertLevels')
-                #flux = flux.where(cellMask, drop=True)
-                #evapFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['evapFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * evapFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated evaporation', units='Sv', )
-                #    )
-
-                #print('  surface fluxes (rain)')
-                #if not 'timeMonthly_avg_rainFlux' in dsIn.keys():
-                #    raise KeyError('no rain flux variable found')
-                #flux = dsIn.timeMonthly_avg_rainFlux
-                #if attCoef > attCoefMax:
-                #    flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
-                #    flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
-                #    flux = flux.sum('nVertLevels')
-                #flux = flux.where(cellMask, drop=True)
-                #rainFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['rainFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * rainFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated rain precipitation', units='Sv', )
-                #    )
-
-                #print('  surface fluxes (snow)')
-                #if not 'timeMonthly_avg_snowFlux' in dsIn.keys():
-                #    raise KeyError('no snow flux variable found')
-                #flux = dsIn.timeMonthly_avg_snowFlux
-                #if attCoef > attCoefMax:
-                #    flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
-                #    flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoef, flux)
-                #    flux = flux.sum('nVertLevels')
-                #flux = flux.where(cellMask, drop=True)
-                #snowFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['snowFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * snowFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated snow precipitation', units='Sv', )
-                #    )
-
-                #print('  surface fluxes (river runoff)')
-                #if not 'timeMonthly_avg_riverRunoffFlux' in dsIn.keys():
-                #    raise KeyError('no river runoff flux variable found')
-                #flux = dsIn.timeMonthly_avg_riverRunoffFlux
-                #if attCoefRunoff > attCoefMax:
-                #    flux = flux.expand_dims({'nVertLevels':nVertLevels}, axis=1).where(depthMask, drop=False)
-                #    flux = _apply_attCoef_to_externalFlux(dzOnCells, attCoefRunoff, flux)
-                #    flux = flux.sum('nVertLevels')
-                #flux = flux.where(cellMask, drop=True)
-                #riverRunoffFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['riverRunoffFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * riverRunoffFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated liquid runoff', units='Sv', )
-                #    )
-
-                #print('  surface fluxes (ice runoff)')
-                #if not 'timeMonthly_avg_iceRunoffFlux' in dsIn.keys():
-                #    raise KeyError('no ice runoff flux variable found')
-                #flux = dsIn.timeMonthly_avg_iceRunoffFlux
-                #flux = flux.where(cellMask, drop=True)
-                #iceRunoffFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['iceRunoffFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * iceRunoffFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated solid runoff', units='Sv', )
-                #    )
-
-                #print('  surface fluxes (sea ice freshwater)')
-                #if not 'timeMonthly_avg_seaIceFreshWaterFlux' in dsIn.keys():
-                #    raise KeyError('no sea ice freshwater flux variable found')
-                #flux = dsIn.timeMonthly_avg_seaIceFreshWaterFlux
-                #flux = flux.where(cellMask, drop=True)
-                #seaIceFreshWaterFlux = (flux * regionArea).sum(dim='nCells')
-                #dsOutMonthly['seaIceFreshWaterFlux'] = xr.DataArray(
-                #    data=1/rho0 * m3ps_to_Sv * seaIceFreshWaterFlux,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to region integrated sea-ice freshwater flux', units='Sv', )
-                #    )
-
-                #if 'timeMonthly_avg_icebergFlux' in dsIn.keys():
-                #    print('  surface fluxes (iceberg freshwater)')
-                #    flux = dsIn.timeMonthly_avg_icebergFlux
-                #    flux = flux.where(cellMask, drop=True)
-                #    icebergFlux = (flux * regionArea).sum(dim='nCells')
-                #    dsOutMonthly['icebergFlux'] = xr.DataArray(
-                #        data=1/rho0 * m3ps_to_Sv * icebergFlux,
-                #        dims=('Time', ),
-                #        attrs=dict(description='Volume change due to region integrated iceberg flux', units='Sv', )
-                #        )
-
-                #if 'timeMonthly_avg_landIceFlux' in dsIn.keys():
-                #    print('  surface fluxes (land ice freshwater)')
-                #    flux = dsIn.timeMonthly_avg_landIceFlux
-                #    flux = flux.where(cellMask, drop=True)
-                #    landIceFlux = (flux * regionArea).sum(dim='nCells')
-                #    dsOutMonthly['landIceFlux'] = xr.DataArray(
-                #        data=1/rho0 * m3ps_to_Sv * landIceFlux,
-                #        dims=('Time', ),
-                #        attrs=dict(description='Volume change due to region integrated land ice flux', units='Sv', )
-                #        )
-
-                ## Compute layer thickness tendencies
-                #print('  layer thickness tendency')
-                #if not 'timeMonthly_avg_tendLayerThickness' in dsIn.keys():
-                #    raise KeyError('no layer thickness tendency variable found')
-                #layerThickTend = dsIn.timeMonthly_avg_tendLayerThickness
-                #layerThickTend = layerThickTend.where(depthMask, drop=False).where(cellMask, drop=True)
-                #layerThickTend = (layerThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
-                #dsOutMonthly['thicknessTendency'] = xr.DataArray(
-                #    data=m3ps_to_Sv * layerThickTend,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to water column tendency over depth range {zmax:d},{zmin:d}', units='Sv', )
-                #    )
-
-                print('  frazil layer thickness tendency')
+                print('Compute frazil layer thickness tendency')
                 if not 'timeMonthly_avg_frazilLayerThicknessTendency' in dsIn.keys():
                     raise KeyError('no frazil layer thickness tendency variable found')
                 frazilThickTend = dsIn.timeMonthly_avg_frazilLayerThicknessTendency
                 frazilThickTend = frazilThickTend.where(depthMask, drop=False).where(cellMask, drop=True)
                 frazilThickTend = (frazilThickTend * regionArea).sum(dim='nVertLevels', skipna=True).sum(dim='nCells')
-                #dsOutMonthly['frazilTendency'] = xr.DataArray(
-                #    data=m3ps_to_Sv * frazilThickTend,
-                #    dims=('Time', ),
-                #    attrs=dict(description='Volume change due to frazil ice formation over depth range {zmax:d},{zmin:d} (included in thickTend)', units='Sv', )
-                #    )
 
                 #####
                 ##### Salinity budget terms
@@ -820,47 +597,6 @@ for n in range(nRegions):
     ###
     if makePlots is True:
         dsBudgets = xr.open_mfdataset(outfiles)
-        #t = np.hstack(dsBudgets['Time']) # days
-        t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
-        #hours = 24*(t-np.int64(t))
-        #minutes = 60*(hours-np.int64(hours))
-        #seconds = 60*(minutes-np.int64(minutes))
-        #print(t)
-        #dt = timedelta(days=int(t[0]), hours=int(hours[0]), minutes=int(minutes[0]), seconds=int(seconds[0]))
-        #print(datetime(year=1, month=1, day=1) + dt - timedelta(days=1))
-
-        depthRegion = dsBudgets['depth'].mean('nCells')
-        # Factor to apply for time-integrated tracer tendency summary plots:
-        fac = perSec_to_perDay / depthRegion
-
-        weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-        months = np.empty(np.shape(t), dtype=np.int64)
-        datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
-        for i, date in enumerate(datetimes.flat):
-            months[i] = date.month
-        monthlyMask = np.empty(np.shape(t), dtype=np.float64)
-        for im in range(1, 13):
-            monthlyMask[months==im] = weights[im-1]
-        #print(monthlyMask)
-
-        t = t/365 # from days to years
-
-        ## Read in previously computed volume budget quantities
-        #volNetLateralFlux = dsBudgets['volNetLateralFlux']
-        #evapFlux = dsBudgets['evapFlux']
-        #rainFlux = dsBudgets['rainFlux']
-        #snowFlux = dsBudgets['snowFlux']
-        #riverRunoffFlux = dsBudgets['riverRunoffFlux']
-        #iceRunoffFlux = dsBudgets['iceRunoffFlux']
-        #seaIceFreshWaterFlux = dsBudgets['seaIceFreshWaterFlux']
-        #thickTend = dsBudgets['thicknessTendency']
-        #frazilTend = dsBudgets['frazilTendency']
-        #if 'volNetVerticalFlux' in dsBudgets.keys():
-        #    volNetVerticalFlux = dsBudgets['volNetVerticalFlux']
-        #    tot = volNetLateralFlux + volNetVerticalFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
-        #else:
-        #    tot = volNetLateralFlux + evapFlux + rainFlux + snowFlux + riverRunoffFlux + iceRunoffFlux + seaIceFreshWaterFlux + frazilTend
-        #volRes = thickTend - tot
 
         # Read in previously computed salinity budget quantities
         saltTend = dsBudgets['saltTendency']
@@ -907,74 +643,95 @@ for n in range(nRegions):
         tempTotTend = tempTend + tempVmixTend
         temp = dsBudgets['temperature']
 
-        # Compute running averages
-        if movingAverageMonths!=1:
-            window = int(movingAverageMonths)
-            #volNetLateralFlux_runavg = pd.Series(volNetLateralFlux).rolling(window, center=True).mean()
-            #if 'volNetVerticalFlux' in locals():
-            #    volNetVerticalFlux_runavg = pd.Series(volNetVerticalFlux).rolling(window, center=True).mean()
-            #evapFlux_runavg = pd.Series(evapFlux).rolling(window, center=True).mean()
-            #rainFlux_runavg = pd.Series(rainFlux).rolling(window, center=True).mean()
-            #snowFlux_runavg = pd.Series(snowFlux).rolling(window, center=True).mean()
-            #riverRunoffFlux_runavg = pd.Series(riverRunoffFlux).rolling(window, center=True).mean()
-            #iceRunoffFlux_runavg = pd.Series(iceRunoffFlux).rolling(window, center=True).mean()
-            #seaIceFreshWaterFlux_runavg = pd.Series(seaIceFreshWaterFlux).rolling(window, center=True).mean()
-            #frazilTend_runavg = pd.Series(frazilTend).rolling(window, center=True).mean()
-            #thickTend_runavg = pd.Series(thickTend).rolling(window, center=True).mean()
-            #volRes_runavg = pd.Series(volRes).rolling(window, center=True).mean()
-            #
-            saltTend_runavg = pd.Series(saltTend).rolling(window, center=True).mean()
-            saltTotTend_runavg = pd.Series(saltTotTend).rolling(window, center=True).mean()
-            if 'saltFrazilTend' in locals():
-                saltFrazilTend_runavg = pd.Series(saltFrazilTend).rolling(window, center=True).mean()
-            saltHadvTend_runavg = pd.Series(saltHadvTend).rolling(window, center=True).mean()
-            saltVadvTend_runavg = pd.Series(saltVadvTend).rolling(window, center=True).mean()
-            saltAdvTend_runavg = pd.Series(saltHadvTend+saltVadvTend).rolling(window, center=True).mean()
-            saltHmixTend_runavg = pd.Series(saltHmixTend).rolling(window, center=True).mean()
-            saltVmixTend_runavg = pd.Series(saltVmixTend).rolling(window, center=True).mean()
-            saltNonLocalTend_runavg = pd.Series(saltNonLocalTend).rolling(window, center=True).mean()
-            saltSurfaceFluxTend_runavg = pd.Series(saltSurfaceFluxTend).rolling(window, center=True).mean()
-            saltSeaIceTend_runavg = pd.Series(saltSeaIceTend).rolling(window, center=True).mean()
-            if 'saltSurfaceRestoringTend' in locals():
-                saltSurfaceRestoringTend_runavg = pd.Series(saltSurfaceRestoringTend).rolling(window, center=True).mean()
-            saltRes_runavg = pd.Series(saltRes).rolling(window, center=True).mean()
-            salt_runavg = pd.Series(salt).rolling(window, center=True).mean()
-            #
-            tempTend_runavg = pd.Series(tempTend).rolling(window, center=True).mean()
-            tempTotTend_runavg = pd.Series(tempTotTend).rolling(window, center=True).mean()
-            tempFrazilTend_runavg = pd.Series(tempFrazilTend).rolling(window, center=True).mean()
-            tempHadvTend_runavg = pd.Series(tempHadvTend).rolling(window, center=True).mean()
-            tempVadvTend_runavg = pd.Series(tempVadvTend).rolling(window, center=True).mean()
-            tempAdvTend_runavg = pd.Series(tempHadvTend+tempVadvTend).rolling(window, center=True).mean()
-            tempHmixTend_runavg = pd.Series(tempHmixTend).rolling(window, center=True).mean()
-            tempVmixTend_runavg = pd.Series(tempVmixTend).rolling(window, center=True).mean()
-            tempNonLocalTend_runavg = pd.Series(tempNonLocalTend).rolling(window, center=True).mean()
-            tempSurfaceFluxTend_runavg = pd.Series(tempSurfaceFluxTend).rolling(window, center=True).mean()
-            tempSeaIceTend_runavg = pd.Series(tempSeaIceTend).rolling(window, center=True).mean()
-            tempSensibleHeatTend_runavg = pd.Series(tempSensibleHeatTend).rolling(window, center=True).mean()
-            tempLatentHeatTend_runavg = pd.Series(tempLatentHeatTend).rolling(window, center=True).mean()
-            tempLongWaveTend_runavg = pd.Series(tempLongWaveTend).rolling(window, center=True).mean()
-            tempShortWaveTend_runavg = pd.Series(tempShortWaveTend).rolling(window, center=True).mean()
-            tempSFluxRes_runavg = pd.Series(tempSFluxRes).rolling(window, center=True).mean()
-            tempRes_runavg = pd.Series(tempRes).rolling(window, center=True).mean()
-            temp_runavg = pd.Series(temp).rolling(window, center=True).mean()
+        # Compute optional annual averages
+        if plotAnnualAvg is True:
+            t = dsBudgets['Time']
+            datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
+            t_years = np.empty(np.shape(t), dtype=np.int64)
+            for i, date in enumerate(datetimes.flat):
+                t_years[i] = date.year
+            weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])/daysInYear
+            weights = xr.DataArray(weights, dims=('Time', ))
+            t_annual = []
+            saltTend_annual = []
+            saltTotTend_annual = []
+            saltRes_annual = []
+            salt_annual = []
+            saltHadvTend_annual = []
+            saltVadvTend_annual = []
+            saltHmixTend_annual = []
+            saltVmixTend_annual = []
+            saltNonLocalTend_annual = []
+            saltSurfaceFluxTend_annual = []
+            saltSeaIceTend_annual = []
+            if 'saltSurfaceRestoringTendency' in dsBudgets.keys():
+                saltSurfaceRestoringTend_annual = []
+            tempTend_annual = []
+            tempTotTend_annual = []
+            tempRes_annual = []
+            temp_annual = []
+            tempHadvTend_annual = []
+            tempVadvTend_annual = []
+            tempHmixTend_annual = []
+            tempVmixTend_annual = []
+            tempNonLocalTend_annual = []
+            tempSurfaceFluxTend_annual = []
+            tempSeaIceTend_annual = []
+            tempFrazilTend_annual = []
+            tempSensibleHeatTend_annual = []
+            tempLatentHeatTend_annual = []
+            tempLongWaveTend_annual = []
+            tempShortWaveTend_annual = []
+            tempSFluxRes_annual = []
+            for year in years:
+                indexYears = np.where(t_years==year)[0]
+                t_annual.append(t.isel(Time=indexYears).mean().values)
+                saltTend_annual.append((weights * saltTend.isel(Time=indexYears)).sum().values)
+                saltTotTend_annual.append((weights * saltTotTend.isel(Time=indexYears)).sum().values)
+                saltRes_annual.append((weights * saltRes.isel(Time=indexYears)).sum().values)
+                salt_annual.append((weights * salt.isel(Time=indexYears)).sum().values)
+                saltHadvTend_annual.append((weights * saltHadvTend.isel(Time=indexYears)).sum().values)
+                saltVadvTend_annual.append((weights * saltVadvTend.isel(Time=indexYears)).sum().values)
+                saltHmixTend_annual.append((weights * saltHmixTend.isel(Time=indexYears)).sum().values)
+                saltVmixTend_annual.append((weights * saltVmixTend.isel(Time=indexYears)).sum().values)
+                saltNonLocalTend_annual.append((weights * saltNonLocalTend.isel(Time=indexYears)).sum().values)
+                saltSurfaceFluxTend_annual.append((weights * saltSurfaceFluxTend.isel(Time=indexYears)).sum().values)
+                saltSeaIceTend_annual.append((weights * saltSeaIceTend.isel(Time=indexYears)).sum().values)
+                if 'saltSurfaceRestoringTendency' in dsBudgets.keys():
+                    saltSurfaceRestoringTend_annual.append((weights * saltSurfaceRestoringTend.isel(Time=indexYears)).sum().values)
+                tempTend_annual.append((weights * tempTend.isel(Time=indexYears)).sum().values)
+                tempTotTend_annual.append((weights * tempTotTend.isel(Time=indexYears)).sum().values)
+                tempRes_annual.append((weights * tempRes.isel(Time=indexYears)).sum().values)
+                temp_annual.append((weights * temp.isel(Time=indexYears)).sum().values)
+                tempHadvTend_annual.append((weights * tempHadvTend.isel(Time=indexYears)).sum().values)
+                tempVadvTend_annual.append((weights * tempVadvTend.isel(Time=indexYears)).sum().values)
+                tempHmixTend_annual.append((weights * tempHmixTend.isel(Time=indexYears)).sum().values)
+                tempVmixTend_annual.append((weights * tempVmixTend.isel(Time=indexYears)).sum().values)
+                tempNonLocalTend_annual.append((weights * tempNonLocalTend.isel(Time=indexYears)).sum().values)
+                tempSurfaceFluxTend_annual.append((weights * tempSurfaceFluxTend.isel(Time=indexYears)).sum().values)
+                tempSeaIceTend_annual.append((weights * tempSeaIceTend.isel(Time=indexYears)).sum().values)
+                tempFrazilTend_annual.append((weights * tempFrazilTend.isel(Time=indexYears)).sum().values)
+                tempSensibleHeatTend_annual.append((weights * tempSensibleHeatTend.isel(Time=indexYears)).sum().values)
+                tempLatentHeatTend_annual.append((weights * tempLatentHeatTend.isel(Time=indexYears)).sum().values)
+                tempLongWaveTend_annual.append((weights * tempLongWaveTend.isel(Time=indexYears)).sum().values)
+                tempShortWaveTend_annual.append((weights * tempShortWaveTend.isel(Time=indexYears)).sum().values)
+                tempSFluxRes_annual.append((weights * tempSFluxRes.isel(Time=indexYears)).sum().values)
+        else:
+            t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
+            depthRegion = dsBudgets['depth'].mean('nCells')
+            # Factor to apply for time-integrated tracer tendency summary plots:
+            fac = perSec_to_perDay / depthRegion
+            weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+            months = np.empty(np.shape(t), dtype=np.int64)
+            datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
+            for i, date in enumerate(datetimes.flat):
+                months[i] = date.month
+            monthlyMask = np.empty(np.shape(t), dtype=np.float64)
+            for im in range(1, 13):
+                monthlyMask[months==im] = weights[im-1]
+            t = t/365 # from days to years
 
         # Compute long-term means
-        #volNetLateralFluxMean = volNetLateralFlux.mean().values
-        #if 'volNetVerticalFlux' in locals():
-        #    volNetVerticalFluxMean = volNetVerticalFlux.mean().values
-        #evapFluxMean = evapFlux.mean().values
-        #rainFluxMean = rainFlux.mean().values
-        #snowFluxMean = snowFlux.mean().values
-        #empMean = (evapFlux + rainFlux + snowFlux).mean().values
-        #riverRunoffFluxMean = riverRunoffFlux.mean().values
-        #iceRunoffFluxMean = iceRunoffFlux.mean().values
-        #runoffMean = (riverRunoffFlux + iceRunoffFlux).mean().values
-        #seaIceFreshWaterFluxMean = seaIceFreshWaterFlux.mean().values
-        #frazilTendMean = frazilTend.mean().values
-        #thickTendMean = thickTend.mean().values
-        #volResMean = volRes.mean().values
-        #
         saltTendMean = saltTend.mean().values
         saltTotTendMean = saltTotTend.mean().values
         if 'saltFrazilTend' in locals():
@@ -1011,182 +768,8 @@ for n in range(nRegions):
 
         figdpi = 300
 
-        ## Plot single terms of volume budget
-        #figsize = (16, 16)
-        #if zmax>0:
-        #    figfile = f'{figdir}/volBudgetTerms_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #else:
-        #    figfile = f'{figdir}/volBudgetTerms_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #fig, ax = plt.subplots(6, 2, figsize=figsize)
-        #ax[5, 1].set_axis_off() # I'm not using the last panel
-        #ax[0, 0].plot(t, volNetLateralFlux, 'k', alpha=0.5, linewidth=1.5)
-        ##ax[0, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetLateralFlux), 'k', alpha=0.5, linewidth=1.5)
-        #if 'volNetVerticalFlux' in locals():
-        #    ax[0, 1].plot(t, volNetVerticalFlux, 'k', alpha=0.5, linewidth=1.5)
-        #    #ax[0, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetVerticalFlux), 'k', alpha=0.5, linewidth=1.5)
-        #    ax[0, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #    ax[0, 1].autoscale(enable=True, axis='x', tight=True)
-        #    ax[0, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #    ax[0, 1].set_title(f'mean={volNetVerticalFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[1, 0].plot(t, seaIceFreshWaterFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[1, 1].plot(t, evapFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[2, 0].plot(t, rainFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[2, 1].plot(t, snowFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[3, 0].plot(t, riverRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[3, 1].plot(t, iceRunoffFlux, 'k', alpha=0.5, linewidth=1.5)
-        #ax[4, 0].plot(t, frazilTend, 'k', alpha=0.5, linewidth=1.5)
-        #ax[4, 1].plot(t, thickTend, 'k', alpha=0.5, linewidth=1.5)
-        #ax[5, 0].plot(t, volRes, 'k', alpha=0.5, linewidth=1.5)
-        ##ax[1, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*seaIceFreshWaterFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[1, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*evapFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[2, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*rainFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[2, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*snowFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[3, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*riverRunoffFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[3, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*iceRunoffFlux), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[4, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*frazilTend), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[4, 1].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*thickTend), 'k', alpha=0.5, linewidth=1.5)
-        ##ax[5, 0].plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volRes), 'k', alpha=0.5, linewidth=1.5)
-        #if movingAverageMonths!=1:
-        #    ax[0, 0].plot(t, volNetLateralFlux_runavg, 'k', linewidth=3)
-        #    if 'volNetVerticalFlux' in locals():
-        #        ax[0, 1].plot(t, volNetVerticalFlux_runavg, 'k', linewidth=3)
-        #    ax[1, 0].plot(t, seaIceFreshWaterFlux_runavg, 'k', linewidth=3)
-        #    ax[1, 1].plot(t, evapFlux_runavg, 'k', linewidth=3)
-        #    ax[2, 0].plot(t, rainFlux_runavg, 'k', linewidth=3)
-        #    ax[2, 1].plot(t, snowFlux_runavg, 'k', linewidth=3)
-        #    ax[3, 0].plot(t, riverRunoffFlux_runavg, 'k', linewidth=3)
-        #    ax[3, 1].plot(t, iceRunoffFlux_runavg, 'k', linewidth=3)
-        #    ax[4, 0].plot(t, frazilTend_runavg, 'k', linewidth=3)
-        #    ax[4, 1].plot(t, thickTend_runavg, 'k', linewidth=3)
-        #    ax[5, 0].plot(t, volRes_runavg, 'k', linewidth=3)
-     
-        #ax[0, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[1, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[1, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[2, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[2, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[3, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[3, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[4, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[4, 1].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax[5, 0].plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-
-        #ax[0, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[1, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[1, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[2, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[2, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[3, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[3, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[4, 0].autoscale(enable=True, axis='x', tight=True)
-        #ax[4, 1].autoscale(enable=True, axis='x', tight=True)
-        #ax[5, 0].autoscale(enable=True, axis='x', tight=True)
-
-        #ax[0, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[1, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[1, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[2, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[2, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[3, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[3, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[4, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[4, 1].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax[5, 0].grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-
-        #ax[0, 0].set_title(f'mean={volNetLateralFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[1, 0].set_title(f'mean={seaIceFreshWaterFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[1, 1].set_title(f'mean={evapFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[2, 0].set_title(f'mean={rainFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[2, 1].set_title(f'mean={snowFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[3, 0].set_title(f'mean={riverRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[3, 1].set_title(f'mean={iceRunoffFluxMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[4, 0].set_title(f'mean={frazilTendMean:.2e}', fontsize=14, fontweight='bold')
-        #ax[4, 1].set_title(f'mean={thickTendMean:.2e}', fontsize=16, fontweight='bold')
-        #ax[5, 0].set_title(f'mean={volResMean:.2e}', fontsize=16, fontweight='bold')
-
-        #ax[4, 1].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
-        #ax[5, 0].set_xlabel('Time (Days)', fontsize=12, fontweight='bold')
-
-        #units = 'Sv'
-        ##units = '10^6 m^3'
-        #ax[0, 0].set_ylabel(f'Lateral flux ({units})', fontsize=12, fontweight='bold')
-        #ax[0, 1].set_ylabel(f'Vertical flux ({units})', fontsize=12, fontweight='bold')
-        #ax[1, 0].set_ylabel(f'Sea ice FW flux ({units})', fontsize=12, fontweight='bold')
-        #ax[1, 1].set_ylabel(f'Evap flux ({units})', fontsize=12, fontweight='bold')
-        #ax[2, 0].set_ylabel(f'Rain flux ({units})', fontsize=12, fontweight='bold')
-        #ax[2, 1].set_ylabel(f'Snow flux ({units})', fontsize=12, fontweight='bold')
-        #ax[3, 0].set_ylabel(f'River runoff flux ({units})', fontsize=12, fontweight='bold')
-        #ax[3, 1].set_ylabel(f'Ice runoff flux ({units})', fontsize=12, fontweight='bold')
-        #ax[4, 0].set_ylabel(f'Frazil thicTend ({units})', fontsize=12, fontweight='bold')
-        #ax[4, 1].set_ylabel(f'Layer thickTend ({units})', fontsize=12, fontweight='bold')
-        #ax[5, 0].set_ylabel('Res = LHS - sumRHSTerms', fontsize=12, fontweight='bold')
-
-        #fig.tight_layout(pad=0.5)
-        #fig.suptitle(f'Region = {regionName}, runname = {casename}', \
-        #             fontsize=14, fontweight='bold', y=1.025)
-        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1.2)
-        #fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
-
-        ## Plot summary of volume budget terms
-        #figsize = (14, 8)
-        #if zmax>0:
-        #    figfile = f'{figdir}/volBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #else:
-        #    figfile = f'{figdir}/volBudgetSummary_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        #fig = plt.figure(figsize=figsize)
-        #ax = fig.add_subplot()
-        #for tick in ax.xaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #for tick in ax.yaxis.get_ticklabels():
-        #    tick.set_fontsize(14)
-        #    tick.set_weight('bold')
-        #ax.yaxis.get_offset_text().set_fontsize(14)
-        #ax.yaxis.get_offset_text().set_weight('bold')
-        ##
-        #if movingAverageMonths==1:
-        #    emp = evapFlux + rainFlux + snowFlux
-        #    runoff = riverRunoffFlux + iceRunoffFlux
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetLateralFlux), 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
-        #    if 'volNetVerticalFlux' in locals():
-        #        ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volNetVerticalFlux), 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e}) Sv')
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*emp), 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*runoff), 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*seaIceFreshWaterFlux), 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*thickTend), 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
-        #    ax.plot(t, perSec_to_perDay * np.cumsum(monthlyMask*volRes), 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
-        #else:
-        #    emp = evapFlux_runavg + rainFlux_runavg + snowFlux_runavg
-        #    runoff = riverRunoffFlux_runavg + iceRunoffFlux_runavg
-        #    ax.plot(t, volNetLateralFlux_runavg, 'r', linewidth=2, label=f'netLateral ({volNetLateralFluxMean:.2e} Sv)')
-        #    if 'volNetVerticalFlux' in locals():
-        #        ax.plot(t, volNetVerticalFlux_runavg, 'g', linewidth=2, label=f'netVertical ({volNetVerticalFluxMean:.2e}) Sv')
-        #    ax.plot(t, emp, 'c', linewidth=2, label=f'E-P ({empMean:.2e} Sv)')
-        #    ax.plot(t, runoff, 'salmon', linewidth=2, label=f'runoff ({runoffMean:.2e} Sv)')
-        #    ax.plot(t, seaIceFreshWaterFlux_runavg, 'b', linewidth=2, label=f'seaiceFW ({seaIceFreshWaterFluxMean:.2e} Sv)')
-        #    ax.plot(t, thickTend_runavg, 'm', linewidth=2, label=f'thickTend ({thickTendMean:.2e} Sv)')
-        #    ax.plot(t, volRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({volResMean:.2e} Sv)')
-        #    ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
-        #ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
-        #ax.autoscale(enable=True, axis='x', tight=True)
-        #ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
-        #ax.legend(prop=legend_properties)
-        ##plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
-        #ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
-        #ax.set_ylabel(r'10$^6$ m$^3$', fontsize=12, fontweight='bold')
-        ##ax.set_ylabel('Sv', fontsize=12, fontweight='bold')
-        #fig.tight_layout(pad=0.5)
-        #fig.suptitle(f'Region = {regionName}, runname = {casename}', \
-        #             fontsize=14, fontweight='bold', y=1.025)
-        #add_inset(fig, fc, width=1.5, height=1.5, xbuffer=0.5, ybuffer=-1.2)
-        #fig.savefig(figfile, dpi=figdpi, bbox_inches='tight')
-
         # Plot summary of salinity budget terms
         figsize = (14, 8)
-        if zmax>0:
-            figfile = f'{figdir}/saltBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        else:
-            figfile = f'{figdir}/saltBudgetSummary_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
         for tick in ax.xaxis.get_ticklabels():
@@ -1198,7 +781,31 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
         #
-        if movingAverageMonths==1:
+        if plotAnnualAvg is True:
+            if zmax>0:
+                figfile = f'{figdir}/saltBudgetSummaryAnnual_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/saltBudgetSummaryAnnual_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
+            #ax.plot(t_annual, saltHadvTend_annual, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
+            #ax.plot(t_annual, saltVadvTend_annual, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
+            ax.plot(t_annual, saltHadvTend_annual+saltVadvTend_annual, 'r', linewidth=2, label=f'tot-adv ({saltAdvTendMean:.2e})')
+            ax.plot(t_annual, saltVmixTend_annual, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
+            ax.plot(t_annual, saltNonLocalTend_annual, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
+            ax.plot(t_annual, saltHmixTend_annual, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
+            ax.plot(t_annual, saltSurfaceFluxTend_annual, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            if 'saltFrazilTend' in locals():
+                ax.plot(t_annual, saltFrazilTend_annual, 'brown', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
+            #ax.plot(t_annual, saltTend_annual, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
+            ax.plot(t_annual, saltTotTend_annual, 'm', linewidth=2, label=f'saltTend+vmix ({saltTotTendMean:.2e})')
+            ax.plot(t_annual, saltRes_annual, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
+            ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
+        else:
+            if zmax>0:
+                figfile = f'{figdir}/saltBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/saltBudgetSummary_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
             #ax.plot(t, fac * np.cumsum(monthlyMask*saltHadvTend), 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
             #ax.plot(t, fac * np.cumsum(monthlyMask*saltVadvTend), 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*(saltHadvTend+saltVadvTend)), 'r', linewidth=2, label=f'tot-adv ({saltAdvTendMean:.2e})')
@@ -1213,40 +820,11 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.plot(t, (salt-salt[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(salt)')
             ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
-            #
-            ##ax.plot(t, saltHadvTend, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            ##ax.plot(t, saltVadvTend, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            #ax.plot(t, saltHadvTend+saltVadvTend, 'r', linewidth=2, label=f'tot-adv ({saltAdvTendMean:.2e})')
-            #ax.plot(t, saltVmixTend, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            #ax.plot(t, saltNonLocalTend, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-            #ax.plot(t, saltHmixTend, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            #ax.plot(t, saltSurfaceFluxTend, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            #if 'saltFrazilTend' in locals():
-            #    ax.plot(t, saltFrazilTend, 'brown', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
-            ##ax.plot(t, saltTend, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-            #ax.plot(t, saltTotTend, 'm', linewidth=2, label=f'saltTend+vmix ({saltTotTendMean:.2e})')
-            #ax.plot(t, saltRes, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-            #ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
-        else:
-            #ax.plot(t, saltHadvTend_runavg, 'r', linewidth=2, label=f'hor-adv ({saltHadvTendMean:.2e})')
-            #ax.plot(t, saltVadvTend_runavg, 'g', linewidth=2, label=f'ver-adv ({saltVadvTendMean:.2e})')
-            ax.plot(t, saltHadvTend_runavg+saltVadvTend_runavg, 'r', linewidth=2, label=f'tot-adv ({saltAdvTendMean:.2e})')
-            ax.plot(t, saltVmixTend_runavg, 'salmon', linewidth=2, label=f'ver-mix ({saltVmixTendMean:.2e})')
-            ax.plot(t, saltNonLocalTend_runavg, 'c', linewidth=2, label=f'non-local ({saltNonLocalTendMean:.2e})')
-            ax.plot(t, saltHmixTend_runavg, 'k', linewidth=2, label=f'hor-mix ({saltHmixTendMean:.2e})')
-            ax.plot(t, saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            if 'saltFrazilTend' in locals():
-                ax.plot(t, saltFrazilTend_runavg, 'brown', linewidth=2, label=f'saltFrazilTend ({saltFrazilTendMean:.2e})')
-            #ax.plot(t, saltTend_runavg, 'm', linewidth=2, label=f'saltTend ({saltTendMean:.2e})')
-            ax.plot(t, saltTotTend_runavg, 'm', linewidth=2, label=f'saltTend+vmix ({saltTotTendMean:.2e})')
-            ax.plot(t, saltRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
-            ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
-            ax.set_title(f'{int(movingAverageMonths/12)}-year running averages', fontsize=16, fontweight='bold')
+
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
-        #plot_xtick_format('gregorian', np.min(t), np.max(t), maxXTicks=20)
         ax.set_xlabel('Time (Years)', fontsize=12, fontweight='bold')
         fig.tight_layout(pad=0.5)
         if zmax>0:
@@ -1258,10 +836,6 @@ for n in range(nRegions):
 
         # Plot components of salinity surface flux budget terms
         figsize = (14, 8)
-        if zmax>0:
-            figfile = f'{figdir}/saltBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        else:
-            figfile = f'{figdir}/saltBudgetSurfaceFluxes_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
         for tick in ax.xaxis.get_ticklabels():
@@ -1273,24 +847,29 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
         #
-        if movingAverageMonths==1:
+        if plotAnnualAvg is True:
+            if zmax>0:
+                figfile = f'{figdir}/saltBudgetSurfaceFluxesAnnual_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/saltBudgetSurfaceFluxesAnnual_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
+            ax.plot(t_annual, saltSurfaceFluxTend_annual, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
+            ax.plot(t_annual, saltSeaIceTend_annual, 'c', linewidth=2, label=f'sea-ice-saltFlux ({saltSeaIceTendMean:.2e})')
+            if 'saltSurfaceRestoringTend' in locals():
+                ax.plot(t_annual, saltSurfaceRestoringTend_annual, 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
+            ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
+        else:
+            if zmax>0:
+                figfile = f'{figdir}/saltBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/saltBudgetSurfaceFluxes_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
             ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*saltSeaIceTend), 'c', linewidth=2, label=f'sea-ice-saltFlux ({saltSeaIceTendMean:.2e})')
             if 'saltSurfaceRestoringTend' in locals():
                 ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceRestoringTend), 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
             ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
-            #
-            #ax.plot(t, saltSurfaceFluxTend, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            #ax.plot(t, saltSeaIceTend, 'c', linewidth=2, label=f'sea-ice-saltFlux ({saltSeaIceTendMean:.2e})')
-            #if 'saltSurfaceRestoringTend' in locals():
-            #    ax.plot(t, saltSurfaceRestoringTend, 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
-            #ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
-        else:
-            ax.plot(t, saltSurfaceFluxTend_runavg, 'b', linewidth=2, label=f'sfc-flux ({saltSurfaceFluxTendMean:.2e})')
-            ax.plot(t, saltSeaIceTend_runavg, 'c', linewidth=2, label=f'sea-ice-saltFlux ({saltSeaIceTendMean:.2e})')
-            if 'saltSurfaceRestoringTend' in locals():
-                ax.plot(t, saltSurfaceRestoringTend_runavg, 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
-            ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
+
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
@@ -1306,10 +885,6 @@ for n in range(nRegions):
 
         # Plot summary of temperature budget terms
         figsize = (14, 8)
-        if zmax>0:
-            figfile = f'{figdir}/tempBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        else:
-            figfile = f'{figdir}/tempBudgetSummary_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
         for tick in ax.xaxis.get_ticklabels():
@@ -1321,7 +896,31 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
         #
-        if movingAverageMonths==1:
+        if plotAnnualAvg is True:
+            if zmax>0:
+                figfile = f'{figdir}/tempBudgetSummaryAnnual_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/tempBudgetSummaryAnnual_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
+            #ax.plot(t_annual, tempHadvTend_annual, 'r', linewidth=2, label=f'hor-adv ({tempHadvTendMean:.2e})')
+            #ax.plot(t_annual, tempVadvTend_annual, 'g', linewidth=2, label=f'ver-adv ({tempVadvTendMean:.2e})')
+            ax.plot(t_annual, tempHadvTend_annual+tempVadvTend_annual, 'r', linewidth=2, label=f'tot-adv ({tempAdvTendMean:.2e})')
+            ax.plot(t_annual, tempVmixTend_annual, 'salmon', linewidth=2, label=f'ver-mix ({tempVmixTendMean:.2e})')
+            ax.plot(t_annual, tempNonLocalTend_annual, 'c', linewidth=2, label=f'non-local ({tempNonLocalTendMean:.2e})')
+            ax.plot(t_annual, tempHmixTend_annual, 'k', linewidth=2, label=f'hor-mix ({tempHmixTendMean:.2e})')
+            ax.plot(t_annual, tempSurfaceFluxTend_annual+tempShortWaveTend_annual, 'b', linewidth=2, \
+                    label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
+            ax.plot(t_annual, tempFrazilTend_annual, 'brown', linewidth=2, label=f'tempFrazilTend ({tempFrazilTendMean:.2e})')
+            #ax.plot(t_annual, tempTend_annual, 'm', linewidth=2, label=f'tempTend ({tempTendMean:.2e})')
+            ax.plot(t_annual, tempTotTend_annual, 'm', linewidth=2, label=f'tempTend+vmix ({tempTotTendMean:.2e})')
+            ax.plot(t_annual, tempRes_annual, 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
+            ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+        else:
+            if zmax>0:
+                figfile = f'{figdir}/tempBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/tempBudgetSummary_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
             #ax.plot(t, fac * np.cumsum(monthlyMask*tempHadvTend), 'r', linewidth=2, label=f'hor-adv ({tempHadvTendMean:.2e})')
             #ax.plot(t, fac * np.cumsum(monthlyMask*tempVadvTend), 'g', linewidth=2, label=f'ver-adv ({tempVadvTendMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*(tempHadvTend+tempVadvTend)), 'r', linewidth=2, label=f'tot-adv ({tempAdvTendMean:.2e})')
@@ -1338,32 +937,7 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*tempRes), 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
             ax.plot(t, (temp-temp[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(temp)')
             ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
-            #
-            ##ax.plot(t, tempHadvTend, 'r', linewidth=2, label=f'hor-adv ({tempHadvTendMean:.2e})')
-            ##ax.plot(t, tempVadvTend, 'g', linewidth=2, label=f'ver-adv ({tempVadvTendMean:.2e})')
-            #ax.plot(t, tempHadvTend+tempVadvTend, 'r', linewidth=2, label=f'tot-adv ({tempAdvTendMean:.2e})')
-            #ax.plot(t, tempVmixTend, 'salmon', linewidth=2, label=f'ver-mix ({tempVmixTendMean:.2e})')
-            #ax.plot(t, tempNonLocalTend, 'c', linewidth=2, label=f'non-local ({tempNonLocalTendMean:.2e})')
-            #ax.plot(t, tempHmixTend, 'k', linewidth=2, label=f'hor-mix ({tempHmixTendMean:.2e})')
-            #ax.plot(t, tempSurfaceFluxTend+tempShortWaveTend, 'b', linewidth=2, \
-            #        label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
-            #ax.plot(t, tempFrazilTend, 'brown', linewidth=2, label=f'tempFrazilTend ({tempFrazilTendMean:.2e})')
-            ##ax.plot(t, tempTend, 'm', linewidth=2, label=f'tempTend ({tempTendMean:.2e})')
-            #ax.plot(t, tempTotTend, 'm', linewidth=2, label=f'tempTend+vmix ({tempTotTendMean:.2e})')
-            #ax.plot(t, tempRes, 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
-            #ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
-        else:
-            ax.plot(t, tempHadvTend_runavg+tempVadvTend_runavg, 'r', linewidth=2, label=f'tot-adv ({tempAdvTendMean:.2e})')
-            ax.plot(t, tempVmixTend_runavg, 'salmon', linewidth=2, label=f'ver-mix ({tempVmixTendMean:.2e})')
-            ax.plot(t, tempNonLocalTend_runavg, 'c', linewidth=2, label=f'non-local ({tempNonLocalTendMean:.2e})')
-            ax.plot(t, tempHmixTend_runavg, 'k', linewidth=2, label=f'hor-mix ({tempHmixTendMean:.2e})')
-            ax.plot(t, tempSurfaceFluxTend_runavg+tempShortWaveTend_runavg, 'b', linewidth=2, \
-                    label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
-            ax.plot(t, tempFrazilTend_runavg, 'brown', linewidth=2, label=f'tempFrazilTend ({tempFrazilTendMean:.2e})')
-            #ax.plot(t, tempTend_runavg, 'm', linewidth=2, label=f'tempTend ({tempTendMean:.2e})')
-            ax.plot(t, tempTotTend_runavg, 'm', linewidth=2, label=f'tempTend+vmix ({tempTotTendMean:.2e})')
-            ax.plot(t, tempRes_runavg, 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
-            ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
@@ -1379,10 +953,6 @@ for n in range(nRegions):
 
         # Plot components of temperature surface flux budget terms
         figsize = (14, 8)
-        if zmax>0:
-            figfile = f'{figdir}/tempBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
-        else:
-            figfile = f'{figdir}/tempBudgetSurfaceFluxes_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot()
         for tick in ax.xaxis.get_ticklabels():
@@ -1394,7 +964,27 @@ for n in range(nRegions):
         ax.yaxis.get_offset_text().set_fontsize(14)
         ax.yaxis.get_offset_text().set_weight('bold')
         #
-        if movingAverageMonths==1:
+        if plotAnnualAvg is True:
+            if zmax>0:
+                figfile = f'{figdir}/tempBudgetSurfaceFluxesAnnual_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/tempBudgetSurfaceFluxesAnnual_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
+            ax.plot(t_annual, tempSurfaceFluxTend_annual+tempShortWaveTend_annual, 'b', linewidth=2, \
+                    label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
+            ax.plot(t_annual, tempSeaIceTend_annual, 'c', linewidth=2, label=f'sea-ice-tempFlux ({tempSeaIceTendMean:.2e})')
+            ax.plot(t_annual, tempSensibleHeatTend_annual, 'teal', linewidth=2, label=f'sensible ({tempSensibleHeatTendMean:.2e})')
+            ax.plot(t_annual, tempLatentHeatTend_annual, 'dodgerblue', linewidth=2, label=f'latent ({tempLatentHeatTendMean:.2e})')
+            ax.plot(t_annual, tempLongWaveTend_annual, 'navy', linewidth=2, label=f'longwave ({tempLongWaveTendMean:.2e})')
+            ax.plot(t_annual, tempSFluxRes_annual, 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
+            ax.plot(t_annual, tempShortWaveTend_annual, 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
+            ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+        else:
+            if zmax>0:
+                figfile = f'{figdir}/tempBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+            else:
+                figfile = f'{figdir}/tempBudgetSurfaceFluxes_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
+
             #ax.plot(t, fac * np.cumsum(monthlyMask*tempSurfaceFluxTend), 'b', linewidth=2, label=f'sfc-flux ({tempSurfaceFluxTendMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*(tempSurfaceFluxTend+tempShortWaveTend)), 'b', linewidth=2, \
                     label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
@@ -1405,26 +995,7 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*tempSFluxRes), 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
             ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
-            #
-            #ax.plot(t, tempSurfaceFluxTend+tempShortWaveTend, 'b', linewidth=2, \
-            #        label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
-            #ax.plot(t, tempSeaIceTend, 'c', linewidth=2, label=f'sea-ice-tempFlux ({tempSeaIceTendMean:.2e})')
-            #ax.plot(t, tempSensibleHeatTend, 'teal', linewidth=2, label=f'sensible ({tempSensibleHeatTendMean:.2e})')
-            #ax.plot(t, tempLatentHeatTend, 'dodgerblue', linewidth=2, label=f'latent ({tempLatentHeatTendMean:.2e})')
-            #ax.plot(t, tempLongWaveTend, 'navy', linewidth=2, label=f'longwave ({tempLongWaveTendMean:.2e})')
-            #ax.plot(t, tempSFluxRes, 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
-            #ax.plot(t, tempShortWaveTend, 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
-            #ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
-        else:
-            ax.plot(t, tempSurfaceFluxTend_runavg+tempShortWaveTend_runavg, 'b', linewidth=2, \
-                    label=f'sfc-flux+SW ({tempSurfaceFluxTend.mean().values+tempShortWaveTend.mean().values:.2e})')
-            ax.plot(t, tempSeaIceTend_runavg, 'c', linewidth=2, label=f'sea-ice-tempFlux ({tempSeaIceTendMean:.2e})')
-            ax.plot(t, tempSensibleHeatTend_runavg, 'teal', linewidth=2, label=f'sensible ({tempSensibleHeatTendMean:.2e})')
-            ax.plot(t, tempLatentHeatTend_runavg, 'dodgerblue', linewidth=2, label=f'latent ({tempLatentHeatTendMean:.2e})')
-            ax.plot(t, tempLongWaveTend_runavg, 'navy', linewidth=2, label=f'longwave ({tempLongWaveTendMean:.2e})')
-            ax.plot(t, tempSFluxRes_runavg, 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
-            ax.plot(t, tempShortWaveTend_runavg, 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
-            ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+
         ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
