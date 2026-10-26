@@ -20,7 +20,6 @@ import pandas as pd
 import xarray as xr
 from datetime import datetime, timedelta
 from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta # usage: datetime.object + relativedelta(years=shiftyear), when wanting to shif by a certain number of years
 import netCDF4
 import cftime
 mpl.use('Agg')
@@ -74,10 +73,10 @@ featurefile = '/p/home/milena/mpas-region_masks/arctic_atlantic_budget_regions_2
 #featurefile = '/p/home/milena/mpas-region_masks/arcticRegions.geojson'
 #regionmaskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_amocPaper_regions.nc'
 #featurefile = '/p/home/milena/mpas-region_masks/amocPaper_regions.geojson'
-#casenameFull = 'E3SMv2.1G60to10_01'
-#casename = 'E3SMv2.1G60to10_01'
-casenameFull = 'E3SMv2.1B60to10rA02'
-casename = 'E3SMv2.1B60to10rA02'
+casenameFull = 'E3SMv2.1G60to10_01'
+casename = 'E3SMv2.1G60to10_01'
+#casenameFull = 'E3SMv2.1B60to10rA02'
+#casename = 'E3SMv2.1B60to10rA02'
 modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
@@ -98,16 +97,16 @@ regionNames = ['North Atlantic subpolar gyre', 'North Atlantic greater subpolar 
 #regionNames = ['South Atlantic Wilbert']
 
 # Choose years
-year1 = 1950
-year2 = 1955
+#year1 = 1950
+#year2 = 1955
 #year2 = 2014
-#year1 = 1
-#year2 = 50
+year1 = 1
+year2 = 50
 #year2 = 386
 years = range(year1, year2+1)
-referenceDate = '0001-01-01'
-calendar = 'noleap'
-#shiftyear = 1900
+referenceDate = '0001-01-01 00:00:00'
+calendar = 'noleap'     
+daysInYear = 365.0
 
 zmin = -800.0
 zmax = 10.0
@@ -117,6 +116,7 @@ makePlots = True
 # If plotAnnualAvg = False, time-integrated tendency terms 
 # will be plotted instead of annual averages
 plotAnnualAvg = True
+#plotAnnualAvg = False
 
 m3ps_to_Sv = 1e-6 # m^3/s flux to Sverdrups
 rho0 = 1026.0 # kg/m^3 (config_density0)
@@ -644,92 +644,96 @@ for n in range(nRegions):
         temp = dsBudgets['temperature']
 
         # Compute optional annual averages
+        t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
+        datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
         if plotAnnualAvg is True:
-            t = dsBudgets['Time']
-            datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
             t_years = np.empty(np.shape(t), dtype=np.int64)
             for i, date in enumerate(datetimes.flat):
                 t_years[i] = date.year
             weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])/daysInYear
-            weights = xr.DataArray(weights, dims=('Time', ))
-            t_annual = []
-            saltTend_annual = []
-            saltTotTend_annual = []
-            saltRes_annual = []
-            salt_annual = []
-            saltHadvTend_annual = []
-            saltVadvTend_annual = []
-            saltHmixTend_annual = []
-            saltVmixTend_annual = []
-            saltNonLocalTend_annual = []
-            saltSurfaceFluxTend_annual = []
-            saltSeaIceTend_annual = []
-            if 'saltSurfaceRestoringTendency' in dsBudgets.keys():
-                saltSurfaceRestoringTend_annual = []
-            tempTend_annual = []
-            tempTotTend_annual = []
-            tempRes_annual = []
-            temp_annual = []
-            tempHadvTend_annual = []
-            tempVadvTend_annual = []
-            tempHmixTend_annual = []
-            tempVmixTend_annual = []
-            tempNonLocalTend_annual = []
-            tempSurfaceFluxTend_annual = []
-            tempSeaIceTend_annual = []
-            tempFrazilTend_annual = []
-            tempSensibleHeatTend_annual = []
-            tempLatentHeatTend_annual = []
-            tempLongWaveTend_annual = []
-            tempShortWaveTend_annual = []
-            tempSFluxRes_annual = []
+            t_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltTotTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltRes_annual = np.empty(np.shape(years), dtype=np.float64)
+            salt_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltHadvTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltVadvTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltHmixTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltVmixTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltNonLocalTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltSurfaceFluxTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            saltSeaIceTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            if 'saltFrazilTend' in locals():
+                saltFrazilTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            if 'saltSurfaceRestoringTend' in locals():
+                saltSurfaceRestoringTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempTotTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempRes_annual = np.empty(np.shape(years), dtype=np.float64)
+            temp_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempHadvTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempVadvTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempHmixTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempVmixTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempNonLocalTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempSurfaceFluxTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempSeaIceTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempFrazilTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempSensibleHeatTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempLatentHeatTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempLongWaveTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempShortWaveTend_annual = np.empty(np.shape(years), dtype=np.float64)
+            tempSFluxRes_annual = np.empty(np.shape(years), dtype=np.float64)
+            k = 0
             for year in years:
                 indexYears = np.where(t_years==year)[0]
-                t_annual.append(t.isel(Time=indexYears).mean().values)
-                saltTend_annual.append((weights * saltTend.isel(Time=indexYears)).sum().values)
-                saltTotTend_annual.append((weights * saltTotTend.isel(Time=indexYears)).sum().values)
-                saltRes_annual.append((weights * saltRes.isel(Time=indexYears)).sum().values)
-                salt_annual.append((weights * salt.isel(Time=indexYears)).sum().values)
-                saltHadvTend_annual.append((weights * saltHadvTend.isel(Time=indexYears)).sum().values)
-                saltVadvTend_annual.append((weights * saltVadvTend.isel(Time=indexYears)).sum().values)
-                saltHmixTend_annual.append((weights * saltHmixTend.isel(Time=indexYears)).sum().values)
-                saltVmixTend_annual.append((weights * saltVmixTend.isel(Time=indexYears)).sum().values)
-                saltNonLocalTend_annual.append((weights * saltNonLocalTend.isel(Time=indexYears)).sum().values)
-                saltSurfaceFluxTend_annual.append((weights * saltSurfaceFluxTend.isel(Time=indexYears)).sum().values)
-                saltSeaIceTend_annual.append((weights * saltSeaIceTend.isel(Time=indexYears)).sum().values)
-                if 'saltSurfaceRestoringTendency' in dsBudgets.keys():
-                    saltSurfaceRestoringTend_annual.append((weights * saltSurfaceRestoringTend.isel(Time=indexYears)).sum().values)
-                tempTend_annual.append((weights * tempTend.isel(Time=indexYears)).sum().values)
-                tempTotTend_annual.append((weights * tempTotTend.isel(Time=indexYears)).sum().values)
-                tempRes_annual.append((weights * tempRes.isel(Time=indexYears)).sum().values)
-                temp_annual.append((weights * temp.isel(Time=indexYears)).sum().values)
-                tempHadvTend_annual.append((weights * tempHadvTend.isel(Time=indexYears)).sum().values)
-                tempVadvTend_annual.append((weights * tempVadvTend.isel(Time=indexYears)).sum().values)
-                tempHmixTend_annual.append((weights * tempHmixTend.isel(Time=indexYears)).sum().values)
-                tempVmixTend_annual.append((weights * tempVmixTend.isel(Time=indexYears)).sum().values)
-                tempNonLocalTend_annual.append((weights * tempNonLocalTend.isel(Time=indexYears)).sum().values)
-                tempSurfaceFluxTend_annual.append((weights * tempSurfaceFluxTend.isel(Time=indexYears)).sum().values)
-                tempSeaIceTend_annual.append((weights * tempSeaIceTend.isel(Time=indexYears)).sum().values)
-                tempFrazilTend_annual.append((weights * tempFrazilTend.isel(Time=indexYears)).sum().values)
-                tempSensibleHeatTend_annual.append((weights * tempSensibleHeatTend.isel(Time=indexYears)).sum().values)
-                tempLatentHeatTend_annual.append((weights * tempLatentHeatTend.isel(Time=indexYears)).sum().values)
-                tempLongWaveTend_annual.append((weights * tempLongWaveTend.isel(Time=indexYears)).sum().values)
-                tempShortWaveTend_annual.append((weights * tempShortWaveTend.isel(Time=indexYears)).sum().values)
-                tempSFluxRes_annual.append((weights * tempSFluxRes.isel(Time=indexYears)).sum().values)
+                t_annual[k] = np.mean(t[indexYears]/daysInYear)
+                saltTend_annual[k] = np.sum(weights * saltTend.values[indexYears])
+                saltTotTend_annual[k] = np.sum(weights * saltTotTend.values[indexYears])
+                saltRes_annual[k] = np.sum(weights * saltRes.values[indexYears])
+                salt_annual[k] = np.sum(weights * salt.values[indexYears])
+                saltHadvTend_annual[k] = np.sum(weights * saltHadvTend.values[indexYears])
+                saltVadvTend_annual[k] = np.sum(weights * saltVadvTend.values[indexYears])
+                saltHmixTend_annual[k] = np.sum(weights * saltHmixTend.values[indexYears])
+                saltVmixTend_annual[k] = np.sum(weights * saltVmixTend.values[indexYears])
+                saltNonLocalTend_annual[k] = np.sum(weights * saltNonLocalTend.values[indexYears])
+                saltSurfaceFluxTend_annual[k] = np.sum(weights * saltSurfaceFluxTend.values[indexYears])
+                saltSeaIceTend_annual[k] = np.sum(weights * saltSeaIceTend.values[indexYears])
+                if 'saltFrazilTend' in locals():
+                    saltFrazilTend_annual[k] = np.sum(weights * saltFrazilTend.values[indexYears])
+                if 'saltSurfaceRestoringTend' in locals():
+                    saltSurfaceRestoringTend_annual[k] = np.sum(weights * saltSurfaceRestoringTend.values[indexYears])
+                tempTend_annual[k] = np.sum(weights * tempTend.values[indexYears])
+                tempTotTend_annual[k] = np.sum(weights * tempTotTend.values[indexYears])
+                tempRes_annual[k] = np.sum(weights * tempRes.values[indexYears])
+                temp_annual[k] = np.sum(weights * temp.values[indexYears])
+                tempHadvTend_annual[k] = np.sum(weights * tempHadvTend.values[indexYears])
+                tempVadvTend_annual[k] = np.sum(weights * tempVadvTend.values[indexYears])
+                tempHmixTend_annual[k] = np.sum(weights * tempHmixTend.values[indexYears])
+                tempVmixTend_annual[k] = np.sum(weights * tempVmixTend.values[indexYears])
+                tempNonLocalTend_annual[k] = np.sum(weights * tempNonLocalTend.values[indexYears])
+                tempSurfaceFluxTend_annual[k] = np.sum(weights * tempSurfaceFluxTend.values[indexYears])
+                tempSeaIceTend_annual[k] = np.sum(weights * tempSeaIceTend.values[indexYears])
+                tempFrazilTend_annual[k] = np.sum(weights * tempFrazilTend.values[indexYears])
+                tempSensibleHeatTend_annual[k] = np.sum(weights * tempSensibleHeatTend.values[indexYears])
+                tempLatentHeatTend_annual[k] = np.sum(weights * tempLatentHeatTend.values[indexYears])
+                tempLongWaveTend_annual[k] = np.sum(weights * tempLongWaveTend.values[indexYears])
+                tempShortWaveTend_annual[k] = np.sum(weights * tempShortWaveTend.values[indexYears])
+                tempSFluxRes_annual[k] = np.sum(weights * tempSFluxRes.values[indexYears])
+                k = k + 1
         else:
-            t = cftime.date2num(np.hstack(dsBudgets['Time']), f'days since {referenceDate}') # days
             depthRegion = dsBudgets['depth'].mean('nCells')
             # Factor to apply for time-integrated tracer tendency summary plots:
             fac = perSec_to_perDay / depthRegion
+
             weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
             months = np.empty(np.shape(t), dtype=np.int64)
-            datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
             for i, date in enumerate(datetimes.flat):
                 months[i] = date.month
             monthlyMask = np.empty(np.shape(t), dtype=np.float64)
             for im in range(1, 13):
                 monthlyMask[months==im] = weights[im-1]
-            t = t/365 # from days to years
+            t = t/daysInYear # from days to years
 
         # Compute long-term means
         saltTendMean = saltTend.mean().values
@@ -800,6 +804,7 @@ for n in range(nRegions):
             ax.plot(t_annual, saltTotTend_annual, 'm', linewidth=2, label=f'saltTend+vmix ({saltTotTendMean:.2e})')
             ax.plot(t_annual, saltRes_annual, 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
+            ax.plot(t_annual, np.zeros_like(t_annual), 'k', linewidth=0.8)
         else:
             if zmax>0:
                 figfile = f'{figdir}/saltBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
@@ -820,8 +825,8 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*saltRes), 'k', alpha=0.5, linewidth=1, label=f'res ({saltResMean:.2e})')
             ax.plot(t, (salt-salt[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(salt)')
             ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
+            ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
 
-        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
@@ -858,6 +863,7 @@ for n in range(nRegions):
             if 'saltSurfaceRestoringTend' in locals():
                 ax.plot(t_annual, saltSurfaceRestoringTend_annual, 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
             ax.set_ylabel('psu/s', fontsize=12, fontweight='bold')
+            ax.plot(t_annual, np.zeros_like(t_annual), 'k', linewidth=0.8)
         else:
             if zmax>0:
                 figfile = f'{figdir}/saltBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
@@ -869,8 +875,8 @@ for n in range(nRegions):
             if 'saltSurfaceRestoringTend' in locals():
                 ax.plot(t, fac * np.cumsum(monthlyMask*saltSurfaceRestoringTend), 'g', linewidth=2, label=f'SSS-restoring ({saltSurfaceRestoringTendMean:.2e})')
             ax.set_ylabel('psu (delta)', fontsize=12, fontweight='bold')
+            ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
 
-        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
@@ -915,6 +921,7 @@ for n in range(nRegions):
             ax.plot(t_annual, tempTotTend_annual, 'm', linewidth=2, label=f'tempTend+vmix ({tempTotTendMean:.2e})')
             ax.plot(t_annual, tempRes_annual, 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
             ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+            ax.plot(t_annual, np.zeros_like(t_annual), 'k', linewidth=0.8)
         else:
             if zmax>0:
                 figfile = f'{figdir}/tempBudgetSummary_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
@@ -937,8 +944,8 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*tempRes), 'k', alpha=0.5, linewidth=1, label=f'res ({tempResMean:.2e})')
             ax.plot(t, (temp-temp[0]) / depthRegion, color='m', linestyle=':', linewidth=1.5, label='d(temp)')
             ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
+            ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
 
-        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
@@ -979,6 +986,7 @@ for n in range(nRegions):
             ax.plot(t_annual, tempSFluxRes_annual, 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
             ax.plot(t_annual, tempShortWaveTend_annual, 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
             ax.set_ylabel('C/s', fontsize=12, fontweight='bold')
+            ax.plot(t_annual, np.zeros_like(t_annual), 'k', linewidth=0.8)
         else:
             if zmax>0:
                 figfile = f'{figdir}/tempBudgetSurfaceFluxes_z0000-{np.abs(np.int32(zmin)):04d}_{rname}_{casename}_years{year1:04d}-{year2:04d}.png'
@@ -995,8 +1003,8 @@ for n in range(nRegions):
             ax.plot(t, fac * np.cumsum(monthlyMask*tempSFluxRes), 'b', linestyle=':', linewidth=2, label=f'res ({tempSFluxResMean:.2e})')
             ax.plot(t, fac * np.cumsum(monthlyMask*tempShortWaveTend), 'lightblue', linewidth=2, label=f'shortwave ({tempShortWaveTendMean:.2e})')
             ax.set_ylabel('C (delta)', fontsize=12, fontweight='bold')
+            ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
 
-        ax.plot(t, np.zeros_like(t), 'k', linewidth=0.8)
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.grid(color='k', linestyle=':', linewidth=0.5, alpha=0.75)
         ax.legend(prop=legend_properties)
