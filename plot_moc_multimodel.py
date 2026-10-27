@@ -7,9 +7,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib as mpl
-mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import os
+import cftime
+import netCDF4
+from datetime import datetime
+mpl.use('TkAgg')
 
 
 # Settings for lcrc
@@ -50,8 +53,12 @@ regionName = 'Greater Arctic'
 #regionName = 'North Atlantic subpolar gyre'
 regionNameShort = regionName[0].lower() + regionName[1:].replace(' ', '')
 moclats = [-34, 26, 45, 60, 65]
+plotAnnualAvg = True
+referenceDate = '0001-01-01 00:00:00'
+calendar = 'noleap'
+daysInYear = 365.0
+# The following is relevant only if plotAnnualAvg = False
 movingAverageMonths = 12 # months
-#movingAverageMonths = 5*12 # months
 
 npanelsToPlot = 1 # only plots multi-model moc (for each moclats)
 # This script needs to be edited in order to plot more than 1 panel (as of Apr 2026)
@@ -85,9 +92,16 @@ if os.path.exists(mocfile3):
     dsMOC3 = xr.open_dataset(mocfile3)
 else:
     raise IOError(f'MOC file {mocfile3} not found')
-time1 = np.arange(len(dsMOC1.Time.values))/12
-time2 = np.arange(len(dsMOC2.Time.values))/12
-time3 = np.arange(len(dsMOC3.Time.values))/12
+
+#time1 = np.arange(len(dsMOC1.Time.values))/12
+#time2 = np.arange(len(dsMOC2.Time.values))/12
+#time3 = np.arange(len(dsMOC3.Time.values))/12
+#time1 = dsMOC1['Time']
+#time2 = dsMOC2['Time']
+#time3 = dsMOC3['Time']
+time1 = cftime.date2num(np.hstack(dsMOC1['Time']), f'days since {referenceDate}')
+time2 = cftime.date2num(np.hstack(dsMOC2['Time']), f'days since {referenceDate}')
+time3 = cftime.date2num(np.hstack(dsMOC3['Time']), f'days since {referenceDate}')
 
 for nlat in range(len(moclats)):
     lat = moclats[nlat]
@@ -100,7 +114,10 @@ for nlat in range(len(moclats)):
         legendlabel = f'{lat:d}'
 
     if npanelsToPlot==1:
-        figfile = f'{figdir}/moc{legendlabel}_multimodel.png'
+        if plotAnnualAvg is True:
+            figfile = f'{figdir}/moc{legendlabel}Annual_multimodel.png'
+        else:
+            figfile = f'{figdir}/moc{legendlabel}_multimodel.png'
     elif npanelsToPlot==2:
         figfile = f'{figdir}/moc{legendlabel}_{tsvariable}_{regionNameShort}_multimodel.png'
     else:
@@ -121,27 +138,76 @@ for nlat in range(len(moclats)):
     moc2 = dsMOC2.mocAtlantic.sel(lat=lat, method='nearest').max(dim='depth')
     moc3 = dsMOC3.mocAtlantic.sel(lat=lat, method='nearest').max(dim='depth')
     #legendlabel = f'{legendlabel} ({moc.mean():5.2f} $\pm$ {moc.std():5.2f})'
-    if movingAverageMonths>1:
-        window = int(movingAverageMonths)
-        moc1_runavg = pd.Series(moc1).rolling(window, center=True).mean()
-        moc2_runavg = pd.Series(moc2).rolling(window, center=True).mean()
-        moc3_runavg = pd.Series(moc3).rolling(window, center=True).mean()
-        ax1.plot(time1, moc1_runavg, '-', color=moccolors[0], linewidth=2, label=runname1)
-        ax1.plot(time2, moc2_runavg, '-', color=moccolors[1], linewidth=2, label=runname2)
-        ax1.plot(time3, moc3_runavg, '-', color=moccolors[2], linewidth=2, label=runname3)
-        #ax1.plot(time1, moc1, '-', color=moccolors[0], alpha=0.5, linewidth=1.2)
-        if npanelsToPlot>1:
-            ax2.plot(time1, moc1_runavg, '-', color=moccolors[0], linewidth=2, label=runaname1)
-            ax2.plot(time2, moc2_runavg, '-', color=moccolors[1], linewidth=2, label=runaname2)
-            ax2.plot(time3, moc3_runavg, '-', color=moccolors[2], linewidth=2, label=runaname3)
+    if plotAnnualAvg is True:
+        weights = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])/daysInYear
+
+        datetimes = netCDF4.num2date(time1, f'days since {referenceDate}', calendar=calendar)
+        t_years = np.empty(np.shape(time1), dtype=np.int64)
+        for i, date in enumerate(datetimes.flat):
+            t_years[i] = date.year
+        years1 = range(1, 387)
+        t1_annual = np.empty(np.shape(years1), dtype=np.float64)
+        moc1_annual = np.empty(np.shape(years1), dtype=np.float64)
+        k = 0
+        for year in years1:
+            indexYears = np.where(t_years==year)[0]
+            t1_annual[k] = np.mean(time1[indexYears]/daysInYear)
+            moc1_annual[k] = np.sum(weights * moc1.values[indexYears])
+            k = k + 1
+
+        datetimes = netCDF4.num2date(time2, f'days since {referenceDate}', calendar=calendar)
+        t_years = np.empty(np.shape(time2), dtype=np.int64)
+        for i, date in enumerate(datetimes.flat):
+            t_years[i] = date.year
+        years2 = range(1, 247)
+        t2_annual = np.empty(np.shape(years2), dtype=np.float64)
+        moc2_annual = np.empty(np.shape(years2), dtype=np.float64)
+        k = 0
+        for year in years2:
+            indexYears = np.where(t_years==year)[0]
+            t2_annual[k] = np.mean(time2[indexYears]/daysInYear)
+            moc2_annual[k] = np.sum(weights * moc2.values[indexYears])
+            k = k + 1
+
+        datetimes = netCDF4.num2date(time3, f'days since {referenceDate}', calendar=calendar)
+        t_years = np.empty(np.shape(time3), dtype=np.int64)
+        for i, date in enumerate(datetimes.flat):
+            t_years[i] = date.year
+        years3 = range(1, 60)
+        t3_annual = np.empty(np.shape(years3), dtype=np.float64)
+        moc3_annual = np.empty(np.shape(years3), dtype=np.float64)
+        k = 0
+        for year in years3:
+            indexYears = np.where(t_years==year)[0]
+            t3_annual[k] = np.mean(time3[indexYears]/daysInYear)
+            moc3_annual[k] = np.sum(weights * moc3.values[indexYears])
+            k = k + 1
+
+        ax1.plot(t1_annual, moc1_annual, '-', color=moccolors[0], linewidth=2, label=runname1)
+        ax1.plot(t2_annual, moc2_annual, '-', color=moccolors[1], linewidth=2, label=runname2)
+        ax1.plot(t3_annual, moc3_annual, '-', color=moccolors[2], linewidth=2, label=runname3)
     else:
-        ax1.plot(time1, moc1, '-', color=moccolors[0], linewidth=2, label=runname1)
-        ax1.plot(time2, moc2, '-', color=moccolors[1], linewidth=2, label=runname2)
-        ax1.plot(time3, moc3, '-', color=moccolors[2], linewidth=2, label=runname3)
-        if npanelsToPlot>1:
-            ax2.plot(time1, moc1, '-', color=moccolors[0], linewidth=2, label=runname1)
-            ax2.plot(time2, moc2, '-', color=moccolors[1], linewidth=2, label=runname2)
-            ax2.plot(time3, moc3, '-', color=moccolors[2], linewidth=2, label=runname3)
+        if movingAverageMonths>1:
+            window = int(movingAverageMonths)
+            moc1_runavg = pd.Series(moc1).rolling(window, center=True).mean()
+            moc2_runavg = pd.Series(moc2).rolling(window, center=True).mean()
+            moc3_runavg = pd.Series(moc3).rolling(window, center=True).mean()
+            ax1.plot(time1, moc1_runavg, '-', color=moccolors[0], linewidth=2, label=runname1)
+            ax1.plot(time2, moc2_runavg, '-', color=moccolors[1], linewidth=2, label=runname2)
+            ax1.plot(time3, moc3_runavg, '-', color=moccolors[2], linewidth=2, label=runname3)
+            #ax1.plot(time1, moc1, '-', color=moccolors[0], alpha=0.5, linewidth=1.2)
+            if npanelsToPlot>1:
+                ax2.plot(time1, moc1_runavg, '-', color=moccolors[0], linewidth=2, label=runaname1)
+                ax2.plot(time2, moc2_runavg, '-', color=moccolors[1], linewidth=2, label=runaname2)
+                ax2.plot(time3, moc3_runavg, '-', color=moccolors[2], linewidth=2, label=runaname3)
+        else:
+            ax1.plot(time1, moc1, '-', color=moccolors[0], linewidth=2, label=runname1)
+            ax1.plot(time2, moc2, '-', color=moccolors[1], linewidth=2, label=runname2)
+            ax1.plot(time3, moc3, '-', color=moccolors[2], linewidth=2, label=runname3)
+            if npanelsToPlot>1:
+                ax2.plot(time1, moc1, '-', color=moccolors[0], linewidth=2, label=runname1)
+                ax2.plot(time2, moc2, '-', color=moccolors[1], linewidth=2, label=runname2)
+                ax2.plot(time3, moc3, '-', color=moccolors[2], linewidth=2, label=runname3)
     ax1.grid(visible=True, which='both')
     for tick in ax1.xaxis.get_ticklabels():
         tick.set_fontsize(fontsize_smallLabels)
