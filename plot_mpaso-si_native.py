@@ -45,8 +45,8 @@ modeldir = f'/lustre/scratch5/milena/E3SM/{runname}/run'
 isShortTermArchive = False
 
 year = 10
-months = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
-months = [3]
+months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+months = [11, 12]
 day = 15 # relevant only for daily history files (timeIndex will be set to day-1)
 
 # z levels [m] (relevant for 3d variables)
@@ -99,6 +99,12 @@ lonCentral = 0
 #fileTypeDayformat = '01_00.00.00'
 #varType = ''
 #timeIndex = 334
+#
+# Choose variables to plot (possible options include:
+# temperatureAtSurface, temperatureAt250m, temperatureAtBottom,
+# salinityAtSurface, salinityAt250m, salinityAtBottom,
+#variablesToPlot = ['temperatureAtSurface', 'salinityAtSurface']
+#
 #variables = [
 #             {'name': 'temperatureAtSurface',
 #              'mpasvarname': f'{varType}temperatureAtSurface'
@@ -166,6 +172,9 @@ lonCentral = 0
 #fileTypeDayformat = '01'
 #varType = 'timeMonthlyMax_max_'
 #timeIndex = 0
+#
+#variablesToPlot = ['maxMLD']
+#
 #variables = [
 #             {'name': 'maxMLD',
 #              'mpasvarname': f'{varType}dThreshMLD',
@@ -183,6 +192,13 @@ lonCentral = 0
 #fileTypeDayformat = '01'
 #varType = 'timeMonthly_avg_'
 #timeIndex = 0
+#
+# Choose variables to plot (possible options include:
+# temperature, salinity, GMkappa (post-processed), gmBolusKappa,
+# gmKappaScaling, gmHorizontalTaper, Redikappa (post-processed),
+# RedikappaNoTaper, RediHorizontalTaper, GMnormalVel
+#variablesToPlot = ['temperature', 'salinity']
+#
 #variables = [
 #             #{'name': 'GMkappa',
 #             # 'mpasvarname': None,
@@ -297,6 +313,16 @@ fileType = 'timeSeriesStatsDaily'
 varType = 'timeDaily_avg_'
 timeIndex = day-1
 fileTypeDayformat = '01'
+
+# Choose variables to plot (possible options include:
+# iceConcentration, iceThickness, icePressure, iceDivergence,
+# iceShear, iceDeformation (post-processed), ridgeConvergence,
+# ridgeShear
+variablesToPlot = ['iceConcentration', 'iceThickness', 'icePressure',
+                   'iceDivergence', 'iceShear', 'iceDeformation',
+                   'ridgeConvergence', 'ridgeShear']
+#variablesToPlot = ['ridgeConvergence']
+
 variables = [
              {'name': 'iceConcentration',
               'mpasvarname': f'{varType}iceAreaCell',
@@ -326,7 +352,7 @@ variables = [
               'title': 'Sea ice pressure',
               'units': 'N/m',
               'factor': 1,
-              'colormap': cmocean.cm.speed_r,
+              'colormap': plt.get_cmap('BrBG_r'),
               'clevels': [0.15e5, 0.2e5, 0.25e5, 0.3e5, 0.35e5, 0.4e5, 0.45e5, 0.5e5, 0.6e5, 0.7e5, 0.8e5, 0.9e5, 1e5],
               'clevelsNH': [0.15e5, 0.2e5, 0.25e5, 0.3e5, 0.35e5, 0.4e5, 0.45e5, 0.5e5, 0.6e5, 0.7e5, 0.8e5, 0.9e5, 1e5],
               'clevelsSH': [0.15e5, 0.2e5, 0.25e5, 0.3e5, 0.35e5, 0.4e5, 0.45e5, 0.5e5, 0.6e5, 0.7e5, 0.8e5, 0.9e5, 1e5],
@@ -360,6 +386,26 @@ variables = [
               'clevels': [0.25, 0.5, 1.0, 2.0, 4.0, 6.5, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
               'clevelsNH': [0.25, 0.5, 1.0, 2.0, 4.0, 6.5, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
               'clevelsSH': [0.25, 0.5, 1.0, 2.0, 4.0, 6.5, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
+              'is3d': False},
+             {'name': 'ridgeConvergence',
+              'mpasvarname': f'{varType}ridgeConvergence',
+              'title': 'Normalized energy dissipation due to convergence',
+              'units': '1/day',
+              'factor': 86400,
+              'colormap': plt.get_cmap('BrBG_r'),
+              'clevels': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
+              'clevelsNH': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
+              'clevelsSH': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
+              'is3d': False},
+             {'name': 'ridgeShear',
+              'mpasvarname': f'{varType}ridgeShear',
+              'title': 'Normalized energy dissipation due to shear',
+              'units': '1/day',
+              'factor': 86400,
+              'colormap': plt.get_cmap('BrBG_r'),
+              'clevels': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
+              'clevelsNH': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
+              'clevelsSH': [0.25e-3, 0.5e-3, 1e-3, 1.5e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 10e-3, 12e-3, 15e-3],
               'is3d': False}
             ]
 
@@ -426,16 +472,18 @@ mosaic_descriptorSH = make_mosaic_descriptor(dsMesh, projectionSH)
 for month in months:
     modelfile = f'{modeldir}/{runname}.{modelcomp}.hist.am.{fileType}.{year:04d}-{month:02d}-{fileTypeDayformat}.nc'
     ds = xr.open_dataset(modelfile).isel(Time=timeIndex)
-    for var in variables:
-        varname = var['name']
-        mpasvarname = var['mpasvarname']
-        factor = var['factor']
-        clevels = var['clevels']
-        clevelsNH = var['clevelsNH']
-        clevelsSH = var['clevelsSH']
-        colormap = var['colormap']
-        vartitle = var['title']
-        varunits = var['units']
+    for var in variablesToPlot:
+        vardict = next(item for item in variables if item['name'] == var)
+        varname = vardict['name']
+        mpasvarname = vardict['mpasvarname']
+        factor = vardict['factor']
+        clevels = vardict['clevels']
+        clevelsNH = vardict['clevelsNH']
+        clevelsSH = vardict['clevelsSH']
+        colormap = vardict['colormap']
+        vartitle = vardict['title']
+        varunits = vardict['units']
+        isvar3d = vardict['is3d']
 
         if varname=='GMkappa' or varname=='Redikappa' or \
            varname=='gmBolusKappa' or varname=='gmKappaScaling' or \
@@ -447,7 +495,7 @@ for month in months:
             lon = lonCell
             lat = latCell
 
-        if var['is3d']:
+        if isvar3d:
             for iz in range(len(dlevels)):
                 if fileType=='timeSeriesStatsDaily':
                     figtitle = f'{vartitle}, z={z[zlevels[iz]]:5.1f} m, year={year}, month={month}, day={day}'
@@ -472,28 +520,29 @@ for month in months:
 
                 #make_mosaic_plot(lon, lat, fld, mosaic_descriptorGlobal, figtitle, figfileGlobal, showEdges=None,
                 #                 cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits,
-                #                 projectionName=projectionGlobal, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral)
+                #                 projectionName=projectionGlobal, lon0=lon0, lon1=lon1, dlon=dlon,
+                #                 lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral)
                 #dotSize = 0.25
                 #make_scatter_plot(lon, lat, dotSize, figtitle, figfileGlobal, projectionName=projectionGlobal,
-                #  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral,
-                #  fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
+                #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral,
+                #                  fld=fld, cmap=colormap, clevels=clevels, cindices=colorIndices, cbarLabel=varunits)
 
                 make_mosaic_plot(lon, lat, fld, mosaic_descriptorNH, figtitle, figfileNH, showEdges=showedges,
                                  cmap=colormap, clevels=clevelsNH, cindices=colorIndices, cbarLabel=varunits,
-                                 projectionName=projectionNH, lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH)
-                ##dotSize = 5.0 # this should go up as resolution decreases # for ARRM
-                #dotSize = 25.0 # this should go up as resolution decreases # for LR
+                                 projectionName=projectionNH, lon0=lon0NH, lon1=lon1NH, dlon=dlonNH,
+                                 lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH)
+                #dotSize = 25.0
                 #make_scatter_plot(lon, lat, dotSize, figtitle, figfileNH, projectionName=projectionNH,
-                #  lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH,
-                #  fld=fld, cmap=colormap, clevels=clevelsNH, cindices=colorIndices, cbarLabel=varunits)
+                #                  lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH,
+                #                  fld=fld, cmap=colormap, clevels=clevelsNH, cindices=colorIndices, cbarLabel=varunits)
 
                 #make_mosaic_plot(lon, lat, fld, mosaic_descriptorSH, figtitle, figfileSH, showEdges=showedges,
                 #                 cmap=colormap, clevels=clevelsSH, cindices=colorIndices, cbarLabel=varunits,
-                #                 projectionName=projectionSH, lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH)
-                #dotSize = 25.0 # this should go up as resolution decreases
+                #                 projectionName=projectionSH, lon0=lon0SH, lon1=lon1SH, dlon=dlonSH,
+                #                 lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH)
                 #make_scatter_plot(lon, lat, dotSize, figtitle, figfileSH, projectionName=projectionSH,
-                #  lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH,
-                #  fld=fld, cmap=colormap, clevels=clevelsSH, cindices=colorIndices, cbarLabel=varunits)
+                #                  lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH,
+                #                  fld=fld, cmap=colormap, clevels=clevelsSH, cindices=colorIndices, cbarLabel=varunits)
 
         else:
             if fileType=='timeSeriesStatsDaily':
@@ -526,25 +575,26 @@ for month in months:
 
             #make_mosaic_plot(lon, lat, fld, mosaic_descriptorGlobal, figtitle, figfileGlobal, showEdges=None,
             #                 cmap=colormap, clevels=clevels, cindices=cindices, cbarLabel=varunits,
-            #                 projectionName=projectionGlobal, lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral)
+            #                 projectionName=projectionGlobal, lon0=lon0, lon1=lon1, dlon=dlon,
+            #                 lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral)
             #dotSize = 0.25
             #make_scatter_plot(lon, lat, dotSize, figtitle, figfileGlobal, projectionName=projectionGlobal,
-            #  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral,
-            #  fld=fld, cmap=colormap, clevels=clevels, cindices=cindices, cbarLabel=varunits)
+            #                  lon0=lon0, lon1=lon1, dlon=dlon, lat0=lat0, lat1=lat1, dlat=dlat, lonCentral=lonCentral,
+            #                  fld=fld, cmap=colormap, clevels=clevels, cindices=cindices, cbarLabel=varunits)
 
             make_mosaic_plot(lon, lat, fld, mosaic_descriptorNH, figtitle, figfileNH, showEdges=showedges,
                              cmap=colormap, clevels=clevelsNH, cindices=cindices, cbarLabel=varunits,
-                             projectionName=projectionNH, lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH)
-            ##dotSize = 5.0 # this should go up as resolution decreases # for ARRM
-            #dotSize = 25.0 # this should go up as resolution decreases # for LR
+                             projectionName=projectionNH, lon0=lon0NH, lon1=lon1NH, dlon=dlonNH,
+                             lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH)
+            #dotSize = 25.0
             #make_scatter_plot(lon, lat, dotSize, figtitle, figfileNH, projectionName=projectionNH,
-            #  lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH,
-            #  fld=fld, cmap=colormap, clevels=clevelsNH, cindices=cindices, cbarLabel=varunits)
+            #                  lon0=lon0NH, lon1=lon1NH, dlon=dlonNH, lat0=lat0NH, lat1=lat1NH, dlat=dlatNH, lonCentral=lonCentralNH,
+            #                  fld=fld, cmap=colormap, clevels=clevelsNH, cindices=cindices, cbarLabel=varunits)
 
             #make_mosaic_plot(lon, lat, fld, mosaic_descriptorSH, figtitle, figfileSH, showEdges=showedges,
             #                 cmap=colormap, clevels=clevelsSH, cindices=cindices, cbarLabel=varunits,
-            #                 projectionName=projectionSH, lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH)
-            #dotSize = 25.0 # this should go up as resolution decreases
+            #                 projectionName=projectionSH, lon0=lon0SH, lon1=lon1SH, dlon=dlonSH,
+            #                 lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH)
             #make_scatter_plot(lon, lat, dotSize, figtitle, figfileSH, projectionName=projectionSH,
-            #  lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH,
-            #  fld=fld, cmap=colormap, clevels=clevelsSH, cindices=cindices, cbarLabel=varunits)
+            #                  lon0=lon0SH, lon1=lon1SH, dlon=dlonSH, lat0=lat0SH, lat1=lat1SH, dlat=dlatSH, lonCentral=lonCentralSH,
+            #                  fld=fld, cmap=colormap, clevels=clevelsSH, cindices=cindices, cbarLabel=varunits)
