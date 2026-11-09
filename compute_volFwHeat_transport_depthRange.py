@@ -58,10 +58,10 @@ meshfile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpa
 maskfile = '/p/home/milena/mpas-region_masks/ARRM10to60E2r1_atlanticZonal_transects4transports20240910.nc'
 featurefile = '/p/home/milena/mpas-region_masks/atlanticZonal_transects4transports20240910.geojson'
 outfile0 = 'atlanticZonalSectionsTransports'
-#casenameFull = 'E3SMv2.1B60to10rA02'
-#casename = 'E3SMv2.1B60to10rA02'
-casenameFull = 'E3SMv2.1G60to10_01'
-casename = 'E3SMv2.1G60to10_01'
+casenameFull = 'E3SMv2.1B60to10rA02'
+casename = 'E3SMv2.1B60to10rA02'
+#casenameFull = 'E3SMv2.1G60to10_01'
+#casename = 'E3SMv2.1G60to10_01'
 modeldir = f'/p/global/milena/{casenameFull}/archive/ocn/hist'
 #casenameFull = 'E3SMv2.1B60to10rA07'
 #casename = 'E3SMv2.1B60to10rA07'
@@ -81,7 +81,8 @@ daysInYear = 365.0
 
 # if plotAnnualAvg = False, then monthly fields and 1-year
 # running averages are both plotted instead of annual averages
-plotAnnualAvg = False
+#plotAnnualAvg = False
+plotAnnualAvg = True
 
 zmin = -800.0
 zmax = 10.0
@@ -359,7 +360,8 @@ for year in years:
         infiles.append(f'{outdir}/{outfile0}_z0000-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc')
     else:
         infiles.append(f'{outdir}/{outfile0}_z{np.abs(np.int32(zmax)):04d}-{np.abs(np.int32(zmin)):04d}_{casename}_year{year:04d}.nc')
-dsIn = xr.open_mfdataset(infiles, decode_times=False)
+dsIn = xr.open_mfdataset(infiles, combine='nested', data_vars='all',
+                         concat_dim='Time',decode_times=False)
 volTransport = dsIn['volTransport'].values
 heatTransport = dsIn['heatTransport'].values
 heatTransportTfp = dsIn['heatTransportTfp'].values
@@ -368,9 +370,8 @@ FWTransport = dsIn['FWTransport'].values
 tempTransect = dsIn['tempTransect'].values
 saltTransect = dsIn['saltTransect'].values
 spiceTransect = dsIn['spiceTransect'].values
-#t = dsIn['Time'].values
-t = cftime.date2num(np.hstack(dsIn['Time']), f'days since {referenceDate}') # days
-datetimes = netCDF4.num2date(t, f'days since {referenceDate}', calendar=calendar)
+t = dsIn['Time'].values
+datetimes = netCDF4.num2date(daysInYear*t, f'days since {referenceDate}', calendar=calendar)
 
 # Define some dictionaries for transect plotting
 labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'africaAnt', 'Antilles Inflow':'antilles', \
@@ -382,8 +383,8 @@ labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'a
 
 figsize = (16, 16)
 figdpi = 300
-for i in range(nTransects):
-    transectName = transectNames[i]
+for nt in range(nTransects):
+    transectName = transectNames[nt]
 
     fc = FeatureCollection()
     for feature in fcAll.features:
@@ -396,14 +397,14 @@ for i in range(nTransects):
         transectName_forfigfile = transectName.replace(" ", "")
 
     # Compute 1-year running averages
-    vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, i]), 12, center=True).mean()
-    heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, i]), 12, center=True).mean()
-    heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, i]), 12, center=True).mean()
-    fw_runavg = pd.Series.rolling(pd.DataFrame(FWTransport[:, i]), 12, center=True).mean()
-    fwSref_runavg = pd.Series.rolling(pd.DataFrame(FWTransportSref[:, i]), 12, center=True).mean()
-    salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransect[:, i]), 12, center=True).mean()
-    temp_runavg = pd.Series.rolling(pd.DataFrame(tempTransect[:, i]), 12, center=True).mean()
-    spice_runavg = pd.Series.rolling(pd.DataFrame(spiceTransect[:, i]), 12, center=True).mean()
+    vol_runavg = pd.Series.rolling(pd.DataFrame(volTransport[:, nt]), 12, center=True).mean()
+    heat_runavg = pd.Series.rolling(pd.DataFrame(heatTransport[:, nt]), 12, center=True).mean()
+    heatTfp_runavg = pd.Series.rolling(pd.DataFrame(heatTransportTfp[:, nt]), 12, center=True).mean()
+    fw_runavg = pd.Series.rolling(pd.DataFrame(FWTransport[:, nt]), 12, center=True).mean()
+    fwSref_runavg = pd.Series.rolling(pd.DataFrame(FWTransportSref[:, nt]), 12, center=True).mean()
+    salt_runavg = pd.Series.rolling(pd.DataFrame(saltTransect[:, nt]), 12, center=True).mean()
+    temp_runavg = pd.Series.rolling(pd.DataFrame(tempTransect[:, nt]), 12, center=True).mean()
+    spice_runavg = pd.Series.rolling(pd.DataFrame(spiceTransect[:, nt]), 12, center=True).mean()
     # Compute annual averages
     t_years = np.empty(np.shape(t), dtype=np.int64)
     for i, date in enumerate(datetimes.flat):
@@ -422,14 +423,14 @@ for i in range(nTransects):
     for year in years:
         indexYears = np.where(t_years==year)[0]
         t_annual[k] = np.mean(t[indexYears]/daysInYear)
-        volTransport_annual[k] = np.sum(weights * volTransport[indexYears])
-        heatTransport_annual[k] = np.sum(weights * heatTransport[indexYears])
-        heatTransportTfp_annual[k] = np.sum(weights * heatTransportTfp[indexYears])
-        FWTransportSref_annual[k] = np.sum(weights * FWTransportSref[indexYears])
-        FWTransport_annual[k] = np.sum(weights * FWTransport[indexYears])
-        tempTransect_annual[k] = np.sum(weights * tempTransect[indexYears])
-        saltTransect_annual[k] = np.sum(weights * saltTransect[indexYears])
-        spiceTransect_annual[k] = np.sum(weights * spiceTransect[indexYears])
+        volTransport_annual[k] = np.sum(weights * volTransport[indexYears, nt])
+        heatTransport_annual[k] = np.sum(weights * heatTransport[indexYears, nt])
+        heatTransportTfp_annual[k] = np.sum(weights * heatTransportTfp[indexYears, nt])
+        FWTransportSref_annual[k] = np.sum(weights * FWTransportSref[indexYears, nt])
+        FWTransport_annual[k] = np.sum(weights * FWTransport[indexYears, nt])
+        tempTransect_annual[k] = np.sum(weights * tempTransect[indexYears, nt])
+        saltTransect_annual[k] = np.sum(weights * saltTransect[indexYears, nt])
+        spiceTransect_annual[k] = np.sum(weights * spiceTransect[indexYears, nt])
         k = k + 1
 
     if plotAnnualAvg is True:
@@ -447,9 +448,9 @@ for i in range(nTransects):
     fig = plt.figure(figsize=figsize)
     ax1 = plt.subplot(421)
     if plotAnnualAvg is True:
-        ax1.plot(t_annual, volTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
+        ax1.plot(t_annual, volTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(volTransport[:, nt]):5.2f} $\pm$ {np.nanstd(volTransport[:, nt]):5.2f})')
     else:
-        ax1.plot(t, volTransport[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(volTransport[:,i]):5.2f} $\pm$ {np.nanstd(volTransport[:,i]):5.2f})')
+        ax1.plot(t, volTransport[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(volTransport[:, nt]):5.2f} $\pm$ {np.nanstd(volTransport[:, nt]):5.2f})')
         ax1.plot(t, vol_runavg, 'r', linewidth=2.2)
     ax1.axhline(y=0, color='k', linestyle='-')
     ax1.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
@@ -460,9 +461,9 @@ for i in range(nTransects):
     # Plot Heat Transport wrt Tref=0
     ax2 = plt.subplot(422)
     if plotAnnualAvg is True:
-        ax2.plot(t_annual, heatTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransport[:,i]):5.2f} $\pm$ {np.nanstd(heatTransport[:,i]):5.2f})')
+        ax2.plot(t_annual, heatTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransport[:, nt]):5.2f} $\pm$ {np.nanstd(heatTransport[:, nt]):5.2f})')
     else:
-       ax2.plot(t, heatTransport[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransport[:,i]):5.2f} $\pm$ {np.nanstd(heatTransport[:,i]):5.2f})')
+       ax2.plot(t, heatTransport[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransport[:, nt]):5.2f} $\pm$ {np.nanstd(heatTransport[:, nt]):5.2f})')
        ax2.plot(t, heat_runavg, 'r', linewidth=2.2)
     ax2.axhline(y=0, color='k', linestyle='-')
     ax2.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
@@ -473,9 +474,9 @@ for i in range(nTransects):
     # Plot Heat Transport wrt Tref=TfreezingPoint
     ax3 = plt.subplot(423)
     if plotAnnualAvg is True:
-        ax3.plot(t_annual, heatTransportTfp_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:,i]):5.2f})')
+        ax3.plot(t_annual, heatTransportTfp_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransportTfp[:, nt]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:, nt]):5.2f})')
     else:
-        ax3.plot(t, heatTransportTfp[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransportTfp[:,i]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:,i]):5.2f})')
+        ax3.plot(t, heatTransportTfp[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(heatTransportTfp[:, nt]):5.2f} $\pm$ {np.nanstd(heatTransportTfp[:, nt]):5.2f})')
         ax3.plot(t, heatTfp_runavg, 'r', linewidth=2.2)
     ax3.axhline(y=0, color='k', linestyle='-')
     ax3.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
@@ -486,9 +487,9 @@ for i in range(nTransects):
     # Plot transect mean temperature
     ax4 = plt.subplot(424)
     if plotAnnualAvg is True:
-        ax4.plot(t_annual, tempTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(tempTransect[:,i]):5.2f} $\pm$ {np.nanstd(tempTransect[:,i]):5.2f})')
+        ax4.plot(t_annual, tempTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(tempTransect[:, nt]):5.2f} $\pm$ {np.nanstd(tempTransect[:, nt]):5.2f})')
     else:
-        ax4.plot(t, tempTransect[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'temp ({np.nanmean(tempTransect[:,i]):5.2f} $\pm$ {np.nanstd(tempTransect[:,i]):5.2f})')
+        ax4.plot(t, tempTransect[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'temp ({np.nanmean(tempTransect[:, nt]):5.2f} $\pm$ {np.nanstd(tempTransect[:, nt]):5.2f})')
         ax4.plot(t, temp_runavg, 'r', linewidth=2.2)
     ax4.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
     ax4.autoscale(enable=True, axis='x', tight=True)
@@ -498,9 +499,9 @@ for i in range(nTransects):
     # Plot FW Transport wrt Sref
     ax5 = plt.subplot(425)
     if plotAnnualAvg is True:
-        ax5.plot(t_annual, FWTransportSref_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransportSref[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:,i]):5.2f})')
+        ax5.plot(t_annual, FWTransportSref_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransportSref[:, nt]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:, nt]):5.2f})')
     else:
-        ax5.plot(t, FWTransportSref[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransportSref[:,i]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:,i]):5.2f})')
+        ax5.plot(t, FWTransportSref[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransportSref[:, nt]):5.2f} $\pm$ {np.nanstd(FWTransportSref[:, nt]):5.2f})')
         ax5.plot(t, fwSref_runavg, 'r', linewidth=2.2)
     ax5.axhline(y=0, color='k', linestyle='-')
     ax5.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
@@ -513,9 +514,9 @@ for i in range(nTransects):
     # Plot FW Transport using absolute salinity
     ax6 = plt.subplot(426)
     if plotAnnualAvg is True:
-        ax6.plot(t_annual, FWTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransport[:,i]):5.2f} $\pm$ {np.nanstd(FWTransport[:,i]):5.2f})')
+        ax6.plot(t_annual, FWTransport_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransport[:, nt]):5.2f} $\pm$ {np.nanstd(FWTransport[:, nt]):5.2f})')
     else:
-        ax6.plot(t, FWTransport[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransport[:,i]):5.2f} $\pm$ {np.nanstd(FWTransport[:,i]):5.2f})')
+        ax6.plot(t, FWTransport[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(FWTransport[:, nt]):5.2f} $\pm$ {np.nanstd(FWTransport[:, nt]):5.2f})')
         ax6.plot(t, fw_runavg, 'r', linewidth=2.2)
     ax6.axhline(y=0, color='k', linestyle='-')
     ax6.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
@@ -527,9 +528,9 @@ for i in range(nTransects):
     # Plot transect mean salinity
     ax7 = plt.subplot(427)
     if plotAnnualAvg is True:
-        ax7.plot(t_annual, saltTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(saltTransect[:,i]):5.2f} $\pm$ {np.nanstd(saltTransect[:,i]):5.2f})')
+        ax7.plot(t_annual, saltTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(saltTransect[:, nt]):5.2f} $\pm$ {np.nanstd(saltTransect[:, nt]):5.2f})')
     else:
-        ax7.plot(t, saltTransect[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'salt ({np.nanmean(saltTransect[:,i]):5.2f} $\pm$ {np.nanstd(saltTransect[:,i]):5.2f})')
+        ax7.plot(t, saltTransect[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'salt ({np.nanmean(saltTransect[:, nt]):5.2f} $\pm$ {np.nanstd(saltTransect[:, nt]):5.2f})')
         ax7.plot(t, salt_runavg, 'r', linewidth=2.2)
     ax7.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
     ax7.autoscale(enable=True, axis='x', tight=True)
@@ -540,9 +541,9 @@ for i in range(nTransects):
     # Plot transect mean spiciness0
     ax8 = plt.subplot(428)
     if plotAnnualAvg is True:
-        ax8.plot(t_annual, spiceTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(spiceTransect[:,i]):5.2f} $\pm$ {np.nanstd(spiceTransect[:,i]):5.2f})')
+        ax8.plot(t_annual, spiceTransect_annual, 'k', linewidth=1.2, alpha=0.5, label=f'net ({np.nanmean(spiceTransect[:, nt]):5.2f} $\pm$ {np.nanstd(spiceTransect[:, nt]):5.2f})')
     else:
-        ax8.plot(t, spiceTransect[:, i], 'k', linewidth=1.2, alpha=0.5, label=f'spice0 ({np.nanmean(spiceTransect[:,i]):5.2f} $\pm$ {np.nanstd(spiceTransect[:,i]):5.2f})')
+        ax8.plot(t, spiceTransect[:, nt], 'k', linewidth=1.2, alpha=0.5, label=f'spice0 ({np.nanmean(spiceTransect[:, nt]):5.2f} $\pm$ {np.nanstd(spiceTransect[:, nt]):5.2f})')
         ax8.plot(t, spice_runavg, 'r', linewidth=2.2)
     ax8.grid(color='gray', linestyle=':', linewidth=0.8, alpha=0.8)
     ax8.autoscale(enable=True, axis='x', tight=True)
