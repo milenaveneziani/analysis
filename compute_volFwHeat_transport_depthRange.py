@@ -422,7 +422,7 @@ for nt in range(nTransects):
     k = 0
     for year in years:
         indexYears = np.where(t_years==year)[0]
-        t_annual[k] = np.mean(t[indexYears]/daysInYear)
+        t_annual[k] = np.mean(t[indexYears])
         volTransport_annual[k] = np.sum(weights * volTransport[indexYears, nt])
         heatTransport_annual[k] = np.sum(weights * heatTransport[indexYears, nt])
         heatTransportTfp_annual[k] = np.sum(weights * heatTransportTfp[indexYears, nt])

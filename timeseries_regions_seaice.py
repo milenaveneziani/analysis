@@ -18,9 +18,10 @@ from common_functions import timeseries_analysis_plot, add_inset
 #startYear = 2000
 #startYear = 2010
 #endYear = 2014
-startYear = 1
-#endYear = 1
-endYear = 50
+#startYear = 1
+#endYear = 50
+startYear = 10
+endYear = 20
 #endYear = 246 # rA07
 #endYear = 386 # rA02
 calendar = 'gregorian'
@@ -50,27 +51,27 @@ calendar = 'gregorian'
 #isShortTermArchive = True
  
 # Settings for erdc.hpc.mil
-regionMaskDir = '/p/home/milena/mpas-region_masks'
-meshName = 'ARRM10to60E2r1'
-meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+#regionMaskDir = '/p/home/milena/mpas-region_masks'
+#meshName = 'ARRM10to60E2r1'
+#meshFile = '/p/app/unsupported/RASM/acme/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
 #runName = 'E3SMv2.1G60to10_01'
 #runNameShort = 'E3SMv2.1G60to10_01'
-runName = 'E3SMv2.1B60to10rA02'
-runNameShort = 'E3SMv2.1B60to10rA02'
-rundir = f'/p/global/milena/{runName}'
+#runName = 'E3SMv2.1B60to10rA02'
+#runNameShort = 'E3SMv2.1B60to10rA02'
+#rundir = f'/p/global/milena/{runName}'
 #runName = 'E3SMv2.1B60to10rA07'
 #runNameShort = 'E3SMv2.1B60to10rA07'
 #rundir = f'/p/global/apcraig/archive/{runName}'
-isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
+#isShortTermArchive = True # if True 'archive/{modelComp}/hist' will be affixed to rundir later on
 
 # Settings for chicoma
-#regionMaskDir = '/users/milena/mpas-region_masks'
-#meshName = 'RRSwISC6to18E3r5'
-#meshFile = f'/usr/projects/e3sm/inputdata/ocn/mpas-o/{meshName}/mpaso.RRSwISC6to18E3r5.20240327.nc'
-#runName = '20240726.icFromLRGcase.GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.chicoma'
-#runNameShort = 'GMPAS-JRA1p5.TL319_RRSwISC6to18E3r5.icFromLRGcase'
-#rundir = f'/lustre/scratch4/turquoise/milena/E3SMv3/{runName}/{runName}/run'
-#isShortTermArchive = False
+regionMaskDir = '/users/milena/mpas-region_masks'
+meshName = 'ARRM10to60E2r1'
+meshFile = '/usr/projects/w25_acoustics/inputdata/ocn/mpas-o/ARRM10to60E2r1/mpaso.ARRM10to60E2r1.rstFrom1monthG-chrys.220802.nc'
+runName = 'E3SM-Arcticv3.1_1950control'
+runNameShort = 'E3SM-Arcticv3.1_1950control'
+rundir = f'/lustre/scratch5/milena/E3SM/{runName}/run'
+isShortTermArchive = False
 
 sref = 34.8 # needed for Arctic fwc calculation
 
@@ -85,11 +86,12 @@ titleMonthsToPlot = None
 # region mask file will be $meshname_$regionGroups.nc
 #regionGroups = ['oceanSubBasins20210315']
 #regionGroups = ['arctic_atlantic_budget_regions_new20240408']
-regionGroups = ['arctic_atlantic_budget_regions_20260827']
+#regionGroups = ['arctic_atlantic_budget_regions_20260827']
 #regionGroups = ['Arctic Regions']
 ##regionGroups = ['OceanOHC Regions']
 ##regionGroups = ['Antarctic Regions']
 #regionGroups = ['Beaufort Sea Siobhan']
+regionGroups = ['chukchiBeaufort_oceanAcoustics_regions']
 
 # Choose either 2d variables in timeSeriesStatsMonthly
 # or variables in timeSeriesStatsMonthlyMax (2d only) or
@@ -99,83 +101,83 @@ regionGroups = ['arctic_atlantic_budget_regions_20260827']
 #mpasComp = 'mpaso'
 #modelComp = 'ocn'
 #mpasFile = 'timeSeriesStatsMonthlyMax'
-#mpasvar = 'timeMonthlyMax_max'
+#mpasvar = 'timeMonthlyMax_max_'
 #variables = [
 #             {'name': 'maxMLD',
 #              'title': 'Maximum MLD',
 #              'units': 'm',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_dThreshMLD'}
+#              'mpas': f'{mpasvar}dThreshMLD'}
 #            ]
 
 #mpasFile = 'timeSeriesStatsMonthly'
-#mpasvar = 'timeMonthly_avg'
+#mpasvar = 'timeMonthly_avg_'
 #variables = [
 #             {'name': 'dThreshMLD',
 #              'title': 'Mean MLD',
 #              'units': 'm',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_dThreshMLD'},
+#              'mpas': f'{mpasvar}dThreshMLD'},
 #             {'name': 'sensibleHeatFlux',
 #              'title': 'Sensible Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_sensibleHeatFlux'},
+#              'mpas': f'{mpasvar}sensibleHeatFlux'},
 #             {'name': 'latentHeatFlux',
 #              'title': 'Latent Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_latentHeatFlux'},
+#              'mpas': f'{mpasvar}latentHeatFlux'},
 #             {'name': 'longWaveHeatFluxUp',
 #              'title': 'Longwave Up Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_longWaveHeatFluxUp'},
+#              'mpas': f'{mpasvar}longWaveHeatFluxUp'},
 #             {'name': 'longWaveHeatFluxDown',
 #              'title': 'Longwave Down Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_longWaveHeatFluxDown'},
+#              'mpas': f'{mpasvar}longWaveHeatFluxDown'},
 #             {'name': 'shortWaveHeatFlux',
 #              'title': 'Shortwave Heat Flux',
 #              'units': 'W/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_shortWaveHeatFlux'},
+#              'mpas': f'{mpasvar}shortWaveHeatFlux'},
 #             {'name': 'evaporationFlux',
 #              'title': 'Evaporation Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_evaporationFlux'},
+#              'mpas': f'{mpasvar}evaporationFlux'},
 #             {'name': 'rainFlux',
 #              'title': 'Rain Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_rainFlux'},
+#              'mpas': f'{mpasvar}rainFlux'},
 #             {'name': 'snowFlux',
 #              'title': 'Snow Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_snowFlux'},
+#              'mpas': f'{mpasvar}snowFlux'},
 #             {'name': 'riverRunoffFlux',
 #              'title': 'River Runoff Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_riverRunoffFlux'},
+#              'mpas': f'{mpasvar}riverRunoffFlux'},
 #             {'name': 'iceRunoffFlux',
 #              'title': 'Ice Runoff Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_iceRunoffFlux'},
+#              'mpas': f'{mpasvar}iceRunoffFlux'},
 #             {'name': 'seaIceFreshWaterFlux',
 #              'title': 'Sea Ice Freshwater Flux',
 #              'units': 'kg m^$-2$ s^$-1$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_seaIceFreshWaterFlux'},
+#              'mpas': f'{mpasvar}seaIceFreshWaterFlux'},
 #             {'name': 'surfaceBuoyancyForcing',
 #              'title': 'Surface buoyancy flux',
 #              'units': 'm$^2$ s$^{-3}$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_surfaceBuoyancyForcing'},
+#              'mpas': f'{mpasvar}surfaceBuoyancyForcing'},
 #             {'name': 'totalHeatFlux',
 #              'title': 'Total Heat Flux (Sen+Lat+SWnet+LWnet)',
 #              'units': 'W/m$^2$',
@@ -196,112 +198,127 @@ regionGroups = ['arctic_atlantic_budget_regions_20260827']
 #   Sea ice variables
 mpasComp = 'mpassi'
 modelComp = 'ice'
-mpasFile = 'timeSeriesStatsMonthly'
-mpasvar = 'timeMonthly_avg'
-#mpasFile = 'timeSeriesStatsDaily'
-#mpasvar = 'timeDaily_avg'
+#mpasFile = 'timeSeriesStatsMonthly'
+#mpasvar = 'timeMonthly_avg_'
+mpasFile = 'timeSeriesStatsDaily'
+mpasvar = 'timeDaily_avg_'
 variables = [
-#             {'name': 'icePressure',
-#              'title': 'sea ice pressure',
-#              'units': 'N m$^{-1}$',
-#              'factor': 1,
-#              'mpas': f'{mpasvar}_icePressure'},
+             {'name': 'icePressure',
+              'title': 'sea ice pressure',
+              'units': 'N m$^{-1}$',
+              'factor': 1,
+              'mpas': f'{mpasvar}icePressure'},
+             {'name': 'iceDeformation',
+              'title': 'sea ice deformation (sqrt(d^2+s^2))',
+              'units': '%/day',
+              'factor': 1,
+              'mpas': None},
+             {'name': 'ridgeConvergence',
+              'title': 'normalized energy dissipation due to convergence',
+              'units': '1/day',
+              'factor': 86400,
+              'mpas': f'{mpasvar}ridgeConvergence'},
+             {'name': 'ridgeShear',
+              'title': 'normalized energy dissipation due to shear',
+              'units': '1/day',
+              'factor': 86400,
+              'mpas': f'{mpasvar}ridgeShear'},
 #             {'name': 'iceConcentration',
 #              'title': 'sea ice concentration',
 #              'units': 'fraction',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_iceAreaCell'},
+#              'mpas': f'{mpasvar}iceAreaCell'},
              {'name': 'iceArea',
               'title': 'integrated sea ice area',
               'units': 'km$^2$',
               'factor': 1e-6,
-              'mpas': f'{mpasvar}_iceAreaCell'},
+              'mpas': f'{mpasvar}iceAreaCell'},
              {'name': 'iceVolume',
               'title': 'integrated sea ice volume',
               'units': 'km$^3$',
               'factor': 1e-9,
-              'mpas': f'{mpasvar}_iceVolumeCell'},
+              'mpas': f'{mpasvar}iceVolumeCell'},
 #             {'name': 'uVelocityGeo',
 #              'title': 'sea ice velocity zonal',
 #              'units': 'm/s',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_uVelocityGeo'},
+#              'mpas': f'{mpasvar}uVelocityGeo'},
 #             {'name': 'vVelocityGeo',
 #              'title': 'sea ice velocity meridional',
 #              'units': 'm/s',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_vVelocityGeo'},
+#              'mpas': f'{mpasvar}vVelocityGeo'},
 # the following are only available as monthly (for E3SMv2.1 runs):
 #             {'name': 'iceDivergence',
 #              'title': 'sea ice divergence',
 #              'units': '%/day',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_divergence'},
+#              'mpas': f'{mpasvar}divergence'},
 #             {'name': 'firstYearIceConcentration',
 #              'title': 'first-year sea ice concentration',
 #              'units': 'fraction',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_firstYearIceAreaCell'},
+#              'mpas': f'{mpasvar}firstYearIceAreaCell'},
 #             {'name': 'firstYearIceArea',
 #              'title': 'first-year integrated sea ice area',
 #              'units': 'km$^2$',
 #              'factor': 1e-6,
-#              'mpas': f'{mpasvar}_firstYearIceAreaCell'},
+#              'mpas': f'{mpasvar}firstYearIceAreaCell'},
 #             {'name': 'levelIceConcentration',
 #              'title': 'level-ice concentration',
 #              'units': 'fraction',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_levelIceAreaCell'},
+#              'mpas': f'{mpasvar}levelIceAreaCell'},
 #             {'name': 'levelIceArea',
 #              'title': 'integrated level-ice area',
 #              'units': 'km$^2$',
 #              'factor': 1e-6,
-#              'mpas': f'{mpasvar}_levelIceAreaCell'},
+#              'mpas': f'{mpasvar}levelIceAreaCell'},
 #             {'name': 'ridgedIceConcentration',
 #              'title': 'ridged-ice concentration',
 #              'units': 'fraction',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_ridgedIceAreaAverage'},
+#              'mpas': f'{mpasvar}ridgedIceAreaAverage'},
 #             {'name': 'ridgedIceArea',
 #              'title': 'integrated ridged-ice area',
 #              'units': 'km$^2$',
 #              'factor': 1e-6,
-#              'mpas': f'{mpasvar}_ridgedIceAreaAverage'},
+#              'mpas': f'{mpasvar}ridgedIceAreaAverage'},
 #             {'name': 'levelIceVolume',
 #              'title': 'integrated level-ice volume',
 #              'units': 'km$^3$',
 #              'factor': 1e-9,
-#              'mpas': f'{mpasvar}_levelIceVolumeCell'},
+#              'mpas': f'{mpasvar}levelIceVolumeCell'},
 #             {'name': 'ridgedIceVolume',
 #              'title': 'integrated ridged-ice volume',
 #              'units': 'km$^3$',
 #              'factor': 1e-9,
-#              'mpas': f'{mpasvar}_ridgedIceVolumeAverage'},
+#              'mpas': f'{mpasvar}ridgedIceVolumeAverage'},
 #             {'name': 'iceAgeCell',
 #              'title': 'sea ice age',
 #              'units': 'years',
 #              'factor': 1/(86400*365.35),
-#              'mpas': f'{mpasvar}_iceAgeCell'},
+#              'mpas': f'{mpasvar}iceAgeCell'},
 #             {'name': 'uAirVelocity',
 #              'title': 'air velocity zonal',
 #              'units': 'm/s',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_uAirVelocity'},
+#              'mpas': f'{mpasvar}uAirVelocity'},
 #             {'name': 'vAirVelocity',
 #              'title': 'air velocity meridional',
 #              'units': 'm/s',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_vAirVelocity'},
+#              'mpas': f'{mpasvar}vAirVelocity'},
 #             {'name': 'airStressVertexUGeo',
 #              'title': 'ice-air stress zonal',
 #              'units': 'N/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_airStressVertexUGeo'},
+#              'mpas': f'{mpasvar}airStressVertexUGeo'},
 #             {'name': 'airStressVertexVGeo',
 #              'title': 'ice-air stress meridional',
 #              'units': 'N/m$^2$',
 #              'factor': 1,
-#              'mpas': f'{mpasvar}_airStressVertexVGeo'}
+#              'mpas': f'{mpasvar}airStressVertexVGeo'}
             ]
 
 if isShortTermArchive:
@@ -379,15 +396,17 @@ for regionGroup in regionGroups:
         vartitle = var['title']
 
         if varname=='fwc':
-            variableList = [f'{mpasvar}_activeTracers_salinity', f'{mpasvar}_layerThickness']
+            variableList = [f'{mpasvar}activeTracers_salinity', f'{mpasvar}layerThickness']
         elif varname=='totalHeatFlux':
-            variableList = [f'{mpasvar}_sensibleHeatFlux', f'{mpasvar}_latentHeatFlux',
-                            f'{mpasvar}_shortWaveHeatFlux', f'{mpasvar}_longWaveHeatFluxDown',
-                            f'{mpasvar}_longWaveHeatFluxUp']
+            variableList = [f'{mpasvar}sensibleHeatFlux', f'{mpasvar}latentHeatFlux',
+                            f'{mpasvar}shortWaveHeatFlux', f'{mpasvar}longWaveHeatFluxDown',
+                            f'{mpasvar}longWaveHeatFluxUp']
         elif varname=='totalFWFlux':
-            variableList = [f'{mpasvar}_evaporationFlux', f'{mpasvar}_rainFlux',
-                            f'{mpasvar}_snowFlux', f'{mpasvar}_riverRunoffFlux',
-                            f'{mpasvar}_iceRunoffFlux', f'{mpasvar}_seaIceFreshWaterFlux']
+            variableList = [f'{mpasvar}evaporationFlux', f'{mpasvar}rainFlux',
+                            f'{mpasvar}snowFlux', f'{mpasvar}riverRunoffFlux',
+                            f'{mpasvar}iceRunoffFlux', f'{mpasvar}seaIceFreshWaterFlux']
+        elif varname=='iceDeformation':
+            variableList = [f'{mpasvar}divergence', f'{mpasvar}shear']
         else:
             variableList = [varmpasname]
 
@@ -454,7 +473,7 @@ for regionGroup in regionGroups:
                         if regionNameShort=='arcticOcean_noBarents_KaraSeas' or \
                            regionNameShort=='beaufortGyre' or regionNameShort=='canadaBasin':
                             salinity = dsIn['timeMonthly_avg_activeTracers_salinity'].values
-                            layerThickness = dsIn[f'{mpasvar}_layerThickness'].values
+                            layerThickness = dsIn[f'{mpasvar}layerThickness'].values
                             fwc = np.zeros([nTimes, nCells])
                             for itime in range(nTimes):
                                 for icell in range(nCells):
@@ -473,11 +492,11 @@ for regionGroup in regionGroups:
                             print('    Warning: Freshwater content is not computed for this region')
                             continue
                     elif varname=='totalHeatFlux':
-                        totalHeatFlux = dsIn[f'{mpasvar}_sensibleHeatFlux']     + \
-                                        dsIn[f'{mpasvar}_latentHeatFlux']       + \
-                                        dsIn[f'{mpasvar}_shortWaveHeatFlux']    + \
-                                        dsIn[f'{mpasvar}_longWaveHeatFluxDown'] + \
-                                        dsIn[f'{mpasvar}_longWaveHeatFluxUp']
+                        totalHeatFlux = dsIn[f'{mpasvar}sensibleHeatFlux']     + \
+                                        dsIn[f'{mpasvar}latentHeatFlux']       + \
+                                        dsIn[f'{mpasvar}shortWaveHeatFlux']    + \
+                                        dsIn[f'{mpasvar}longWaveHeatFluxDown'] + \
+                                        dsIn[f'{mpasvar}longWaveHeatFluxUp']
                         if regionName=='Global':
                             totalHeatFlux = (areaCell*totalHeatFlux).sum(dim='nCells') / globalAreaCell
                         else:
@@ -487,18 +506,28 @@ for regionGroup in regionGroups:
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
                     elif varname=='totalFWFlux':
-                        totalFWFlux = dsIn[f'{mpasvar}_evaporationFlux'] + \
-                                      dsIn[f'{mpasvar}_rainFlux']        + \
-                                      dsIn[f'{mpasvar}_snowFlux']        + \
-                                      dsIn[f'{mpasvar}_riverRunoffFlux'] + \
-                                      dsIn[f'{mpasvar}_iceRunoffFlux']   + \
-                                      dsIn[f'{mpasvar}_seaIceFreshWaterFlux']
+                        totalFWFlux = dsIn[f'{mpasvar}evaporationFlux'] + \
+                                      dsIn[f'{mpasvar}rainFlux']        + \
+                                      dsIn[f'{mpasvar}snowFlux']        + \
+                                      dsIn[f'{mpasvar}riverRunoffFlux'] + \
+                                      dsIn[f'{mpasvar}iceRunoffFlux']   + \
+                                      dsIn[f'{mpasvar}seaIceFreshWaterFlux']
                         if regionName=='Global':
                             totalFWFlux = (areaCell*totalFWFlux).sum(dim='nCells') / globalAreaCell
                         else:
                             totalFWFlux = (localAreaCell*totalFWFlux.where(cellMask, drop=True)).sum(dim='nCells') / regionalAreaCell
                         totalFWFlux = varfactor * totalFWFlux
                         dsOut = xr.Dataset(data_vars={varname: totalFWFlux},
+                                           coords={'Time': dsIn.Time},
+                                           attrs={'units': varunits, 'description': vartitle})
+                    elif varname=='iceDeformation':
+                        iceDeformation = np.sqrt(dsIn[f'{mpasvar}divergence']**2 + dsIn[f'{mpasvar}shear']**2)
+                        if regionName=='Global':
+                            iceDeformation = (areaCell*iceDeformation).sum(dim='nCells') / globalAreaCell
+                        else:
+                            iceDeformation = (localAreaCell*iceDeformation.where(cellMask, drop=True)).sum(dim='nCells') / regionalAreaCell
+                        iceDeformation = varfactor * iceDeformation
+                        dsOut = xr.Dataset(data_vars={varname: iceDeformation},
                                            coords={'Time': dsIn.Time},
                                            attrs={'units': varunits, 'description': vartitle})
                     elif varname=='iceArea' or varname=='iceVolume' or varname=='firstYearIceArea' or \

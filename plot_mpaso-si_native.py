@@ -379,7 +379,7 @@ variables = [
               'is3d': False},
              {'name': 'iceDeformation',
               'mpasvarname': None,
-              'title': 'Sea ice deformation (sqrt(d^2+s^2)',
+              'title': 'Sea ice deformation (sqrt(d^2+s^2))',
               'units': '%/day',
               'factor': 1,
               'colormap': plt.get_cmap('BrBG_r'),
