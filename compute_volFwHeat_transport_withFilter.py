@@ -121,7 +121,8 @@ else:
 
 # Choose years
 yearStart = 1
-yearEnd = 386 # rA02
+yearEnd = 1
+#yearEnd = 386 # rA02
 #yearEnd = 246 # rA07
 #yearStart = 1950
 #yearEnd = 2014
@@ -302,40 +303,58 @@ if not os.path.exists(outfile3d):
                     dArea = dvEdge.isel(nEdges=range(start, stop)) * dz
                 else:
                     dArea = dvEdge.isel(nEdges=range(start, stop)) * dzOnEdges.isel(nEdges=range(start, stop))
-                #tfreezing = Tfp.isel(nEdges=range(start, stop))
-                #tfreezing = tfreezing.expand_dims(dim='nTransects')
+                area_transect = dArea.sum(dim='nEdges').sum(dim='nVertLevels')
+                tfreezing = Tfp.isel(nEdges=range(start, stop))
+                tfreezing = tfreezing.expand_dims(dim='nTransects')
 
                 normalVel = vel.isel(nEdges=range(start, stop)) * edgeSigns.isel(nTransect=i, nEdges=range(start, stop))
                 normalVel = normalVel.expand_dims(dim='nTransects')
                 temp = tempOnEdges.isel(nEdges=range(start, stop))
                 temp = temp.expand_dims(dim='nTransects')
-                #temp_wrtTfp = temp - tfreezing
-                #salt = saltOnEdges.isel(nEdges=range(start, stop))
-                #salt = salt.expand_dims(dim='nTransects')
+                temp_wrtTfp = temp - tfreezing
+                salt = saltOnEdges.isel(nEdges=range(start, stop))
+                salt = salt.expand_dims(dim='nTransects')
                 maskOnEdges = temp.notnull()
                 normalVel = normalVel.where(maskOnEdges, drop=False)
                 vdArea = normalVel * dArea
+                tdArea = temp * dArea
+                sdArea = salt * dArea
 
                 dsOutTransect['normalVelocity_times_darea'] = xr.DataArray(
                     data=vdArea,
                     dims=('nTransects', 'nEdges', 'nVertLevels', ),
                     attrs=dict(description='normalVelocity times dvEdge times layerthickness', units='m^3/s', )
                     )
+                dsOutTransect['temperature_times_darea'] = xr.DataArray(
+                    data=tdArea,
+                    dims=('nTransects', 'nEdges', 'nVertLevels', ),
+                    attrs=dict(description='temperature times dvEdge times layerthickness', units='degree C m^2', )
+                    )
+                dsOutTransect['salinity_times_darea'] = xr.DataArray(
+                    data=sdArea,
+                    dims=('nTransects', 'nEdges', 'nVertLevels', ),
+                    attrs=dict(description='salinity times dvEdge times layerthickness', units='psu m^2', )
+                    )
                 dsOutTransect['temp'] = xr.DataArray(
                     data=temp,
                     dims=('nTransects', 'nEdges', 'nVertLevels', ),
                     attrs=dict(description='temperature', units='degree C', )
                     )
-                #dsOutTransect['temp_wrtTfp'] = xr.DataArray(
-                #    data=temp_wrtTfp,
-                #    dims=('nTransects', 'nEdges', 'nVertLevels', ),
-                #    attrs=dict(description='temperature minus local Tfreezing point', units='degree C', )
-                #    )
-                #dsOutTransect['salt'] = xr.DataArray(
-                #    data=salt,
-                #    dims=('nTransects', 'nEdges', 'nVertLevels', ),
-                #    attrs=dict(description='salinity', units='psu', )
-                #    )
+                dsOutTransect['temp_wrtTfp'] = xr.DataArray(
+                    data=temp_wrtTfp,
+                    dims=('nTransects', 'nEdges', 'nVertLevels', ),
+                    attrs=dict(description='temperature minus local Tfreezing point', units='degree C', )
+                    )
+                dsOutTransect['salt'] = xr.DataArray(
+                    data=salt,
+                    dims=('nTransects', 'nEdges', 'nVertLevels', ),
+                    attrs=dict(description='salinity', units='psu', )
+                    )
+                dsOutTransect['area_transect'] = xr.DataArray(
+                    data=area_transect,
+                    dims=('nTransects', ),
+                    attrs=dict(description='sum(dx*dz)', units='m^2', )
+                    )
 
                 dsOutTransect = dsOutTransect.pad(nEdges=(0, maxEdges-nEdgesInTransect[i]))
                 dsOutMonthly.append(dsOutTransect)
@@ -357,9 +376,12 @@ else:
     dsOut = xr.open_dataset(outfile3d)
 
 vdArea = dsOut.normalVelocity_times_darea
+tdArea = dsOut.temperature_times_darea
+sdArea = dsOut.salinity_times_darea
 temp = dsOut.temp
-#temp_wrtTfp = dsOut.temp_wrtTfp
-#salt = dsOut.salt
+temp_wrtTfp = dsOut.temp_wrtTfp
+salt = dsOut.salt
+area_transects = dsOut.area_transect
 nEdgesmax = dsOut.nEdgesInTransect.values
 t = cftime.date2num(np.hstack(dsOut['Time']), f'days since {referenceDate}') # days
 
@@ -375,25 +397,55 @@ if not os.path.exists(outfile3d_filtered):
         print(f'\nFiltering data for transect {transectName}...')
         t0 = time.time()
         vdArea_filtered = np.empty((len(t), maxEdges, nVertLevels))
+        tdArea_filtered = np.empty((len(t), maxEdges, nVertLevels))
+        sdArea_filtered = np.empty((len(t), maxEdges, nVertLevels))
         temp_filtered = np.empty((len(t), maxEdges, nVertLevels))
+        temp_wrtTfp_filtered = np.empty((len(t), maxEdges, nVertLevels))
+        salt_filtered = np.empty((len(t), maxEdges, nVertLevels))
         dsOutTransect = xr.Dataset()
         for n in range(nEdgesmax[i]):
             for k in range(nVertLevels):
                 vdArea_filtered[:, n, k] = highpass_filter(np.squeeze(vdArea.values[:, i, n, k]), fs, fc, filter_order=filter_order)
+                tdArea_filtered[:, n, k] = highpass_filter(np.squeeze(tdArea.values[:, i, n, k]), fs, fc, filter_order=filter_order)
+                sdArea_filtered[:, n, k] = highpass_filter(np.squeeze(sdArea.values[:, i, n, k]), fs, fc, filter_order=filter_order)
                 temp_filtered[:, n, k] = highpass_filter(np.squeeze(temp.values[:, i, n, k]), fs, fc, filter_order=filter_order)
-                #temp_wrtTfp_filtered[:, n, k] = highpass_filter(np.squeeze(temp_wrtTfp.values[:, i, n, k]), fs, fc, filter_order=filter_order)
-                #salt_filtered[:, n, k] = highpass_filter(np.squeeze(salt.values[:, i, n, k]), fs, fc, filter_order=filter_order)
+                temp_wrtTfp_filtered[:, n, k] = highpass_filter(np.squeeze(temp_wrtTfp.values[:, i, n, k]), fs, fc, filter_order=filter_order)
+                salt_filtered[:, n, k] = highpass_filter(np.squeeze(salt.values[:, i, n, k]), fs, fc, filter_order=filter_order)
         vdArea_filtered = np.expand_dims(vdArea_filtered, axis=1)
+        tdArea_filtered = np.expand_dims(tdArea_filtered, axis=1)
+        sdArea_filtered = np.expand_dims(sdArea_filtered, axis=1)
         temp_filtered = np.expand_dims(temp_filtered, axis=1)
+        temp_wrtTfp_filtered = np.expand_dims(temp_wrtTfp_filtered, axis=1)
+        salt_filtered = np.expand_dims(salt_filtered, axis=1)
         dsOutTransect['normalVelocity_times_dareaHP'] = xr.DataArray(
                 data=vdArea_filtered,
                 dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
                 attrs=dict(description=f'normalVelocity times dvEdge times layerthickness, high-pass filtered with Butterworth order {filter_order}', units='m^3/s', )
                 )
+        dsOutTransect['temperature_times_dareaHP'] = xr.DataArray(
+                data=tdArea_filtered,
+                dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
+                attrs=dict(description=f'temperature times dvEdge times layerthickness, high-pass filtered with Butterworth order {filter_order}', units='degree C m^2', )
+                )
+        dsOutTransect['salinity_times_dareaHP'] = xr.DataArray(
+                data=sdArea_filtered,
+                dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
+                attrs=dict(description=f'salinity times dvEdge times layerthickness, high-pass filtered with Butterworth order {filter_order}', units='psu m^2', )
+                )
         dsOutTransect['tempHP'] = xr.DataArray(
                 data=temp_filtered,
                 dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
                 attrs=dict(description=f'temperature, high-pass filtered with Butterworth order {filter_order}', units='degree C', )
+                )
+        dsOutTransect['temp_wrtTfpHP'] = xr.DataArray(
+                data=temp_wrtTfp_filtered,
+                dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
+                attrs=dict(description=f'temperature wrt freezing point, high-pass filtered with Butterworth order {filter_order}', units='degree C', )
+                )
+        dsOutTransect['saltHP'] = xr.DataArray(
+                data=salt_filtered,
+                dims=('Time', 'nTransects', 'nEdges', 'nVertLevels', ),
+                attrs=dict(description=f'salinity, high-pass filtered with Butterworth order {filter_order}', units='degree C', )
                 )
         dsOut.append(dsOutTransect)
         print(f'   time taken (seconds)={time.time()-t0}')
@@ -414,14 +466,18 @@ if not os.path.exists(outfile):
     print('\nCompute the different components of the transports...')
     t0 = time.time()
     vdArea_filtered = dsOut.normalVelocity_times_dareaHP
+    tdArea_filtered = dsOut.temperature_times_dareaHP
+    sdArea_filtered = dsOut.salinity_times_dareaHP
     temp_filtered = dsOut.tempHP
-    #temp_wrtTfp_filtered = dsOut.temp_wrtTfpHP
-    #salt_filtered = dsOut.saltHP
+    temp_wrtTfp_filtered = dsOut.temp_wrtTfpHP
+    salt_filtered = dsOut.saltHP
 
     vdArea_longterm = vdArea - vdArea_filtered
+    tdArea_longterm = tdArea - tdArea_filtered
+    sdArea_longterm = sdArea - sdArea_filtered
     temp_longterm = temp - temp_filtered
-    #temp_wrtTfp_longterm = temp_wrtTfp - temp_wrtTfp_filtered
-    #salt_longterm = salt - salt_filtered
+    temp_wrtTfp_longterm = temp_wrtTfp - temp_wrtTfp_filtered
+    salt_longterm = salt - salt_filtered
 
     factor = W_to_TW * rhoRef * cp
     v_t           = factor * (vdArea * temp).sum(dim='nEdges').sum(dim='nVertLevels')
@@ -432,6 +488,12 @@ if not os.path.exists(outfile):
     vol      = m3ps_to_Sv * vdArea.sum(dim='nEdges').sum(dim='nVertLevels')
     volprime = m3ps_to_Sv * vdArea_filtered.sum(dim='nEdges').sum(dim='nVertLevels')
     volmean  = m3ps_to_Sv * vdArea_longterm.sum(dim='nEdges').sum(dim='nVertLevels')
+    temp = tdArea.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+    tprime = tdArea_filtered.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+    tmean = tdArea_longterm.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+    salt = sdArea.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+    sprime = sdArea_filtered.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
+    smean = sdArea_longterm.sum(dim='nEdges').sum(dim='nVertLevels')/area_transect
 
     dsOut = xr.Dataset()
     dsOut['vT'] = xr.DataArray(
@@ -474,6 +536,36 @@ if not os.path.exists(outfile):
             dims=('Time', 'nTransects', ),
             attrs=dict(description='Net volume transport across transect due to vmean', units='Sv', )
             )
+    dsOut['temp'] = xr.DataArray(
+            data=temp,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average temperature along transect due to total t', units='degree C', )
+            )
+    dsOut['tprime'] = xr.DataArray(
+            data=tprime,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average temperature along transect due to tprime', units='degree C', )
+            )
+    dsOut['tmean'] = xr.DataArray(
+            data=tmean,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average temperature along transect due to tmean', units='degree C', )
+            )
+    dsOut['salt'] = xr.DataArray(
+            data=salt,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average salinity along transect due to total s', units='psu', )
+            )
+    dsOut['sprime'] = xr.DataArray(
+            data=sprime,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average salinity along transect due to sprime', units='psu', )
+            )
+    dsOut['smean'] = xr.DataArray(
+            data=smean,
+            dims=('Time', 'nTransects', ),
+            attrs=dict(description='Average salinity along transect due to smean', units='psu', )
+            )
     dsOut['Time'] = xr.DataArray(
             data=t,
             dims=('Time', ),
@@ -493,12 +585,18 @@ else:
     vol = dsIn.vol
     volprime = dsIn.volprime
     volmean = dsIn.volmean
+    temp = dsIn.temp
+    tprime = dsIn.tprime
+    tmean = dsIn.tmean
+    salt = dsIn.salt
+    sprime = dsIn.sprime
+    smean = dsIn.smean
 
 print('\nPlotting...')
 t0 = time.time()
 t = t/365. # for no leap calendar this is OK
-figsize = (24, 10)
-#figsize = (12, 24)
+#figsize = (24, 10) # 4 panel figure
+figsize = (24, 15) # 6 panel figure
 figdpi = 300
 labelDict = {'Drake Passage':'drake', 'Tasmania-Ant':'tasmania', 'Africa-Ant':'africaAnt', 'Antilles Inflow':'antilles', \
              'Mona Passage':'monaPassage', 'Windward Passage':'windwardPassage', 'Florida-Cuba':'floridaCuba', \
@@ -522,7 +620,7 @@ for i in range(nTransects):
     figfile = f'{figdir}/transportsWithPrimesFromHPfilter_{transectName_forfigfile}_{runname}.png'
     fig = plt.figure(figsize=figsize)
     #
-    ax = plt.subplot(221)
+    ax = plt.subplot(321)
     #ax = plt.subplot(711)
     ax.plot(t, v_t.isel(nTransects=i), 'k', linewidth=2, label='v*T')
     ax.plot(t, vprime_tprime.isel(nTransects=i), 'b', linewidth=2, label='vprime*Tprime')
@@ -535,7 +633,7 @@ for i in range(nTransects):
     ax.set_ylabel(r'Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
     ax.legend()
     #
-    ax = plt.subplot(222)
+    ax = plt.subplot(322)
     ax.plot(t, vol.isel(nTransects=i), 'k', linewidth=2, label='v*T')
     ax.plot(t, volprime.isel(nTransects=i), 'b', linewidth=2, label='vprime*Tprime')
     ax.plot(t, volmean.isel(nTransects=i), 'green', linewidth=2, label='vmean*Tprime')
@@ -546,7 +644,7 @@ for i in range(nTransects):
     ax.legend()
     #
     trange = range(0, 72) # first 6 years
-    ax = plt.subplot(223)
+    ax = plt.subplot(323)
     #ax = plt.subplot(713)
     ax.plot(t[trange], v_t.isel(Time=trange, nTransects=i), 'k', linewidth=2, label='v*T')
     ax.plot(t[trange], vprime_tprime.isel(Time=trange, nTransects=i), 'b', linewidth=2, label='vprime*Tprime')
@@ -560,7 +658,7 @@ for i in range(nTransects):
     ax.set_ylabel(r'Heat transport wrt 0$^\circ$C (TW)', fontsize=12, fontweight='bold')
     ax.legend()
     #
-    ax = plt.subplot(224)
+    ax = plt.subplot(324)
     ax.plot(t[trange], vol.isel(Time=trange, nTransects=i), 'k', linewidth=2, label='v*T')
     ax.plot(t[trange], volprime.isel(Time=trange, nTransects=i), 'b', linewidth=2, label='vprime*Tprime')
     ax.plot(t[trange], volmean.isel(Time=trange, nTransects=i), 'green', linewidth=2, label='vmean*Tprime')
@@ -569,6 +667,24 @@ for i in range(nTransects):
     ax.autoscale(enable=True, axis='x', tight=True)
     ax.set_xlabel('Time (years)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Net volume transport (Sv)', fontsize=12, fontweight='bold')
+    ax.legend()
+    #
+    ax = plt.subplot(325)
+    ax.plot(t, temp.isel(nTransects=i), 'k', linewidth=2, label='T')
+    ax.plot(t, tprime.isel(nTransects=i), 'b', linewidth=2, label='Tprime')
+    ax.plot(t, tmean.isel(nTransects=i), 'green', linewidth=2, label='Tmean')
+    ax.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax.autoscale(enable=True, axis='x', tight=True)
+    ax.set_ylabel('Temperature (degC)', fontsize=12, fontweight='bold')
+    ax.legend()
+    #
+    ax = plt.subplot(326)
+    ax.plot(t, salt.isel(nTransects=i), 'k', linewidth=2, label='S')
+    ax.plot(t, sprime.isel(nTransects=i), 'b', linewidth=2, label='Sprime')
+    ax.plot(t, smean.isel(nTransects=i), 'green', linewidth=2, label='Smean')
+    ax.grid(color='k', linestyle=':', linewidth = 0.5)
+    ax.autoscale(enable=True, axis='x', tight=True)
+    ax.set_ylabel('Salinity (psu)', fontsize=12, fontweight='bold')
     ax.legend()
     #
     #ntime = len(t)
